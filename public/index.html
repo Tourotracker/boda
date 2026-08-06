@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RSVP · Nuestra Boda</title>
+<title>RSVP · Boda de Inés e Ignacio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Karla:wght@400;500;600&display=swap" rel="stylesheet">
@@ -71,6 +71,39 @@
     font-size:14px;
     color:#8A8275;
   }
+  .event-info{
+    display:flex;
+    gap:16px;
+    flex-wrap:wrap;
+    margin-bottom:32px;
+    padding:18px 20px;
+    background:var(--cream);
+    border:1px solid var(--gold-soft);
+    border-radius:3px;
+  }
+  .event-item{flex:1; min-width:200px;}
+  .event-label{
+    font-family:'Cormorant Garamond', serif;
+    font-weight:600;
+    font-size:17px;
+    color:var(--gold);
+    margin-bottom:4px;
+  }
+  .event-value{
+    font-size:13px;
+    color:var(--ink);
+    line-height:1.4;
+  }
+  .event-link{
+    display:inline-block;
+    margin-top:6px;
+    font-size:12px;
+    font-weight:600;
+    color:var(--sage);
+    text-decoration:none;
+    letter-spacing:0.02em;
+  }
+  .event-link:hover{text-decoration:underline;}
   fieldset{
     border:none;
     margin-bottom:26px;
@@ -216,11 +249,23 @@
 
   <form id="rsvpForm">
     <header>
-      <!-- EDITA AQUÍ: fecha límite, nombres y fecha del sub-título -->
-      <div class="eyebrow">Por favor confirma antes del 1 de septiembre</div>
-      <h1>Nuestra <span class="names">Boda</span></h1>
-      <div class="sub">Confirma tu asistencia y cuéntanos un poco más</div>
+      <div class="eyebrow">Por favor confirma antes del 1 de noviembre</div>
+      <h1>La boda de <span class="names">Inés e Ignacio</span></h1>
+      <div class="sub">27 de noviembre de 2026</div>
     </header>
+
+    <div class="event-info">
+      <div class="event-item">
+        <div class="event-label">Ceremonia</div>
+        <div class="event-value">12:00h · Parroquia de Santa Cruz, Sevilla</div>
+        <a class="event-link" href="https://www.google.com/maps/search/?api=1&query=Parroquia+de+Santa+Cruz+Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="event-item">
+        <div class="event-label">Celebración</div>
+        <div class="event-value">Cortijo Torrequemada</div>
+        <a class="event-link" href="https://www.google.com/maps/search/?api=1&query=Cortijo+Torrequemada+Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+    </div>
 
     <fieldset>
       <legend>Tus datos</legend>
