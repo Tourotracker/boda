@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RSVP · Nuestra Boda</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Karla:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#FAF6EF;
+    --gold:#B68A3C;
+    --gold-soft:#E8D9BC;
+    --sage:#7C8B6F;
+    --ink:#3A352E;
+    --line:#DDD2BC;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    font-family:'Karla', sans-serif;
+    background:var(--cream);
+    color:var(--ink);
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:32px 16px;
+    line-height:1.5;
+  }
+  .card{
+    max-width:560px;
+    width:100%;
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:48px 40px;
+    position:relative;
+  }
+  .card::before{
+    content:"";
+    position:absolute;
+    inset:14px;
+    border:1px solid var(--gold-soft);
+    pointer-events:none;
+    border-radius:2px;
+  }
+  header{
+    text-align:center;
+    margin-bottom:36px;
+  }
+  .eyebrow{
+    font-size:11px;
+    letter-spacing:0.25em;
+    text-transform:uppercase;
+    color:var(--sage);
+    margin-bottom:10px;
+  }
+  h1{
+    font-family:'Cormorant Garamond', serif;
+    font-weight:600;
+    font-size:38px;
+    color:var(--ink);
+  }
+  .names{
+    font-style:italic;
+    color:var(--gold);
+  }
+  .sub{
+    margin-top:8px;
+    font-size:14px;
+    color:#8A8275;
+  }
+  fieldset{
+    border:none;
+    margin-bottom:26px;
+  }
+  legend{
+    font-family:'Cormorant Garamond', serif;
+    font-size:20px;
+    font-weight:600;
+    margin-bottom:14px;
+    color:var(--ink);
+    padding-bottom:6px;
+    border-bottom:1px solid var(--gold-soft);
+    width:100%;
+  }
+  label{
+    display:block;
+    font-size:13px;
+    font-weight:600;
+    margin-bottom:6px;
+    color:#6B6457;
+  }
+  .field{margin-bottom:16px;}
+  input[type="text"], input[type="email"], input[type="number"], textarea, select{
+    width:100%;
+    padding:11px 13px;
+    border:1px solid var(--line);
+    border-radius:3px;
+    font-family:'Karla', sans-serif;
+    font-size:15px;
+    color:var(--ink);
+    background:var(--cream);
+    transition:border-color .15s, box-shadow .15s;
+  }
+  input:focus, textarea:focus, select:focus{
+    outline:none;
+    border-color:var(--gold);
+    box-shadow:0 0 0 3px rgba(182,138,60,0.15);
+  }
+  textarea{resize:vertical; min-height:80px;}
+  .radio-group{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .radio-option{
+    flex:1;
+    min-width:110px;
+  }
+  .radio-option input{
+    position:absolute;
+    opacity:0;
+    width:0; height:0;
+  }
+  .radio-option label{
+    display:block;
+    text-align:center;
+    padding:12px 10px;
+    border:1px solid var(--line);
+    border-radius:3px;
+    cursor:pointer;
+    font-weight:600;
+    font-size:14px;
+    color:var(--ink);
+    transition:all .15s;
+    margin-bottom:0;
+  }
+  .radio-option input:checked + label{
+    background:var(--sage);
+    border-color:var(--sage);
+    color:#fff;
+  }
+  .conditional{
+    display:none;
+    padding-top:4px;
+  }
+  .conditional.visible{display:block;}
+  .checkbox-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .checkbox-row input{
+    width:auto;
+    accent-color:var(--sage);
+  }
+  .checkbox-row label{
+    margin:0;
+    font-weight:400;
+    font-size:14px;
+  }
+  .hint{
+    font-size:12px;
+    color:#A39B8C;
+    margin-top:4px;
+    font-weight:400;
+  }
+  button{
+    width:100%;
+    padding:15px;
+    background:var(--gold);
+    color:#fff;
+    border:none;
+    border-radius:3px;
+    font-family:'Karla', sans-serif;
+    font-size:15px;
+    font-weight:600;
+    letter-spacing:0.05em;
+    text-transform:uppercase;
+    cursor:pointer;
+    transition:background .15s;
+  }
+  button:hover{background:#9C7531;}
+  button:disabled{background:#CBBFA8; cursor:not-allowed;}
+  .status{
+    text-align:center;
+    margin-top:14px;
+    font-size:14px;
+    min-height:20px;
+  }
+  .status.success{color:var(--sage);}
+  .status.error{color:#B05A4A;}
+  .success-screen{
+    text-align:center;
+  }
+  .success-screen .eyebrow{margin-bottom:18px;}
+  .success-screen h2{
+    font-family:'Cormorant Garamond', serif;
+    font-size:30px;
+    margin-bottom:12px;
+  }
+  .success-screen p{
+    color:#8A8275;
+    font-size:15px;
+  }
+  @media (max-width:480px){
+    .card{padding:32px 22px;}
+    h1{font-size:30px;}
+  }
+</style>
+</head>
+<body>
+<div class="card" id="card">
+
+  <form id="rsvpForm">
+    <header>
+      <!-- EDITA AQUÍ: fecha límite, nombres y fecha del sub-título -->
+      <div class="eyebrow">Por favor confirma antes del 1 de septiembre</div>
+      <h1>Nuestra <span class="names">Boda</span></h1>
+      <div class="sub">Confirma tu asistencia y cuéntanos un poco más</div>
+    </header>
+
+    <fieldset>
+      <legend>Tus datos</legend>
+      <div class="field">
+        <label for="tratamiento">Tratamiento</label>
+        <select id="tratamiento" name="tratamiento" required>
+          <option value="">Selecciona...</option>
+          <option value="Sr.">Sr.</option>
+          <option value="Sra.">Sra.</option>
+          <option value="Srta.">Srta.</option>
+          <option value="Dr.">Dr.</option>
+          <option value="Dra.">Dra.</option>
+          <option value="Otro">Otro / prefiero no decirlo</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="nombre">Nombre completo</label>
+        <input type="text" id="nombre" name="nombre" required placeholder="Nombre y apellidos">
+      </div>
+      <div class="field">
+        <label for="email">Correo electrónico</label>
+        <input type="email" id="email" name="email" required placeholder="tucorreo@ejemplo.com">
+      </div>
+
+      <fieldset style="margin-top:8px; margin-bottom:0;">
+        <legend style="font-size:16px;">Dirección</legend>
+        <div class="field">
+          <label for="calle">Calle y número</label>
+          <input type="text" id="calle" name="calle" required placeholder="Calle, número, piso...">
+        </div>
+        <div class="field" style="display:flex; gap:12px;">
+          <div style="flex:1;">
+            <label for="cp">Código postal</label>
+            <input type="text" id="cp" name="cp" required placeholder="28001">
+          </div>
+          <div style="flex:2;">
+            <label for="ciudad">Ciudad</label>
+            <input type="text" id="ciudad" name="ciudad" required placeholder="Madrid">
+          </div>
+        </div>
+        <div class="field">
+          <label for="provincia">Provincia</label>
+          <input type="text" id="provincia" name="provincia" required placeholder="Madrid">
+        </div>
+      </fieldset>
+    </fieldset>
+
+    <fieldset>
+      <legend>Asistencia</legend>
+      <div class="field">
+        <label>¿Podrás acompañarnos?</label>
+        <div class="radio-group">
+          <div class="radio-option">
+            <input type="radio" id="asiste-si" name="asiste" value="si" required>
+            <label for="asiste-si">Sí, asistiré</label>
+          </div>
+          <div class="radio-option">
+            <input type="radio" id="asiste-no" name="asiste" value="no" required>
+            <label for="asiste-no">No podré ir</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="conditional" id="detallesAsistencia">
+        <div class="field">
+          <label>¿Vienes con acompañante?</label>
+          <div class="radio-group">
+            <div class="radio-option">
+              <input type="radio" id="acomp-no" name="conAcompanante" value="no" checked>
+              <label for="acomp-no">No</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" id="acomp-si" name="conAcompanante" value="si">
+              <label for="acomp-si">Sí</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="conditional" id="datosAcompanante">
+          <div class="field">
+            <label for="acompananteNombre">Nombre y apellidos del acompañante</label>
+            <input type="text" id="acompananteNombre" name="acompananteNombre" placeholder="Nombre y apellidos">
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="transporte">Transporte</label>
+          <select id="transporte" name="transporte">
+            <option value="propio">Llegaré con transporte propio</option>
+            <option value="autobus">Necesitaré el autobús desde la ciudad</option>
+            <option value="otro">Otro / aún no lo sé</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="alergias">Alergias o restricciones alimenticias</label>
+          <textarea id="alergias" name="alergias" placeholder="Ej: alergia a frutos secos, dieta vegetariana, sin gluten..."></textarea>
+        </div>
+      </div>
+    </fieldset>
+
+    <button type="submit" id="submitBtn">Enviar confirmación</button>
+    <div class="status" id="status"></div>
+  </form>
+
+  <div class="success-screen" id="successScreen" style="display:none;">
+    <div class="eyebrow">Confirmación recibida</div>
+    <h2>¡Gracias!</h2>
+    <p>Hemos recibido tu respuesta. Estamos deseando celebrarlo contigo.</p>
+  </div>
+
+</div>
+
+<script>
+  const asistRadios = document.querySelectorAll('input[name="asiste"]');
+  const detalles = document.getElementById('detallesAsistencia');
+  const transporteInput = document.getElementById('transporte');
+  const alergiasInput = document.getElementById('alergias');
+
+  const acompRadios = document.querySelectorAll('input[name="conAcompanante"]');
+  const datosAcompanante = document.getElementById('datosAcompanante');
+  const acompananteNombreInput = document.getElementById('acompananteNombre');
+
+  asistRadios.forEach(r => r.addEventListener('change', () => {
+    if (r.value === 'si' && r.checked) {
+      detalles.classList.add('visible');
+    } else if (r.checked) {
+      detalles.classList.remove('visible');
+    }
+  }));
+
+  acompRadios.forEach(r => r.addEventListener('change', () => {
+    if (r.value === 'si' && r.checked) {
+      datosAcompanante.classList.add('visible');
+      acompananteNombreInput.required = true;
+    } else if (r.checked) {
+      datosAcompanante.classList.remove('visible');
+      acompananteNombreInput.required = false;
+      acompananteNombreInput.value = '';
+    }
+  }));
+
+  const form = document.getElementById('rsvpForm');
+  const status = document.getElementById('status');
+  const submitBtn = document.getElementById('submitBtn');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    status.textContent = '';
+    status.className = 'status';
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Enviando...';
+
+    const asiste = form.querySelector('input[name="asiste"]:checked')?.value || '';
+    const conAcompanante = form.querySelector('input[name="conAcompanante"]:checked')?.value || 'no';
+
+    const entry = {
+      tratamiento: document.getElementById('tratamiento').value,
+      nombre: document.getElementById('nombre').value.trim(),
+      email: document.getElementById('email').value.trim(),
+      calle: document.getElementById('calle').value.trim(),
+      cp: document.getElementById('cp').value.trim(),
+      ciudad: document.getElementById('ciudad').value.trim(),
+      provincia: document.getElementById('provincia').value.trim(),
+      asiste: asiste,
+      conAcompanante: asiste === 'si' ? conAcompanante : 'no',
+      acompananteNombre: (asiste === 'si' && conAcompanante === 'si') ? acompananteNombreInput.value.trim() : '',
+      transporte: asiste === 'si' ? transporteInput.value : '',
+      alergias: asiste === 'si' ? alergiasInput.value.trim() : ''
+    };
+
+    if (!entry.nombre || !entry.email || !entry.tratamiento || !entry.calle || !entry.cp || !entry.ciudad || !entry.provincia || !asiste) {
+      status.textContent = 'Por favor completa los campos obligatorios.';
+      status.className = 'status error';
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Enviar confirmación';
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/rsvp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(entry)
+      });
+      if (!response.ok) throw new Error('Error del servidor');
+
+      form.style.display = 'none';
+      document.getElementById('successScreen').style.display = 'block';
+    } catch (err) {
+      status.textContent = 'Hubo un problema al enviar. Inténtalo de nuevo.';
+      status.className = 'status error';
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Enviar confirmación';
+    }
+  });
+</script>
+</body>
+</html>

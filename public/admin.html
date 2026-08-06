@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Respuestas RSVP</title>
+<style>
+  :root{
+    --cream:#FAF6EF; --gold:#B68A3C; --gold-soft:#E8D9BC;
+    --sage:#7C8B6F; --ink:#3A352E; --line:#DDD2BC;
+  }
+  *{box-sizing:border-box;}
+  body{
+    font-family:-apple-system,'Karla',sans-serif;
+    background:var(--cream); color:var(--ink);
+    margin:0; padding:32px 16px;
+  }
+  h1{font-family:'Cormorant Garamond',serif; font-size:30px; margin-bottom:4px;}
+  .sub{color:#8A8275; font-size:14px; margin-bottom:24px;}
+  .gate{
+    max-width:360px; margin:80px auto; background:#fff; border:1px solid var(--line);
+    border-radius:4px; padding:32px;
+  }
+  .gate label{display:block; font-size:13px; font-weight:600; margin-bottom:8px;}
+  .gate input{
+    width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:3px;
+    font-size:15px; margin-bottom:14px;
+  }
+  button{
+    background:var(--gold); color:#fff; border:none; border-radius:3px;
+    padding:10px 16px; font-weight:600; cursor:pointer; font-size:14px;
+  }
+  button:hover{background:#9C7531;}
+  .error{color:#B05A4A; font-size:13px; margin-top:4px;}
+  #panel{display:none; max-width:1100px; margin:0 auto;}
+  .stats{display:flex; gap:16px; margin-bottom:24px; flex-wrap:wrap;}
+  .stat{
+    background:#fff; border:1px solid var(--line); border-radius:4px;
+    padding:14px 20px; min-width:120px;
+  }
+  .stat .n{font-family:'Cormorant Garamond',serif; font-size:28px; color:var(--gold);}
+  .stat .l{font-size:12px; color:#8A8275; text-transform:uppercase; letter-spacing:.05em;}
+  .toolbar{display:flex; justify-content:flex-end; margin-bottom:12px;}
+  table{
+    width:100%; border-collapse:collapse; background:#fff; border:1px solid var(--line);
+    font-size:13px;
+  }
+  th,td{text-align:left; padding:9px 10px; border-bottom:1px solid var(--line); white-space:nowrap;}
+  th{background:var(--gold-soft); font-weight:600; position:sticky; top:0;}
+  tr:last-child td{border-bottom:none;}
+  .si{color:var(--sage); font-weight:600;}
+  .no{color:#B05A4A; font-weight:600;}
+  .table-wrap{overflow-x:auto; border-radius:4px;}
+</style>
+</head>
+<body>
+
+<div class="gate" id="gate">
+  <label for="token">Token de administrador</label>
+  <input type="password" id="token" placeholder="ADMIN_TOKEN">
+  <button id="entrar">Ver respuestas</button>
+  <div class="error" id="gateError"></div>
+</div>
+
+<div id="panel">
+  <h1>Respuestas RSVP</h1>
+  <div class="sub">Listado de confirmaciones recibidas</div>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="toolbar">
+    <button id="exportar">Descargar CSV</button>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Fecha</th><th>Nombre</th><th>Email</th><th>Asiste</th>
+          <th>Acompañante</th><th>Nombre acompañante</th><th>Transporte</th>
+          <th>Alergias</th><th>Dirección</th>
+        </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  let currentData = [];
+
+  document.getElementById('entrar').addEventListener('click', cargar);
+  document.getElementById('token').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') cargar();
+  });
+
+  async function cargar() {
+    const token = document.getElementById('token').value.trim();
+    const errorEl = document.getElementById('gateError');
+    errorEl.textContent = '';
+    if (!token) return;
+
+    try {
+      const res = await fetch('/api/respuestas', {
+        headers: { 'x-admin-token': token }
+      });
+      if (!res.ok) {
+        errorEl.textContent = 'Token incorrecto.';
+        return;
+      }
+      currentData = await res.json();
+      render(currentData);
+      document.getElementById('gate').style.display = 'none';
+      document.getElementById('panel').style.display = 'block';
+    } catch (err) {
+      errorEl.textContent = 'Error al conectar con el servidor.';
+    }
+  }
+
+  function render(data) {
+    const total = data.length;
+    const siCount = data.filter(r => r.asiste === 'si').length;
+    const noCount = total - siCount;
+    const acompanantes = data.filter(r => r.con_acompanante === 'si').length;
+
+    document.getElementById('stats').innerHTML = `
+      <div class="stat"><div class="n">${total}</div><div class="l">Respuestas</div></div>
+      <div class="stat"><div class="n">${siCount}</div><div class="l">Asisten</div></div>
+      <div class="stat"><div class="n">${noCount}</div><div class="l">No asisten</div></div>
+      <div class="stat"><div class="n">${acompanantes}</div><div class="l">Con acompañante</div></div>
+    `;
+
+    document.getElementById('rows').innerHTML = data.map(r => `
+      <tr>
+        <td>${new Date(r.created_at).toLocaleDateString('es-ES')}</td>
+        <td>${escapeHtml(r.tratamiento)} ${escapeHtml(r.nombre)}</td>
+        <td>${escapeHtml(r.email)}</td>
+        <td class="${r.asiste === 'si' ? 'si' : 'no'}">${r.asiste === 'si' ? 'Sí' : 'No'}</td>
+        <td>${r.con_acompanante === 'si' ? 'Sí' : 'No'}</td>
+        <td>${escapeHtml(r.acompanante_nombre)}</td>
+        <td>${escapeHtml(r.transporte)}</td>
+        <td>${escapeHtml(r.alergias)}</td>
+        <td>${escapeHtml(r.calle)}, ${escapeHtml(r.cp)} ${escapeHtml(r.ciudad)} (${escapeHtml(r.provincia)})</td>
+      </tr>
+    `).join('');
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/[&<>"']/g, c => ({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+    }[c]));
+  }
+
+  document.getElementById('exportar').addEventListener('click', () => {
+    if (!currentData.length) return;
+    const cols = ['created_at','tratamiento','nombre','email','calle','cp','ciudad','provincia',
+      'asiste','con_acompanante','acompanante_nombre','transporte','alergias'];
+    const csvRows = [cols.join(',')];
+    currentData.forEach(r => {
+      csvRows.push(cols.map(c => `"${String(r[c] ?? '').replace(/"/g,'""')}"`).join(','));
+    });
+    const blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'respuestas-rsvp.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+</script>
+</body>
+</html>
