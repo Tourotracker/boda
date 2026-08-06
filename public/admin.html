@@ -13,7 +13,7 @@
   body{
     font-family:-apple-system,'Karla',sans-serif;
     background:var(--cream); color:var(--ink);
-    margin:0; padding:32px 16px;
+    margin:0; padding:32px 24px;
   }
   h1{font-family:'Cormorant Garamond',serif; font-size:30px; margin-bottom:4px;}
   .sub{color:#8A8275; font-size:14px; margin-bottom:24px;}
@@ -32,22 +32,33 @@
   }
   button:hover{background:#9C7531;}
   .error{color:#B05A4A; font-size:13px; margin-top:4px;}
-  #panel{display:none; max-width:1100px; margin:0 auto;}
+  #panel{display:none; max-width:1600px; margin:0 auto;}
   .stats{display:flex; gap:16px; margin-bottom:24px; flex-wrap:wrap;}
   .stat{
     background:#fff; border:1px solid var(--line); border-radius:4px;
-    padding:14px 20px; min-width:120px;
+    padding:14px 20px; min-width:120px; flex:1;
   }
+  .stat.highlight{background:var(--sage); border-color:var(--sage);}
+  .stat.highlight .n, .stat.highlight .l{color:#fff;}
   .stat .n{font-family:'Cormorant Garamond',serif; font-size:28px; color:var(--gold);}
   .stat .l{font-size:12px; color:#8A8275; text-transform:uppercase; letter-spacing:.05em;}
   .toolbar{display:flex; justify-content:flex-end; margin-bottom:12px;}
   table{
-    width:100%; border-collapse:collapse; background:#fff; border:1px solid var(--line);
+    width:100%; table-layout:fixed; border-collapse:collapse; background:#fff; border:1px solid var(--line);
     font-size:13px;
   }
-  th,td{text-align:left; padding:9px 10px; border-bottom:1px solid var(--line); white-space:nowrap;}
+  th,td{text-align:left; padding:9px 10px; border-bottom:1px solid var(--line); word-wrap:break-word;}
   th{background:var(--gold-soft); font-weight:600; position:sticky; top:0;}
   tr:last-child td{border-bottom:none;}
+  th:nth-child(1){width:8%;}
+  th:nth-child(2){width:13%;}
+  th:nth-child(3){width:14%;}
+  th:nth-child(4){width:6%;}
+  th:nth-child(5){width:8%;}
+  th:nth-child(6){width:12%;}
+  th:nth-child(7){width:9%;}
+  th:nth-child(8){width:12%;}
+  th:nth-child(9){width:18%;}
   .si{color:var(--sage); font-weight:600;}
   .no{color:#B05A4A; font-weight:600;}
   .table-wrap{overflow-x:auto; border-radius:4px;}
@@ -121,13 +132,15 @@
     const total = data.length;
     const siCount = data.filter(r => r.asiste === 'si').length;
     const noCount = total - siCount;
-    const acompanantes = data.filter(r => r.con_acompanante === 'si').length;
+    const acompanantes = data.filter(r => r.asiste === 'si' && r.con_acompanante === 'si').length;
+    const totalInvitados = siCount + acompanantes;
 
     document.getElementById('stats').innerHTML = `
       <div class="stat"><div class="n">${total}</div><div class="l">Respuestas</div></div>
-      <div class="stat"><div class="n">${siCount}</div><div class="l">Asisten</div></div>
       <div class="stat"><div class="n">${noCount}</div><div class="l">No asisten</div></div>
-      <div class="stat"><div class="n">${acompanantes}</div><div class="l">Con acompañante</div></div>
+      <div class="stat"><div class="n">${siCount}</div><div class="l">Invitados</div></div>
+      <div class="stat"><div class="n">${acompanantes}</div><div class="l">Acompañantes</div></div>
+      <div class="stat highlight"><div class="n">${totalInvitados}</div><div class="l">Total asistentes</div></div>
     `;
 
     document.getElementById('rows').innerHTML = data.map(r => `
