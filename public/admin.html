@@ -134,12 +134,14 @@
     const noCount = total - siCount;
     const acompanantes = data.filter(r => r.asiste === 'si' && r.con_acompanante === 'si').length;
     const totalInvitados = siCount + acompanantes;
+    const pctAsistencia = total ? Math.round((siCount / total) * 100) : 0;
 
     document.getElementById('stats').innerHTML = `
       <div class="stat"><div class="n">${total}</div><div class="l">Respuestas</div></div>
       <div class="stat"><div class="n">${noCount}</div><div class="l">No asisten</div></div>
       <div class="stat"><div class="n">${siCount}</div><div class="l">Invitados</div></div>
       <div class="stat"><div class="n">${acompanantes}</div><div class="l">Acompañantes</div></div>
+      <div class="stat"><div class="n">${pctAsistencia}%</div><div class="l">% asistencia</div></div>
       <div class="stat highlight"><div class="n">${totalInvitados}</div><div class="l">Total asistentes</div></div>
     `;
 
