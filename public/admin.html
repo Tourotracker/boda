@@ -67,8 +67,8 @@
 <body>
 
 <div class="gate" id="gate">
-  <label for="token">Token de administrador</label>
-  <input type="password" id="token" placeholder="ADMIN_TOKEN">
+  <label for="token">Contraseña de administrador</label>
+  <input type="password" id="token" placeholder="Contraseña">
   <button id="entrar">Ver respuestas</button>
   <div class="error" id="gateError"></div>
 </div>
@@ -116,7 +116,7 @@
         headers: { 'x-admin-token': token }
       });
       if (!res.ok) {
-        errorEl.textContent = 'Token incorrecto.';
+        errorEl.textContent = 'Contraseña incorrecta.';
         return;
       }
       currentData = await res.json();
