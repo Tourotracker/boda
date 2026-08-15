@@ -442,18 +442,7 @@
       <fieldset>
         <legend>Datos</legend>
 
-        <div class="field field-row">
-          <div class="col-1">
-            <label for="nombre">Nombre</label>
-            <input type="text" id="nombre" name="nombre" required placeholder="Nombre">
-          </div>
-          <div class="col-1">
-            <label for="apellidos">Apellidos</label>
-            <input type="text" id="apellidos" name="apellidos" required placeholder="Apellidos">
-          </div>
-        </div>
-
-        <div class="conditional" id="datosCompletos">
+        <div class="conditional" id="tratamientoWrap">
           <div class="field">
             <label for="tratamiento">Tratamiento</label>
             <select id="tratamiento" name="tratamiento">
@@ -470,7 +459,20 @@
               <input type="text" id="tratamientoOtro" name="tratamientoOtro" placeholder="Escribe aquí">
             </div>
           </div>
+        </div>
 
+        <div class="field field-row">
+          <div class="col-1">
+            <label for="nombre">Nombre</label>
+            <input type="text" id="nombre" name="nombre" required placeholder="Nombre">
+          </div>
+          <div class="col-1">
+            <label for="apellidos">Apellidos</label>
+            <input type="text" id="apellidos" name="apellidos" required placeholder="Apellidos">
+          </div>
+        </div>
+
+        <div class="conditional" id="datosCompletos">
           <fieldset style="margin-top:8px; margin-bottom:0;">
             <legend style="font-size:19px;">Dirección</legend>
             <div class="field">
@@ -640,6 +642,7 @@
   const status = document.getElementById('status');
   const card = document.getElementById('card');
   const datosCompletos = document.getElementById('datosCompletos');
+  const tratamientoWrap = document.getElementById('tratamientoWrap');
   const btnDatosSiguiente = document.getElementById('btnDatosSiguiente');
   const btnsEnviarDatos = document.querySelectorAll('.btn-submit-datos');
   const tabTransporte = document.getElementById('tabTransporte');
@@ -745,6 +748,7 @@
   function actualizarAsistencia(valor) {
     const noAsiste = valor === 'no';
     datosCompletos.classList.toggle('visible', !noAsiste);
+    tratamientoWrap.classList.toggle('visible', !noAsiste);
     btnDatosSiguiente.style.display = noAsiste ? 'none' : '';
     btnsEnviarDatos.forEach(b => b.style.display = noAsiste ? '' : 'none');
     tabTransporte.style.display = noAsiste ? 'none' : '';
