@@ -359,6 +359,42 @@
     color:var(--gray);
     font-size:15px;
   }
+  .success-actions{
+    margin-top:28px;
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+    gap:16px;
+  }
+  .btn-info{
+    display:inline-block;
+    width:100%;
+    padding:15px 20px;
+    background:var(--gold);
+    color:#fff;
+    border:1px solid var(--gold);
+    border-radius:2px;
+    font-family:'Manrope', sans-serif;
+    font-size:15px;
+    font-weight:600;
+    text-decoration:none;
+    text-align:center;
+    box-sizing:border-box;
+    transition:background .15s;
+  }
+  .btn-info:hover{background:#5A0C1A; border-color:#5A0C1A;}
+  .btn-modificar{
+    width:auto;
+    background:none;
+    border:none;
+    padding:0;
+    color:var(--gray);
+    font-size:13px;
+    text-decoration:underline;
+    cursor:pointer;
+    font-weight:400;
+  }
+  .btn-modificar:hover{color:var(--ink); background:none;}
   @media (max-width:480px){
     body{padding:32px 20px;}
     h1{font-size:36px;}
@@ -602,14 +638,36 @@
   <div class="success-screen" id="successScreen" style="display:none;">
     <div class="success-badge">✓</div>
     <div class="eyebrow">Confirmación recibida</div>
-    <h2>¡Gracias!</h2>
-    <p>Hemos recibido tu respuesta. Estamos deseando celebrarlo contigo.</p>
+    <h2 id="successHeading">¡Gracias!</h2>
+    <p id="successMessage">Hemos recibido tu respuesta. Estamos deseando celebrarlo contigo.</p>
+    <div class="success-actions">
+      <a href="/informacion.html" class="btn-info">Ver información de la boda →</a>
+      <button type="button" id="btnModificar" class="btn-modificar">Modificar mi respuesta</button>
+    </div>
   </div>
 
   </div>
 </div>
 
 <script>
+  function getCookie(nombre) {
+    const match = document.cookie.match('(^|;)\\s*' + nombre + '\\s*=\\s*([^;]+)');
+    return match ? decodeURIComponent(match.pop()) : '';
+  }
+  function setCookie(nombre, valor, dias) {
+    const expira = new Date(Date.now() + dias * 864e5).toUTCString();
+    document.cookie = nombre + '=' + encodeURIComponent(valor) + '; expires=' + expira + '; path=/; SameSite=Lax';
+  }
+  function obtenerGuestToken() {
+    let token = getCookie('guestToken');
+    if (!token) {
+      token = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now().toString(36) + Math.random().toString(36).slice(2));
+      setCookie('guestToken', token, 400);
+    }
+    return token;
+  }
+  const guestToken = obtenerGuestToken();
+
   const asistRadios = document.querySelectorAll('input[name="asiste"]');
   const alergiasInput = document.getElementById('alergias');
   const acompananteAlergiasInput = document.getElementById('acompananteAlergias');
@@ -711,6 +769,7 @@
       : '';
 
     return {
+      guestToken: guestToken,
       tratamiento: tratamientoValor,
       nombre: document.getElementById('nombre').value.trim(),
       apellidos: document.getElementById('apellidos').value.trim(),
@@ -858,7 +917,85 @@
     btn.addEventListener('click', () => mostrarPaso(Number(btn.dataset.back)));
   });
 
-  mostrarPaso(1);
+  const successScreen = document.getElementById('successScreen');
+  const successHeading = document.getElementById('successHeading');
+  const successMessage = document.getElementById('successMessage');
+  const btnModificar = document.getElementById('btnModificar');
+
+  function precargarFormulario(r) {
+    document.getElementById('nombre').value = r.nombre || '';
+    document.getElementById('apellidos').value = r.apellidos || '';
+
+    const asisteValor = r.asiste === 'si' ? 'completa' : r.asiste;
+    const asisteRadio = document.getElementById('asiste-' + asisteValor);
+    if (asisteRadio) {
+      asisteRadio.checked = true;
+      asisteRadio.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    if (r.asiste === 'no') return;
+
+    const tratamientosConocidos = ['Sr.', 'Sra.', 'Srta.'];
+    if (r.tratamiento && tratamientosConocidos.includes(r.tratamiento)) {
+      tratamientoSelect.value = r.tratamiento;
+    } else if (r.tratamiento) {
+      tratamientoSelect.value = 'Otro';
+      tratamientoOtroInput.value = r.tratamiento;
+    }
+    tratamientoSelect.dispatchEvent(new Event('change', { bubbles: true }));
+
+    document.getElementById('calle').value = r.calle || '';
+    document.getElementById('cp').value = r.cp || '';
+    document.getElementById('ciudad').value = r.ciudad || '';
+    document.getElementById('provincia').value = r.provincia || '';
+    alergiasInput.value = r.alergias || '';
+
+    const acompRadio = document.getElementById(r.con_acompanante === 'si' ? 'acomp-si' : 'acomp-no');
+    acompRadio.checked = true;
+    acompRadio.dispatchEvent(new Event('change', { bubbles: true }));
+
+    if (r.con_acompanante === 'si') {
+      if (r.acompanante_tratamiento && tratamientosConocidos.includes(r.acompanante_tratamiento)) {
+        acompananteTratamientoSelect.value = r.acompanante_tratamiento;
+      } else if (r.acompanante_tratamiento) {
+        acompananteTratamientoSelect.value = 'Otro';
+        acompananteTratamientoOtroInput.value = r.acompanante_tratamiento;
+      }
+      acompananteTratamientoSelect.dispatchEvent(new Event('change', { bubbles: true }));
+      acompananteNombreInput.value = r.acompanante_nombre || '';
+      acompananteApellidosInput.value = r.acompanante_apellidos || '';
+      acompananteAlergiasInput.value = r.acompanante_alergias || '';
+    }
+
+    const transporteRadio = document.querySelector('input[name="transporte"][value="' + (r.transporte || 'no') + '"]');
+    if (transporteRadio) transporteRadio.checked = true;
+    actualizarTransporte(asisteValor);
+  }
+
+  function mostrarYaConfirmado(respuesta) {
+    precargarFormulario(respuesta);
+    form.style.display = 'none';
+    successHeading.textContent = 'Ya está confirmado';
+    successMessage.textContent = 'Hola ' + (respuesta.nombre || '') + ', ya teníamos guardada tu respuesta. Si necesitas cambiar algo, usa la opción de abajo.';
+    successScreen.style.display = 'block';
+  }
+
+  btnModificar.addEventListener('click', () => {
+    successScreen.style.display = 'none';
+    form.style.display = 'block';
+    mostrarPaso(1);
+  });
+
+  fetch('/api/rsvp/estado?token=' + encodeURIComponent(guestToken))
+    .then(res => res.json())
+    .then(data => {
+      if (data && data.encontrado) {
+        mostrarYaConfirmado(data.respuesta);
+      } else {
+        mostrarPaso(1);
+      }
+    })
+    .catch(() => mostrarPaso(1));
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -891,7 +1028,9 @@
       }
 
       form.style.display = 'none';
-      document.getElementById('successScreen').style.display = 'block';
+      successHeading.textContent = '¡Gracias!';
+      successMessage.textContent = 'Hemos recibido tu respuesta. Estamos deseando celebrarlo contigo.';
+      successScreen.style.display = 'block';
     } catch (err) {
       status.textContent = 'No se ha podido enviar: ' + err.message + '. Inténtalo de nuevo.';
       status.className = 'status error';
