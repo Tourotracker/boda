@@ -24,7 +24,7 @@ async function initDB() {
       cp VARCHAR(10),
       ciudad VARCHAR(100),
       provincia VARCHAR(100),
-      asiste VARCHAR(5) NOT NULL,
+      asiste VARCHAR(20) NOT NULL,
       con_acompanante VARCHAR(5),
       acompanante_nombre VARCHAR(200),
       transporte VARCHAR(50),
@@ -35,6 +35,7 @@ async function initDB() {
   await pool.query(`ALTER TABLE rsvp DROP COLUMN IF EXISTS email`);
   await pool.query(`ALTER TABLE rsvp ALTER COLUMN tratamiento TYPE VARCHAR(100)`);
   await pool.query(`ALTER TABLE rsvp ADD COLUMN IF NOT EXISTS apellidos VARCHAR(200)`);
+  await pool.query(`ALTER TABLE rsvp ALTER COLUMN asiste TYPE VARCHAR(20)`);
   console.log('Base de datos lista.');
 }
 

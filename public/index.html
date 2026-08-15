@@ -179,6 +179,44 @@
     border-color:var(--sage);
     color:#fff;
   }
+  .asiste-intro{
+    font-size:14px;
+    color:#6B6457;
+    line-height:1.6;
+    margin-bottom:16px;
+  }
+  .radio-group-vertical{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .radio-option-block{position:relative;}
+  .radio-option-block input{
+    position:absolute;
+    opacity:0;
+    width:0; height:0;
+  }
+  .radio-option-block label{
+    display:block;
+    padding:14px 16px;
+    border:1px solid var(--line);
+    border-radius:3px;
+    cursor:pointer;
+    font-weight:600;
+    font-size:14px;
+    color:var(--ink);
+    transition:all .15s;
+    margin-bottom:0;
+  }
+  .radio-option-block input:checked + label{
+    background:var(--sage);
+    border-color:var(--sage);
+    color:#fff;
+  }
+  .radio-option-block input.input-error + label{
+    border-color:#B05A4A;
+    box-shadow:0 0 0 3px rgba(176,90,74,0.12);
+  }
   .conditional{
     display:none;
     padding-top:4px;
@@ -326,15 +364,20 @@
     <fieldset>
       <legend>Asistencia</legend>
       <div class="field">
-        <label>¿Podrás acompañarnos?</label>
-        <div class="radio-group">
-          <div class="radio-option">
-            <input type="radio" id="asiste-si" name="asiste" value="si" required>
-            <label for="asiste-si">Sí, asistiré</label>
+        <p class="asiste-intro">Sabemos que es viernes y que puede ser complicado cuadrarlo con el trabajo. Por eso, podéis acompañarnos desde la ceremonia o incorporaros después de la comida. ¡Lo importante es celebrarlo juntos!</p>
+        <label>¿Cuándo podrás acompañarnos?</label>
+        <div class="radio-group-vertical">
+          <div class="radio-option-block">
+            <input type="radio" id="asiste-completa" name="asiste" value="completa" required>
+            <label for="asiste-completa">Asistiré a toda la boda</label>
           </div>
-          <div class="radio-option">
+          <div class="radio-option-block">
+            <input type="radio" id="asiste-copas" name="asiste" value="copas" required>
+            <label for="asiste-copas">Me incorporaré después de la comida, para las copas</label>
+          </div>
+          <div class="radio-option-block">
             <input type="radio" id="asiste-no" name="asiste" value="no" required>
-            <label for="asiste-no">No podré ir</label>
+            <label for="asiste-no">No podré asistir</label>
           </div>
         </div>
       </div>
@@ -415,7 +458,7 @@
   });
 
   asistRadios.forEach(r => r.addEventListener('change', () => {
-    if (r.value === 'si' && r.checked) {
+    if (r.checked && r.value !== 'no') {
       detalles.classList.add('visible');
     } else if (r.checked) {
       detalles.classList.remove('visible');
@@ -463,10 +506,10 @@
       ciudad: document.getElementById('ciudad').value.trim(),
       provincia: document.getElementById('provincia').value.trim(),
       asiste: asiste,
-      conAcompanante: asiste === 'si' ? conAcompanante : 'no',
-      acompananteNombre: (asiste === 'si' && conAcompanante === 'si') ? acompananteNombreInput.value.trim() : '',
-      transporte: asiste === 'si' ? transporteInput.value : '',
-      alergias: asiste === 'si' ? alergiasInput.value.trim() : ''
+      conAcompanante: asiste !== 'no' ? conAcompanante : 'no',
+      acompananteNombre: (asiste !== 'no' && conAcompanante === 'si') ? acompananteNombreInput.value.trim() : '',
+      transporte: asiste !== 'no' ? transporteInput.value : '',
+      alergias: asiste !== 'no' ? alergiasInput.value.trim() : ''
     };
 
     document.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
@@ -480,8 +523,8 @@
     if (!entry.cp) faltantes.push({ label: 'Código postal', el: document.getElementById('cp') });
     if (!entry.ciudad) faltantes.push({ label: 'Ciudad', el: document.getElementById('ciudad') });
     if (!entry.provincia) faltantes.push({ label: 'Provincia', el: document.getElementById('provincia') });
-    if (!asiste) faltantes.push({ label: '¿Podrás acompañarnos?', el: document.getElementById('asiste-si') });
-    if (asiste === 'si' && conAcompanante === 'si' && !entry.acompananteNombre) {
+    if (!asiste) faltantes.push({ label: '¿Cuándo podrás acompañarnos?', el: document.getElementById('asiste-completa') });
+    if (asiste !== 'no' && conAcompanante === 'si' && !entry.acompananteNombre) {
       faltantes.push({ label: 'Nombre del acompañante', el: acompananteNombreInput });
     }
 
