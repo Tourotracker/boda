@@ -260,6 +260,39 @@
   }
   button:hover{background:#9C7531;}
   button:disabled{background:#CBBFA8; cursor:not-allowed;}
+  .step-progress{margin-bottom:28px;}
+  .step-progress-bar{
+    height:6px;
+    background:var(--gold-soft);
+    border-radius:3px;
+    overflow:hidden;
+    margin-bottom:8px;
+  }
+  .step-progress-fill{
+    height:100%;
+    background:var(--gold);
+    border-radius:3px;
+    transition:width .25s ease;
+  }
+  .step-progress-label{
+    font-size:13px;
+    color:#8A8275;
+    text-transform:uppercase;
+    letter-spacing:0.05em;
+    text-align:center;
+  }
+  .step-nav{
+    display:flex;
+    gap:12px;
+    margin-top:8px;
+  }
+  .step-nav button{margin:0;}
+  .btn-back{
+    background:#fff;
+    color:var(--ink);
+    border:1px solid var(--line);
+  }
+  .btn-back:hover{background:var(--cream);}
   .status{
     text-align:center;
     margin-top:14px;
@@ -310,37 +343,49 @@
       </div>
     </div>
 
-    <fieldset>
-      <legend>Tus datos</legend>
-      <div class="field">
-        <label for="tratamiento">Tratamiento</label>
-        <select id="tratamiento" name="tratamiento" required>
-          <option value="">Selecciona...</option>
-          <option value="Sr.">Sr.</option>
-          <option value="Sra.">Sra.</option>
-          <option value="Srta.">Srta.</option>
-          <option value="Otro">Otro</option>
-        </select>
-      </div>
-      <div class="conditional" id="tratamientoOtroWrap">
-        <div class="field">
-          <label for="tratamientoOtro">Especifica el tratamiento</label>
-          <input type="text" id="tratamientoOtro" name="tratamientoOtro" placeholder="Escribe aquí">
-        </div>
-      </div>
-      <div class="field" style="display:flex; gap:12px;">
-        <div style="flex:1;">
-          <label for="nombre">Nombre</label>
-          <input type="text" id="nombre" name="nombre" required placeholder="Nombre">
-        </div>
-        <div style="flex:1;">
-          <label for="apellidos">Apellidos</label>
-          <input type="text" id="apellidos" name="apellidos" required placeholder="Apellidos">
-        </div>
-      </div>
+    <div class="step-progress">
+      <div class="step-progress-bar"><div class="step-progress-fill" id="stepProgressFill"></div></div>
+      <div class="step-progress-label" id="stepProgressLabel">Paso 1 de 3</div>
+    </div>
 
-      <fieldset style="margin-top:8px; margin-bottom:0;">
-        <legend style="font-size:19px;">Dirección</legend>
+    <div class="form-step" data-step="1">
+      <fieldset>
+        <legend>Tus datos</legend>
+        <div class="field">
+          <label for="tratamiento">Tratamiento</label>
+          <select id="tratamiento" name="tratamiento" required>
+            <option value="">Selecciona...</option>
+            <option value="Sr.">Sr.</option>
+            <option value="Sra.">Sra.</option>
+            <option value="Srta.">Srta.</option>
+            <option value="Otro">Otro</option>
+          </select>
+        </div>
+        <div class="conditional" id="tratamientoOtroWrap">
+          <div class="field">
+            <label for="tratamientoOtro">Especifica el tratamiento</label>
+            <input type="text" id="tratamientoOtro" name="tratamientoOtro" placeholder="Escribe aquí">
+          </div>
+        </div>
+        <div class="field" style="display:flex; gap:12px;">
+          <div style="flex:1;">
+            <label for="nombre">Nombre</label>
+            <input type="text" id="nombre" name="nombre" required placeholder="Nombre">
+          </div>
+          <div style="flex:1;">
+            <label for="apellidos">Apellidos</label>
+            <input type="text" id="apellidos" name="apellidos" required placeholder="Apellidos">
+          </div>
+        </div>
+      </fieldset>
+      <div class="step-nav">
+        <button type="button" class="btn-next" data-next="2">Siguiente</button>
+      </div>
+    </div>
+
+    <div class="form-step" data-step="2" style="display:none;">
+      <fieldset>
+        <legend>Dirección</legend>
         <div class="field">
           <label for="calle">Calle y número</label>
           <input type="text" id="calle" name="calle" required placeholder="Calle, número, piso...">
@@ -360,70 +405,75 @@
           <input type="text" id="provincia" name="provincia" required placeholder="Madrid">
         </div>
       </fieldset>
-    </fieldset>
-
-    <fieldset>
-      <legend>Asistencia</legend>
-      <div class="field">
-        <p class="asiste-intro">Sabemos que es viernes y que puede ser complicado cuadrarlo con el trabajo. Por eso, podéis acompañarnos desde la ceremonia o incorporaros después de la comida. ¡Lo importante es celebrarlo juntos!</p>
-        <label>¿Cuándo podrás acompañarnos?</label>
-        <div class="radio-group-vertical">
-          <div class="radio-option-block">
-            <input type="radio" id="asiste-completa" name="asiste" value="completa" required>
-            <label for="asiste-completa">Asistiré a toda la boda</label>
-          </div>
-          <div class="radio-option-block">
-            <input type="radio" id="asiste-copas" name="asiste" value="copas" required>
-            <label for="asiste-copas">Me incorporaré después de la comida, para las copas</label>
-          </div>
-          <div class="radio-option-block">
-            <input type="radio" id="asiste-no" name="asiste" value="no" required>
-            <label for="asiste-no">No podré asistir</label>
-          </div>
-        </div>
+      <div class="step-nav">
+        <button type="button" class="btn-back" data-back="1">Atrás</button>
+        <button type="button" class="btn-next" data-next="3">Siguiente</button>
       </div>
+    </div>
 
-      <div class="conditional" id="detallesAsistencia">
+    <div class="form-step" data-step="3" style="display:none;">
+      <fieldset>
+        <legend>Asistencia</legend>
         <div class="field">
-          <label>¿Vienes con acompañante?</label>
-          <div class="radio-group">
-            <div class="radio-option">
-              <input type="radio" id="acomp-no" name="conAcompanante" value="no" checked>
-              <label for="acomp-no">No</label>
-            </div>
-            <div class="radio-option">
-              <input type="radio" id="acomp-si" name="conAcompanante" value="si">
-              <label for="acomp-si">Sí</label>
-            </div>
-          </div>
-        </div>
-
-        <div class="conditional" id="datosAcompanante">
-          <div class="field">
-            <label for="acompananteNombre">Nombre y apellidos del acompañante</label>
-            <input type="text" id="acompananteNombre" name="acompananteNombre" placeholder="Nombre y apellidos">
-          </div>
-        </div>
-
-        <div class="field">
-          <label>Transporte</label>
+          <p class="asiste-intro">Sabemos que es viernes y que puede ser complicado cuadrarlo con el trabajo. Por eso, podéis acompañarnos desde la ceremonia o incorporaros después de la comida. ¡Lo importante es celebrarlo juntos!</p>
+          <label>¿Cuándo podrás acompañarnos?</label>
           <div class="radio-group-vertical">
-            <div class="radio-option-block" data-transporte-completa>
-              <input type="radio" id="transporte-ida" name="transporte" value="ida">
-              <label for="transporte-ida">Necesitaré transporte para la ida</label>
+            <div class="radio-option-block">
+              <input type="radio" id="asiste-completa" name="asiste" value="completa" required>
+              <label for="asiste-completa">Asistiré a toda la boda</label>
             </div>
             <div class="radio-option-block">
-              <input type="radio" id="transporte-vuelta" name="transporte" value="vuelta">
-              <label for="transporte-vuelta">Necesitaré transporte para la vuelta</label>
-            </div>
-            <div class="radio-option-block" data-transporte-completa>
-              <input type="radio" id="transporte-ida-vuelta" name="transporte" value="ida_vuelta">
-              <label for="transporte-ida-vuelta">Necesitaré transporte de ida y vuelta</label>
+              <input type="radio" id="asiste-copas" name="asiste" value="copas" required>
+              <label for="asiste-copas">Me incorporaré después de la comida, para las copas</label>
             </div>
             <div class="radio-option-block">
-              <input type="radio" id="transporte-no" name="transporte" value="no" checked>
-              <label for="transporte-no">No necesito</label>
+              <input type="radio" id="asiste-no" name="asiste" value="no" required>
+              <label for="asiste-no">No podré asistir</label>
             </div>
+          </div>
+        </div>
+
+        <div class="conditional" id="detallesAsistencia">
+          <div class="field">
+            <label>¿Vienes con acompañante?</label>
+            <div class="radio-group">
+              <div class="radio-option">
+                <input type="radio" id="acomp-no" name="conAcompanante" value="no" checked>
+                <label for="acomp-no">No</label>
+              </div>
+              <div class="radio-option">
+                <input type="radio" id="acomp-si" name="conAcompanante" value="si">
+                <label for="acomp-si">Sí</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="conditional" id="datosAcompanante">
+            <div class="field">
+              <label for="acompananteNombre">Nombre y apellidos del acompañante</label>
+              <input type="text" id="acompananteNombre" name="acompananteNombre" placeholder="Nombre y apellidos">
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Transporte</label>
+            <div class="radio-group-vertical">
+              <div class="radio-option-block" data-transporte-completa>
+                <input type="radio" id="transporte-ida" name="transporte" value="ida">
+                <label for="transporte-ida">Necesitaré transporte para la ida</label>
+              </div>
+              <div class="radio-option-block">
+                <input type="radio" id="transporte-vuelta" name="transporte" value="vuelta">
+                <label for="transporte-vuelta">Necesitaré transporte para la vuelta</label>
+              </div>
+              <div class="radio-option-block" data-transporte-completa>
+                <input type="radio" id="transporte-ida-vuelta" name="transporte" value="ida_vuelta">
+                <label for="transporte-ida-vuelta">Necesitaré transporte de ida y vuelta</label>
+              </div>
+              <div class="radio-option-block">
+                <input type="radio" id="transporte-no" name="transporte" value="no" checked>
+                <label for="transporte-no">No necesito</label>
+              </div>
           </div>
         </div>
 
@@ -433,8 +483,12 @@
         </div>
       </div>
     </fieldset>
+      <div class="step-nav">
+        <button type="button" class="btn-back" data-back="2">Atrás</button>
+        <button type="submit" id="submitBtn">Enviar confirmación</button>
+      </div>
+    </div>
 
-    <button type="submit" id="submitBtn">Enviar confirmación</button>
     <div class="status" id="status"></div>
   </form>
 
@@ -507,25 +561,19 @@
   const form = document.getElementById('rsvpForm');
   const status = document.getElementById('status');
   const submitBtn = document.getElementById('submitBtn');
+  const card = document.getElementById('card');
 
   form.addEventListener('input', (e) => e.target.classList.remove('input-error'));
   form.addEventListener('change', (e) => e.target.classList.remove('input-error'));
 
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    status.textContent = '';
-    status.className = 'status';
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Enviando...';
-
+  function leerFormulario() {
     const asiste = form.querySelector('input[name="asiste"]:checked')?.value || '';
     const conAcompanante = form.querySelector('input[name="conAcompanante"]:checked')?.value || 'no';
-
     const tratamientoValor = tratamientoSelect.value === 'Otro'
       ? tratamientoOtroInput.value.trim()
       : tratamientoSelect.value;
 
-    const entry = {
+    return {
       tratamiento: tratamientoValor,
       nombre: document.getElementById('nombre').value.trim(),
       apellidos: document.getElementById('apellidos').value.trim(),
@@ -539,33 +587,94 @@
       transporte: asiste !== 'no' ? (form.querySelector('input[name="transporte"]:checked')?.value || 'no') : '',
       alergias: asiste !== 'no' ? alergiasInput.value.trim() : ''
     };
+  }
 
-    document.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
-
+  function validarPaso(paso, entry) {
     const faltantes = [];
-    if (!tratamientoSelect.value) faltantes.push({ label: 'Tratamiento', el: tratamientoSelect });
-    else if (tratamientoSelect.value === 'Otro' && !entry.tratamiento) faltantes.push({ label: 'Tratamiento (especifica cuál)', el: tratamientoOtroInput });
-    if (!entry.nombre) faltantes.push({ label: 'Nombre', el: document.getElementById('nombre') });
-    if (!entry.apellidos) faltantes.push({ label: 'Apellidos', el: document.getElementById('apellidos') });
-    if (!entry.calle) faltantes.push({ label: 'Calle y número', el: document.getElementById('calle') });
-    if (!entry.cp) faltantes.push({ label: 'Código postal', el: document.getElementById('cp') });
-    if (!entry.ciudad) faltantes.push({ label: 'Ciudad', el: document.getElementById('ciudad') });
-    if (!entry.provincia) faltantes.push({ label: 'Provincia', el: document.getElementById('provincia') });
-    if (!asiste) faltantes.push({ label: '¿Cuándo podrás acompañarnos?', el: document.getElementById('asiste-completa') });
-    if (asiste !== 'no' && conAcompanante === 'si' && !entry.acompananteNombre) {
-      faltantes.push({ label: 'Nombre del acompañante', el: acompananteNombreInput });
+    if (paso === 1) {
+      if (!tratamientoSelect.value) faltantes.push({ label: 'Tratamiento', el: tratamientoSelect, paso });
+      else if (tratamientoSelect.value === 'Otro' && !entry.tratamiento) faltantes.push({ label: 'Tratamiento (especifica cuál)', el: tratamientoOtroInput, paso });
+      if (!entry.nombre) faltantes.push({ label: 'Nombre', el: document.getElementById('nombre'), paso });
+      if (!entry.apellidos) faltantes.push({ label: 'Apellidos', el: document.getElementById('apellidos'), paso });
+    } else if (paso === 2) {
+      if (!entry.calle) faltantes.push({ label: 'Calle y número', el: document.getElementById('calle'), paso });
+      if (!entry.cp) faltantes.push({ label: 'Código postal', el: document.getElementById('cp'), paso });
+      if (!entry.ciudad) faltantes.push({ label: 'Ciudad', el: document.getElementById('ciudad'), paso });
+      if (!entry.provincia) faltantes.push({ label: 'Provincia', el: document.getElementById('provincia'), paso });
+    } else if (paso === 3) {
+      if (!entry.asiste) faltantes.push({ label: '¿Cuándo podrás acompañarnos?', el: document.getElementById('asiste-completa'), paso });
+      if (entry.asiste !== 'no' && entry.conAcompanante === 'si' && !entry.acompananteNombre) {
+        faltantes.push({ label: 'Nombre del acompañante', el: acompananteNombreInput, paso });
+      }
     }
+    return faltantes;
+  }
+
+  function mostrarFaltantes(faltantes) {
+    document.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
+    faltantes.forEach(f => f.el.classList.add('input-error'));
+    status.textContent = 'Falta por rellenar: ' + faltantes.map(f => f.label).join(', ') + '.';
+    status.className = 'status error';
+    faltantes[0].el.focus();
+    faltantes[0].el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  const TOTAL_PASOS = 3;
+  const pasos = document.querySelectorAll('.form-step');
+  const stepProgressFill = document.getElementById('stepProgressFill');
+  const stepProgressLabel = document.getElementById('stepProgressLabel');
+  let pasoActual = 1;
+
+  function mostrarPaso(n) {
+    pasoActual = n;
+    pasos.forEach(p => {
+      p.style.display = Number(p.dataset.step) === n ? 'block' : 'none';
+    });
+    stepProgressFill.style.width = (n / TOTAL_PASOS * 100) + '%';
+    stepProgressLabel.textContent = 'Paso ' + n + ' de ' + TOTAL_PASOS;
+    status.textContent = '';
+    status.className = 'status';
+    card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  document.querySelectorAll('.btn-next').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const entry = leerFormulario();
+      const faltantes = validarPaso(pasoActual, entry);
+      if (faltantes.length) {
+        mostrarFaltantes(faltantes);
+        return;
+      }
+      mostrarPaso(Number(btn.dataset.next));
+    });
+  });
+
+  document.querySelectorAll('.btn-back').forEach(btn => {
+    btn.addEventListener('click', () => mostrarPaso(Number(btn.dataset.back)));
+  });
+
+  mostrarPaso(1);
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    status.textContent = '';
+    status.className = 'status';
+
+    const entry = leerFormulario();
+    const faltantes = [
+      ...validarPaso(1, entry),
+      ...validarPaso(2, entry),
+      ...validarPaso(3, entry)
+    ];
 
     if (faltantes.length) {
-      faltantes.forEach(f => f.el.classList.add('input-error'));
-      status.textContent = 'Falta por rellenar: ' + faltantes.map(f => f.label).join(', ') + '.';
-      status.className = 'status error';
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Enviar confirmación';
-      faltantes[0].el.focus();
-      faltantes[0].el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      mostrarPaso(faltantes[0].paso);
+      mostrarFaltantes(faltantes);
       return;
     }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Enviando...';
 
     try {
       const response = await fetch('/api/rsvp', {
