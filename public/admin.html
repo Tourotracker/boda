@@ -6,8 +6,10 @@
 <title>Respuestas RSVP</title>
 <style>
   :root{
-    --cream:#FAF6EF; --gold:#B68A3C; --gold-soft:#E8D9BC;
-    --sage:#7C8B6F; --ink:#3A352E; --line:#DDD2BC;
+    --cream:#F7F4EE; --gold:#B8874A; --gold-soft:#EDE1C8;
+    --sage:#7C8B6F; --ink:#332F29; --line:#E7E1D5;
+    --radius-lg:20px; --radius-md:12px; --radius-sm:10px;
+    --shadow-card:0 1px 2px rgba(51,47,41,0.04), 0 16px 32px -12px rgba(51,47,41,0.12);
   }
   *{box-sizing:border-box;}
   body{
@@ -18,37 +20,38 @@
   h1{font-family:'Cormorant Garamond',serif; font-size:30px; margin-bottom:4px;}
   .sub{color:#8A8275; font-size:14px; margin-bottom:24px;}
   .gate{
-    max-width:360px; margin:80px auto; background:#fff; border:1px solid var(--line);
-    border-radius:4px; padding:32px;
+    max-width:360px; margin:80px auto; background:#fff;
+    border-radius:var(--radius-lg); box-shadow:var(--shadow-card); padding:32px;
   }
   .gate label{display:block; font-size:13px; font-weight:600; margin-bottom:8px;}
   .gate input{
-    width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:3px;
-    font-size:15px; margin-bottom:14px;
+    width:100%; padding:11px 13px; border:1.5px solid var(--line); border-radius:var(--radius-sm);
+    font-size:15px; margin-bottom:14px; background:#fff;
   }
   button{
-    background:var(--gold); color:#fff; border:none; border-radius:3px;
-    padding:10px 16px; font-weight:600; cursor:pointer; font-size:14px;
+    background:var(--gold); color:#fff; border:none; border-radius:var(--radius-sm);
+    padding:11px 18px; font-weight:700; cursor:pointer; font-size:14px;
+    box-shadow:0 3px 10px rgba(184,135,74,0.28); transition:background .15s, transform .15s;
   }
-  button:hover{background:#9C7531;}
+  button:hover{background:#A2753E; transform:translateY(-1px);}
   .error{color:#B05A4A; font-size:13px; margin-top:4px;}
   #panel{display:none; max-width:1600px; margin:0 auto;}
   .stats{display:flex; gap:16px; margin-bottom:24px; flex-wrap:wrap;}
   .stat{
-    background:#fff; border:1px solid var(--line); border-radius:4px;
+    background:#fff; border-radius:var(--radius-md); box-shadow:var(--shadow-card);
     padding:14px 20px; min-width:120px; flex:1;
   }
-  .stat.highlight{background:var(--sage); border-color:var(--sage);}
+  .stat.highlight{background:var(--sage);}
   .stat.highlight .n, .stat.highlight .l{color:#fff;}
   .stat .n{font-family:'Cormorant Garamond',serif; font-size:28px; color:var(--gold);}
   .stat .l{font-size:12px; color:#8A8275; text-transform:uppercase; letter-spacing:.05em;}
   .toolbar{display:flex; justify-content:flex-end; margin-bottom:12px;}
   table{
-    width:100%; table-layout:fixed; border-collapse:collapse; background:#fff; border:1px solid var(--line);
+    width:100%; table-layout:fixed; border-collapse:collapse; background:#fff;
     font-size:13px;
   }
-  th,td{text-align:left; padding:9px 10px; border-bottom:1px solid var(--line); word-wrap:break-word;}
-  th{background:var(--gold-soft); font-weight:600; position:sticky; top:0;}
+  th,td{text-align:left; padding:11px 12px; border-bottom:1px solid var(--line); word-wrap:break-word;}
+  th{background:var(--gold-soft); font-weight:700; position:sticky; top:0;}
   tr:last-child td{border-bottom:none;}
   th:nth-child(1){width:7%;}
   th:nth-child(2){width:10%;}
@@ -62,7 +65,7 @@
   th:nth-child(10){width:18%;}
   .si{color:var(--sage); font-weight:600;}
   .no{color:#B05A4A; font-weight:600;}
-  .table-wrap{overflow-x:auto; border-radius:4px;}
+  .table-wrap{overflow-x:auto; border-radius:var(--radius-md); box-shadow:var(--shadow-card);}
 </style>
 </head>
 <body>

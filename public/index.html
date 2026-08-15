@@ -9,12 +9,17 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Karla:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --cream:#FAF6EF;
-    --gold:#B68A3C;
-    --gold-soft:#E8D9BC;
+    --cream:#F7F4EE;
+    --gold:#B8874A;
+    --gold-soft:#EDE1C8;
     --sage:#7C8B6F;
-    --ink:#3A352E;
-    --line:#DDD2BC;
+    --sage-tint:rgba(124,139,111,0.09);
+    --ink:#332F29;
+    --line:#E7E1D5;
+    --radius-lg:22px;
+    --radius-md:12px;
+    --radius-sm:10px;
+    --shadow-card:0 1px 2px rgba(51,47,41,0.04), 0 20px 40px -12px rgba(51,47,41,0.14);
   }
   *{box-sizing:border-box; margin:0; padding:0;}
   body{
@@ -25,35 +30,29 @@
     display:flex;
     align-items:center;
     justify-content:center;
-    padding:32px 16px;
+    padding:40px 16px;
     line-height:1.5;
+    -webkit-font-smoothing:antialiased;
   }
   .card{
     max-width:620px;
     width:100%;
     background:#fff;
-    border:1px solid var(--line);
-    border-radius:4px;
-    padding:48px 40px;
+    border-radius:var(--radius-lg);
+    box-shadow:var(--shadow-card);
+    padding:44px 36px;
     position:relative;
-  }
-  .card::before{
-    content:"";
-    position:absolute;
-    inset:14px;
-    border:1px solid var(--gold-soft);
-    pointer-events:none;
-    border-radius:2px;
   }
   header{
     text-align:center;
-    margin-bottom:36px;
+    margin-bottom:32px;
   }
   .eyebrow{
     font-size:13px;
-    letter-spacing:0.2em;
+    letter-spacing:0.14em;
     text-transform:uppercase;
     color:var(--sage);
+    font-weight:600;
     margin-bottom:10px;
   }
   h1{
@@ -73,13 +72,12 @@
   }
   .event-info{
     display:flex;
-    gap:16px;
+    gap:20px;
     flex-wrap:wrap;
     margin-bottom:32px;
-    padding:18px 20px;
+    padding:20px 22px;
     background:var(--cream);
-    border:1px solid var(--gold-soft);
-    border-radius:3px;
+    border-radius:var(--radius-md);
   }
   .event-item{flex:1; min-width:200px;}
   .event-label{
@@ -109,13 +107,12 @@
     margin-bottom:26px;
   }
   legend{
-    font-family:'Cormorant Garamond', serif;
-    font-size:23px;
-    font-weight:600;
-    margin-bottom:16px;
+    font-family:'Karla', sans-serif;
+    font-size:21px;
+    font-weight:700;
+    letter-spacing:-0.01em;
+    margin-bottom:20px;
     color:var(--ink);
-    padding-bottom:6px;
-    border-bottom:1px solid var(--gold-soft);
     width:100%;
   }
   label{
@@ -132,22 +129,22 @@
   input[type="text"], input[type="email"], input[type="number"], textarea, select{
     width:100%;
     padding:14px 15px;
-    border:1px solid var(--line);
-    border-radius:3px;
+    border:1.5px solid var(--line);
+    border-radius:var(--radius-sm);
     font-family:'Karla', sans-serif;
     font-size:17px;
     color:var(--ink);
-    background:var(--cream);
+    background:#fff;
     transition:border-color .15s, box-shadow .15s;
   }
   input:focus, textarea:focus, select:focus{
     outline:none;
     border-color:var(--gold);
-    box-shadow:0 0 0 3px rgba(182,138,60,0.15);
+    box-shadow:0 0 0 4px rgba(184,135,74,0.14);
   }
   input.input-error, textarea.input-error, select.input-error{
     border-color:#B05A4A;
-    box-shadow:0 0 0 3px rgba(176,90,74,0.12);
+    box-shadow:0 0 0 4px rgba(176,90,74,0.12);
   }
   textarea{resize:vertical; min-height:80px;}
   .radio-group{
@@ -168,12 +165,13 @@
     display:block;
     text-align:center;
     padding:14px 12px;
-    border:1px solid var(--line);
-    border-radius:3px;
+    border:1.5px solid var(--line);
+    border-radius:var(--radius-sm);
     cursor:pointer;
     font-weight:600;
     font-size:16px;
     color:var(--ink);
+    background:#fff;
     transition:all .15s;
     margin-bottom:0;
   }
@@ -184,9 +182,13 @@
   }
   .asiste-intro{
     font-size:16px;
-    color:#6B6457;
+    color:var(--ink);
     line-height:1.6;
-    margin-bottom:18px;
+    margin-bottom:20px;
+    padding:16px 18px;
+    background:var(--sage-tint);
+    border-radius:var(--radius-md);
+    border-left:3px solid var(--sage);
   }
   .radio-group-vertical{
     display:flex;
@@ -200,26 +202,50 @@
     width:0; height:0;
   }
   .radio-option-block label{
-    display:block;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:14px;
     padding:16px 18px;
-    border:1px solid var(--line);
-    border-radius:3px;
+    border:1.5px solid var(--line);
+    border-radius:var(--radius-md);
     cursor:pointer;
     font-weight:600;
     font-size:16px;
     line-height:1.4;
     color:var(--ink);
-    transition:all .15s;
+    background:#fff;
+    transition:border-color .15s, background .15s;
     margin-bottom:0;
   }
+  .radio-option-block label::after{
+    content:'✓';
+    flex:0 0 auto;
+    width:24px;
+    height:24px;
+    border-radius:50%;
+    border:1.5px solid var(--line);
+    background:#fff;
+    color:transparent;
+    font-size:13px;
+    font-weight:700;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    transition:all .15s;
+  }
   .radio-option-block input:checked + label{
-    background:var(--sage);
     border-color:var(--sage);
+    background:var(--sage-tint);
+  }
+  .radio-option-block input:checked + label::after{
+    border-color:var(--sage);
+    background:var(--sage);
     color:#fff;
   }
   .radio-option-block input.input-error + label{
     border-color:#B05A4A;
-    box-shadow:0 0 0 3px rgba(176,90,74,0.12);
+    box-shadow:0 0 0 4px rgba(176,90,74,0.12);
   }
   .conditional{
     display:none;
@@ -248,33 +274,33 @@
   }
   button{
     width:100%;
-    padding:17px;
+    padding:16px 20px;
     background:var(--gold);
     color:#fff;
     border:none;
-    border-radius:3px;
+    border-radius:var(--radius-md);
     font-family:'Karla', sans-serif;
     font-size:17px;
-    font-weight:600;
-    letter-spacing:0.05em;
-    text-transform:uppercase;
+    font-weight:700;
     cursor:pointer;
-    transition:background .15s;
+    box-shadow:0 4px 14px rgba(184,135,74,0.28);
+    transition:background .15s, box-shadow .15s, transform .15s;
   }
-  button:hover{background:#9C7531;}
-  button:disabled{background:#CBBFA8; cursor:not-allowed;}
+  button:hover{background:#A2753E; box-shadow:0 6px 18px rgba(184,135,74,0.34); transform:translateY(-1px);}
+  button:active{transform:translateY(0);}
+  button:disabled{background:#D8C9AC; box-shadow:none; cursor:not-allowed; transform:none;}
   .step-progress{margin-bottom:28px;}
   .step-progress-bar{
     height:6px;
     background:var(--gold-soft);
-    border-radius:3px;
+    border-radius:999px;
     overflow:hidden;
-    margin-bottom:8px;
+    margin-bottom:10px;
   }
   .step-progress-fill{
     height:100%;
     background:var(--gold);
-    border-radius:3px;
+    border-radius:999px;
     transition:width .25s ease;
   }
   .step-tabs{
@@ -304,9 +330,10 @@
   .btn-back{
     background:#fff;
     color:var(--ink);
-    border:1px solid var(--line);
+    border:1.5px solid var(--line);
+    box-shadow:none;
   }
-  .btn-back:hover{background:var(--cream);}
+  .btn-back:hover{background:var(--cream); box-shadow:none; transform:none;}
   .status{
     text-align:center;
     margin-top:14px;
@@ -317,6 +344,19 @@
   .status.error{color:#B05A4A;}
   .success-screen{
     text-align:center;
+  }
+  .success-badge{
+    width:64px;
+    height:64px;
+    margin:0 auto 20px;
+    border-radius:50%;
+    background:var(--sage);
+    color:#fff;
+    font-size:28px;
+    font-weight:700;
+    display:flex;
+    align-items:center;
+    justify-content:center;
   }
   .success-screen .eyebrow{margin-bottom:18px;}
   .success-screen h2{
@@ -522,6 +562,7 @@
   </form>
 
   <div class="success-screen" id="successScreen" style="display:none;">
+    <div class="success-badge">✓</div>
     <div class="eyebrow">Confirmación recibida</div>
     <h2>¡Gracias!</h2>
     <p>Hemos recibido tu respuesta. Estamos deseando celebrarlo contigo.</p>
