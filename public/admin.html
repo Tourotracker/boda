@@ -53,16 +53,17 @@
   th,td{text-align:left; padding:11px 12px; border-bottom:1px solid var(--line); word-wrap:break-word;}
   th{background:var(--gold-soft); font-weight:700; position:sticky; top:0;}
   tr:last-child td{border-bottom:none;}
-  th:nth-child(1){width:7%;}
-  th:nth-child(2){width:10%;}
-  th:nth-child(3){width:10%;}
-  th:nth-child(4){width:9%;}
-  th:nth-child(5){width:7%;}
-  th:nth-child(6){width:10%;}
-  th:nth-child(7){width:10%;}
-  th:nth-child(8){width:9%;}
-  th:nth-child(9){width:10%;}
-  th:nth-child(10){width:18%;}
+  th:nth-child(1){width:6%;}
+  th:nth-child(2){width:9%;}
+  th:nth-child(3){width:9%;}
+  th:nth-child(4){width:8%;}
+  th:nth-child(5){width:6%;}
+  th:nth-child(6){width:9%;}
+  th:nth-child(7){width:9%;}
+  th:nth-child(8){width:8%;}
+  th:nth-child(9){width:9%;}
+  th:nth-child(10){width:9%;}
+  th:nth-child(11){width:18%;}
   .si{color:var(--sage); font-weight:600;}
   .no{color:#B05A4A; font-weight:600;}
   .table-wrap{overflow-x:auto; border-radius:var(--radius-md); box-shadow:var(--shadow-card);}
@@ -93,7 +94,7 @@
         <tr>
           <th>Fecha</th><th>Nombre</th><th>Apellidos</th><th>Asiste</th>
           <th>Acompañante</th><th>Nombre acomp.</th><th>Apellidos acomp.</th><th>Transporte</th>
-          <th>Alergias</th><th>Dirección</th>
+          <th>Alergias</th><th>Alergias acomp.</th><th>Dirección</th>
         </tr>
       </thead>
       <tbody id="rows"></tbody>
@@ -178,6 +179,7 @@
         <td>${escapeHtml(r.acompanante_apellidos)}</td>
         <td>${escapeHtml(transporteLabel(r.transporte))}</td>
         <td>${escapeHtml(r.alergias)}</td>
+        <td>${escapeHtml(r.acompanante_alergias)}</td>
         <td>${escapeHtml(r.calle)}, ${escapeHtml(r.cp)} ${escapeHtml(r.ciudad)} (${escapeHtml(r.provincia)})</td>
       </tr>
     `).join('');
@@ -193,7 +195,7 @@
   document.getElementById('exportar').addEventListener('click', () => {
     if (!currentData.length) return;
     const cols = ['created_at','tratamiento','nombre','apellidos','calle','cp','ciudad','provincia',
-      'asiste','con_acompanante','acompanante_nombre','acompanante_apellidos','transporte','alergias'];
+      'asiste','con_acompanante','acompanante_nombre','acompanante_apellidos','acompanante_alergias','transporte','alergias'];
     const csvRows = [cols.join(',')];
     currentData.forEach(r => {
       csvRows.push(cols.map(c => `"${String(r[c] ?? '').replace(/"/g,'""')}"`).join(','));

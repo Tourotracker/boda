@@ -405,76 +405,13 @@
     <div class="step-progress">
       <div class="step-progress-bar"><div class="step-progress-fill" id="stepProgressFill"></div></div>
       <div class="step-tabs" id="stepTabs">
-        <button type="button" class="step-tab" data-step-jump="1">Datos</button>
-        <button type="button" class="step-tab" data-step-jump="2">Dirección</button>
-        <button type="button" class="step-tab" data-step-jump="3">Asistencia</button>
+        <button type="button" class="step-tab" data-step-jump="1">Asistencia</button>
+        <button type="button" class="step-tab" data-step-jump="2">Datos</button>
+        <button type="button" class="step-tab" data-step-jump="3" id="tabTransporte">Transporte</button>
       </div>
     </div>
 
     <div class="form-step" data-step="1">
-      <fieldset>
-        <legend>Tus datos</legend>
-        <div class="field">
-          <label for="tratamiento">Tratamiento</label>
-          <select id="tratamiento" name="tratamiento" required>
-            <option value="">Selecciona...</option>
-            <option value="Sr.">Sr.</option>
-            <option value="Sra.">Sra.</option>
-            <option value="Srta.">Srta.</option>
-            <option value="Otro">Otro</option>
-          </select>
-        </div>
-        <div class="conditional" id="tratamientoOtroWrap">
-          <div class="field">
-            <label for="tratamientoOtro">Especifica el tratamiento</label>
-            <input type="text" id="tratamientoOtro" name="tratamientoOtro" placeholder="Escribe aquí">
-          </div>
-        </div>
-        <div class="field field-row">
-          <div class="col-1">
-            <label for="nombre">Nombre</label>
-            <input type="text" id="nombre" name="nombre" required placeholder="Nombre">
-          </div>
-          <div class="col-1">
-            <label for="apellidos">Apellidos</label>
-            <input type="text" id="apellidos" name="apellidos" required placeholder="Apellidos">
-          </div>
-        </div>
-      </fieldset>
-      <div class="step-nav">
-        <button type="button" class="btn-next" data-next="2">Siguiente</button>
-      </div>
-    </div>
-
-    <div class="form-step" data-step="2" style="display:none;">
-      <fieldset>
-        <legend>Dirección</legend>
-        <div class="field">
-          <label for="calle">Calle y número</label>
-          <input type="text" id="calle" name="calle" required placeholder="Calle, número, piso...">
-        </div>
-        <div class="field field-row">
-          <div class="col-1">
-            <label for="cp">Código postal</label>
-            <input type="text" id="cp" name="cp" required placeholder="28001">
-          </div>
-          <div class="col-2">
-            <label for="ciudad">Ciudad</label>
-            <input type="text" id="ciudad" name="ciudad" required placeholder="Madrid">
-          </div>
-        </div>
-        <div class="field">
-          <label for="provincia">Provincia</label>
-          <input type="text" id="provincia" name="provincia" required placeholder="Madrid">
-        </div>
-      </fieldset>
-      <div class="step-nav">
-        <button type="button" class="btn-back" data-back="1">Atrás</button>
-        <button type="button" class="btn-next" data-next="3">Siguiente</button>
-      </div>
-    </div>
-
-    <div class="form-step" data-step="3" style="display:none;">
       <fieldset>
         <legend>Asistencia</legend>
         <div class="field">
@@ -495,63 +432,138 @@
             </div>
           </div>
         </div>
+      </fieldset>
+      <div class="step-nav">
+        <button type="button" class="btn-next" data-next="2">Siguiente</button>
+      </div>
+    </div>
 
-        <div class="conditional" id="detallesAsistencia">
+    <div class="form-step" data-step="2" style="display:none;">
+      <fieldset>
+        <legend>Datos</legend>
+
+        <div class="field field-row">
+          <div class="col-1">
+            <label for="nombre">Nombre</label>
+            <input type="text" id="nombre" name="nombre" required placeholder="Nombre">
+          </div>
+          <div class="col-1">
+            <label for="apellidos">Apellidos</label>
+            <input type="text" id="apellidos" name="apellidos" required placeholder="Apellidos">
+          </div>
+        </div>
+
+        <div class="conditional" id="datosCompletos">
           <div class="field">
-            <label>¿Vienes con acompañante?</label>
-            <div class="radio-group">
-              <div class="radio-option">
-                <input type="radio" id="acomp-no" name="conAcompanante" value="no" checked>
-                <label for="acomp-no">No</label>
-              </div>
-              <div class="radio-option">
-                <input type="radio" id="acomp-si" name="conAcompanante" value="si">
-                <label for="acomp-si">Sí</label>
-              </div>
+            <label for="tratamiento">Tratamiento</label>
+            <select id="tratamiento" name="tratamiento">
+              <option value="">Selecciona...</option>
+              <option value="Sr.">Sr.</option>
+              <option value="Sra.">Sra.</option>
+              <option value="Srta.">Srta.</option>
+              <option value="Otro">Otro</option>
+            </select>
+          </div>
+          <div class="conditional" id="tratamientoOtroWrap">
+            <div class="field">
+              <label for="tratamientoOtro">Especifica el tratamiento</label>
+              <input type="text" id="tratamientoOtro" name="tratamientoOtro" placeholder="Escribe aquí">
             </div>
           </div>
 
-          <div class="conditional" id="datosAcompanante">
+          <fieldset style="margin-top:8px; margin-bottom:0;">
+            <legend style="font-size:19px;">Dirección</legend>
+            <div class="field">
+              <label for="calle">Calle y número</label>
+              <input type="text" id="calle" name="calle" placeholder="Calle, número, piso...">
+            </div>
             <div class="field field-row">
               <div class="col-1">
-                <label for="acompananteNombre">Nombre del acompañante</label>
-                <input type="text" id="acompananteNombre" name="acompananteNombre" placeholder="Nombre">
+                <label for="cp">Código postal</label>
+                <input type="text" id="cp" name="cp" placeholder="28001">
               </div>
-              <div class="col-1">
-                <label for="acompananteApellidos">Apellidos del acompañante</label>
-                <input type="text" id="acompananteApellidos" name="acompananteApellidos" placeholder="Apellidos">
+              <div class="col-2">
+                <label for="ciudad">Ciudad</label>
+                <input type="text" id="ciudad" name="ciudad" placeholder="Madrid">
               </div>
             </div>
-          </div>
+            <div class="field">
+              <label for="provincia">Provincia</label>
+              <input type="text" id="provincia" name="provincia" placeholder="Madrid">
+            </div>
+          </fieldset>
 
           <div class="field">
-            <label>Transporte</label>
-            <div class="radio-group-vertical">
-              <div class="radio-option-block" data-transporte-completa>
-                <input type="radio" id="transporte-ida" name="transporte" value="ida">
-                <label for="transporte-ida">Necesitaré transporte para la ida</label>
+            <label for="alergias">Tus alergias o restricciones alimenticias</label>
+            <textarea id="alergias" name="alergias" placeholder="Ej: alergia a frutos secos, dieta vegetariana, sin gluten..."></textarea>
+          </div>
+
+          <fieldset style="margin-top:8px; margin-bottom:0;">
+            <legend style="font-size:19px;">Acompañante</legend>
+            <div class="field">
+              <label>¿Vienes con acompañante?</label>
+              <div class="radio-group">
+                <div class="radio-option">
+                  <input type="radio" id="acomp-no" name="conAcompanante" value="no" checked>
+                  <label for="acomp-no">No</label>
+                </div>
+                <div class="radio-option">
+                  <input type="radio" id="acomp-si" name="conAcompanante" value="si">
+                  <label for="acomp-si">Sí</label>
+                </div>
               </div>
-              <div class="radio-option-block">
-                <input type="radio" id="transporte-vuelta" name="transporte" value="vuelta">
-                <label for="transporte-vuelta">Necesitaré transporte para la vuelta</label>
+            </div>
+
+            <div class="conditional" id="datosAcompanante">
+              <div class="field field-row">
+                <div class="col-1">
+                  <label for="acompananteNombre">Nombre del acompañante</label>
+                  <input type="text" id="acompananteNombre" name="acompananteNombre" placeholder="Nombre">
+                </div>
+                <div class="col-1">
+                  <label for="acompananteApellidos">Apellidos del acompañante</label>
+                  <input type="text" id="acompananteApellidos" name="acompananteApellidos" placeholder="Apellidos">
+                </div>
               </div>
-              <div class="radio-option-block" data-transporte-completa>
-                <input type="radio" id="transporte-ida-vuelta" name="transporte" value="ida_vuelta">
-                <label for="transporte-ida-vuelta">Necesitaré transporte de ida y vuelta</label>
+              <div class="field">
+                <label for="acompananteAlergias">Alergias o restricciones del acompañante</label>
+                <textarea id="acompananteAlergias" name="acompananteAlergias" placeholder="Ej: alergia a frutos secos, dieta vegetariana, sin gluten..."></textarea>
               </div>
-              <div class="radio-option-block">
-                <input type="radio" id="transporte-no" name="transporte" value="no" checked>
-                <label for="transporte-no">No necesito</label>
-              </div>
+            </div>
+          </fieldset>
+        </div>
+      </fieldset>
+      <div class="step-nav">
+        <button type="button" class="btn-back" data-back="1">Atrás</button>
+        <button type="button" class="btn-next" data-next="3" id="btnDatosSiguiente">Siguiente</button>
+        <button type="submit" class="btn-submit-datos" id="submitBtnDatos" style="display:none;">Enviar confirmación</button>
+      </div>
+    </div>
+
+    <div class="form-step" data-step="3" style="display:none;">
+      <fieldset>
+        <legend>Transporte</legend>
+        <div class="field">
+          <div class="radio-group-vertical">
+            <div class="radio-option-block" data-transporte-completa>
+              <input type="radio" id="transporte-ida" name="transporte" value="ida">
+              <label for="transporte-ida">Necesitaré transporte para la ida</label>
+            </div>
+            <div class="radio-option-block">
+              <input type="radio" id="transporte-vuelta" name="transporte" value="vuelta">
+              <label for="transporte-vuelta">Necesitaré transporte para la vuelta</label>
+            </div>
+            <div class="radio-option-block" data-transporte-completa>
+              <input type="radio" id="transporte-ida-vuelta" name="transporte" value="ida_vuelta">
+              <label for="transporte-ida-vuelta">Necesitaré transporte de ida y vuelta</label>
+            </div>
+            <div class="radio-option-block">
+              <input type="radio" id="transporte-no" name="transporte" value="no" checked>
+              <label for="transporte-no">No necesito</label>
+            </div>
           </div>
         </div>
-
-        <div class="field">
-          <label for="alergias">Alergias o restricciones alimenticias</label>
-          <textarea id="alergias" name="alergias" placeholder="Ej: alergia a frutos secos, dieta vegetariana, sin gluten..."></textarea>
-        </div>
-      </div>
-    </fieldset>
+      </fieldset>
       <div class="step-nav">
         <button type="button" class="btn-back" data-back="2">Atrás</button>
         <button type="submit" id="submitBtn">Enviar confirmación</button>
@@ -572,8 +584,8 @@
 
 <script>
   const asistRadios = document.querySelectorAll('input[name="asiste"]');
-  const detalles = document.getElementById('detallesAsistencia');
   const alergiasInput = document.getElementById('alergias');
+  const acompananteAlergiasInput = document.getElementById('acompananteAlergias');
 
   const transporteBloquesCompleta = document.querySelectorAll('[data-transporte-completa]');
   const transporteNoInput = document.getElementById('transporte-no');
@@ -609,15 +621,6 @@
     }
   });
 
-  asistRadios.forEach(r => r.addEventListener('change', () => {
-    if (r.checked && r.value !== 'no') {
-      detalles.classList.add('visible');
-    } else if (r.checked) {
-      detalles.classList.remove('visible');
-    }
-    if (r.checked) actualizarTransporte(r.value);
-  }));
-
   acompRadios.forEach(r => r.addEventListener('change', () => {
     if (r.value === 'si' && r.checked) {
       datosAcompanante.classList.add('visible');
@@ -629,58 +632,69 @@
       acompananteNombreInput.value = '';
       acompananteApellidosInput.required = false;
       acompananteApellidosInput.value = '';
+      acompananteAlergiasInput.value = '';
     }
   }));
 
   const form = document.getElementById('rsvpForm');
   const status = document.getElementById('status');
-  const submitBtn = document.getElementById('submitBtn');
   const card = document.getElementById('card');
+  const datosCompletos = document.getElementById('datosCompletos');
+  const btnDatosSiguiente = document.getElementById('btnDatosSiguiente');
+  const btnsEnviarDatos = document.querySelectorAll('.btn-submit-datos');
+  const tabTransporte = document.getElementById('tabTransporte');
+
+  function submitButtons() {
+    return form.querySelectorAll('button[type="submit"]');
+  }
 
   form.addEventListener('input', (e) => e.target.classList.remove('input-error'));
   form.addEventListener('change', (e) => e.target.classList.remove('input-error'));
 
   function leerFormulario() {
     const asiste = form.querySelector('input[name="asiste"]:checked')?.value || '';
-    const conAcompanante = form.querySelector('input[name="conAcompanante"]:checked')?.value || 'no';
-    const tratamientoValor = tratamientoSelect.value === 'Otro'
-      ? tratamientoOtroInput.value.trim()
-      : tratamientoSelect.value;
+    const noAsiste = asiste === 'no';
+    const conAcompanante = !noAsiste ? (form.querySelector('input[name="conAcompanante"]:checked')?.value || 'no') : 'no';
+    const tratamientoValor = !noAsiste
+      ? (tratamientoSelect.value === 'Otro' ? tratamientoOtroInput.value.trim() : tratamientoSelect.value)
+      : '';
 
     return {
       tratamiento: tratamientoValor,
       nombre: document.getElementById('nombre').value.trim(),
       apellidos: document.getElementById('apellidos').value.trim(),
-      calle: document.getElementById('calle').value.trim(),
-      cp: document.getElementById('cp').value.trim(),
-      ciudad: document.getElementById('ciudad').value.trim(),
-      provincia: document.getElementById('provincia').value.trim(),
+      calle: !noAsiste ? document.getElementById('calle').value.trim() : '',
+      cp: !noAsiste ? document.getElementById('cp').value.trim() : '',
+      ciudad: !noAsiste ? document.getElementById('ciudad').value.trim() : '',
+      provincia: !noAsiste ? document.getElementById('provincia').value.trim() : '',
       asiste: asiste,
-      conAcompanante: asiste !== 'no' ? conAcompanante : 'no',
-      acompananteNombre: (asiste !== 'no' && conAcompanante === 'si') ? acompananteNombreInput.value.trim() : '',
-      acompananteApellidos: (asiste !== 'no' && conAcompanante === 'si') ? acompananteApellidosInput.value.trim() : '',
-      transporte: asiste !== 'no' ? (form.querySelector('input[name="transporte"]:checked')?.value || 'no') : '',
-      alergias: asiste !== 'no' ? alergiasInput.value.trim() : ''
+      conAcompanante: conAcompanante,
+      acompananteNombre: (!noAsiste && conAcompanante === 'si') ? acompananteNombreInput.value.trim() : '',
+      acompananteApellidos: (!noAsiste && conAcompanante === 'si') ? acompananteApellidosInput.value.trim() : '',
+      acompananteAlergias: (!noAsiste && conAcompanante === 'si') ? acompananteAlergiasInput.value.trim() : '',
+      transporte: !noAsiste ? (form.querySelector('input[name="transporte"]:checked')?.value || 'no') : '',
+      alergias: !noAsiste ? alergiasInput.value.trim() : ''
     };
   }
 
   function validarPaso(paso, entry) {
     const faltantes = [];
     if (paso === 1) {
-      if (!tratamientoSelect.value) faltantes.push({ label: 'Tratamiento', el: tratamientoSelect, paso });
-      else if (tratamientoSelect.value === 'Otro' && !entry.tratamiento) faltantes.push({ label: 'Tratamiento (especifica cuál)', el: tratamientoOtroInput, paso });
+      if (!entry.asiste) faltantes.push({ label: '¿Cuándo podrás acompañarnos?', el: document.getElementById('asiste-completa'), paso });
+    } else if (paso === 2) {
       if (!entry.nombre) faltantes.push({ label: 'Nombre', el: document.getElementById('nombre'), paso });
       if (!entry.apellidos) faltantes.push({ label: 'Apellidos', el: document.getElementById('apellidos'), paso });
-    } else if (paso === 2) {
-      if (!entry.calle) faltantes.push({ label: 'Calle y número', el: document.getElementById('calle'), paso });
-      if (!entry.cp) faltantes.push({ label: 'Código postal', el: document.getElementById('cp'), paso });
-      if (!entry.ciudad) faltantes.push({ label: 'Ciudad', el: document.getElementById('ciudad'), paso });
-      if (!entry.provincia) faltantes.push({ label: 'Provincia', el: document.getElementById('provincia'), paso });
-    } else if (paso === 3) {
-      if (!entry.asiste) faltantes.push({ label: '¿Cuándo podrás acompañarnos?', el: document.getElementById('asiste-completa'), paso });
-      if (entry.asiste !== 'no' && entry.conAcompanante === 'si') {
-        if (!entry.acompananteNombre) faltantes.push({ label: 'Nombre del acompañante', el: acompananteNombreInput, paso });
-        if (!entry.acompananteApellidos) faltantes.push({ label: 'Apellidos del acompañante', el: acompananteApellidosInput, paso });
+      if (entry.asiste !== 'no') {
+        if (!tratamientoSelect.value) faltantes.push({ label: 'Tratamiento', el: tratamientoSelect, paso });
+        else if (tratamientoSelect.value === 'Otro' && !entry.tratamiento) faltantes.push({ label: 'Tratamiento (especifica cuál)', el: tratamientoOtroInput, paso });
+        if (!entry.calle) faltantes.push({ label: 'Calle y número', el: document.getElementById('calle'), paso });
+        if (!entry.cp) faltantes.push({ label: 'Código postal', el: document.getElementById('cp'), paso });
+        if (!entry.ciudad) faltantes.push({ label: 'Ciudad', el: document.getElementById('ciudad'), paso });
+        if (!entry.provincia) faltantes.push({ label: 'Provincia', el: document.getElementById('provincia'), paso });
+        if (entry.conAcompanante === 'si') {
+          if (!entry.acompananteNombre) faltantes.push({ label: 'Nombre del acompañante', el: acompananteNombreInput, paso });
+          if (!entry.acompananteApellidos) faltantes.push({ label: 'Apellidos del acompañante', el: acompananteApellidosInput, paso });
+        }
       }
     }
     return faltantes;
@@ -695,12 +709,16 @@
     faltantes[0].el.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
-  const TOTAL_PASOS = 3;
   const pasos = document.querySelectorAll('.form-step');
   const stepProgressFill = document.getElementById('stepProgressFill');
   const stepTabs = document.querySelectorAll('.step-tab');
   let pasoActual = 1;
   let pasoMaxAlcanzado = 1;
+
+  function totalPasos() {
+    const v = form.querySelector('input[name="asiste"]:checked')?.value || '';
+    return v === 'no' ? 2 : 3;
+  }
 
   function actualizarTabs() {
     stepTabs.forEach(tab => {
@@ -717,12 +735,34 @@
     pasos.forEach(p => {
       p.style.display = Number(p.dataset.step) === n ? 'block' : 'none';
     });
-    stepProgressFill.style.width = (n / TOTAL_PASOS * 100) + '%';
+    stepProgressFill.style.width = (n / totalPasos() * 100) + '%';
     actualizarTabs();
     status.textContent = '';
     status.className = 'status';
     card.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
+
+  function actualizarAsistencia(valor) {
+    const noAsiste = valor === 'no';
+    datosCompletos.classList.toggle('visible', !noAsiste);
+    btnDatosSiguiente.style.display = noAsiste ? 'none' : '';
+    btnsEnviarDatos.forEach(b => b.style.display = noAsiste ? '' : 'none');
+    tabTransporte.style.display = noAsiste ? 'none' : '';
+    if (noAsiste) {
+      pasoMaxAlcanzado = Math.min(pasoMaxAlcanzado, 2);
+      if (pasoActual === 3) {
+        mostrarPaso(2);
+        return;
+      }
+    }
+    actualizarTransporte(valor);
+    stepProgressFill.style.width = (pasoActual / totalPasos() * 100) + '%';
+    actualizarTabs();
+  }
+
+  asistRadios.forEach(r => r.addEventListener('change', () => {
+    if (r.checked) actualizarAsistencia(r.value);
+  }));
 
   stepTabs.forEach(tab => {
     tab.addEventListener('click', () => {
@@ -757,8 +797,7 @@
     const entry = leerFormulario();
     const faltantes = [
       ...validarPaso(1, entry),
-      ...validarPaso(2, entry),
-      ...validarPaso(3, entry)
+      ...validarPaso(2, entry)
     ];
 
     if (faltantes.length) {
@@ -767,8 +806,7 @@
       return;
     }
 
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Enviando...';
+    submitButtons().forEach(b => { b.disabled = true; b.textContent = 'Enviando...'; });
 
     try {
       const response = await fetch('/api/rsvp', {
@@ -786,8 +824,7 @@
     } catch (err) {
       status.textContent = 'No se ha podido enviar: ' + err.message + '. Inténtalo de nuevo.';
       status.className = 'status error';
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Enviar confirmación';
+      submitButtons().forEach(b => { b.disabled = false; b.textContent = 'Enviar confirmación'; });
     }
   });
 </script>
