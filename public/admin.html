@@ -133,11 +133,16 @@
     }
   }
 
+  // 'propio'/'autobus'/'otro' son valores heredados de antes de tener
+  // las opciones ida/vuelta/ida y vuelta/no necesito
   function transporteLabel(v) {
     if (v === 'ida') return 'Ida';
     if (v === 'vuelta') return 'Vuelta';
     if (v === 'ida_vuelta') return 'Ida y vuelta';
     if (v === 'no') return 'No necesita';
+    if (v === 'propio') return 'Transporte propio (dato antiguo)';
+    if (v === 'autobus') return 'Autobús (dato antiguo)';
+    if (v === 'otro') return 'Otro (dato antiguo)';
     return v || '';
   }
 
