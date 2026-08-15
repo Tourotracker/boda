@@ -50,14 +50,15 @@
   th,td{text-align:left; padding:9px 10px; border-bottom:1px solid var(--line); word-wrap:break-word;}
   th{background:var(--gold-soft); font-weight:600; position:sticky; top:0;}
   tr:last-child td{border-bottom:none;}
-  th:nth-child(1){width:8%;}
-  th:nth-child(2){width:15%;}
-  th:nth-child(3){width:7%;}
-  th:nth-child(4){width:9%;}
-  th:nth-child(5){width:14%;}
-  th:nth-child(6){width:11%;}
-  th:nth-child(7){width:14%;}
-  th:nth-child(8){width:22%;}
+  th:nth-child(1){width:7%;}
+  th:nth-child(2){width:12%;}
+  th:nth-child(3){width:12%;}
+  th:nth-child(4){width:6%;}
+  th:nth-child(5){width:8%;}
+  th:nth-child(6){width:12%;}
+  th:nth-child(7){width:10%;}
+  th:nth-child(8){width:12%;}
+  th:nth-child(9){width:21%;}
   .si{color:var(--sage); font-weight:600;}
   .no{color:#B05A4A; font-weight:600;}
   .table-wrap{overflow-x:auto; border-radius:4px;}
@@ -86,7 +87,7 @@
     <table>
       <thead>
         <tr>
-          <th>Fecha</th><th>Nombre</th><th>Asiste</th>
+          <th>Fecha</th><th>Nombre</th><th>Apellidos</th><th>Asiste</th>
           <th>Acompañante</th><th>Nombre acompañante</th><th>Transporte</th>
           <th>Alergias</th><th>Dirección</th>
         </tr>
@@ -148,6 +149,7 @@
       <tr>
         <td>${new Date(r.created_at).toLocaleDateString('es-ES')}</td>
         <td>${escapeHtml(r.tratamiento)} ${escapeHtml(r.nombre)}</td>
+        <td>${escapeHtml(r.apellidos)}</td>
         <td class="${r.asiste === 'si' ? 'si' : 'no'}">${r.asiste === 'si' ? 'Sí' : 'No'}</td>
         <td>${r.con_acompanante === 'si' ? 'Sí' : 'No'}</td>
         <td>${escapeHtml(r.acompanante_nombre)}</td>
@@ -167,7 +169,7 @@
 
   document.getElementById('exportar').addEventListener('click', () => {
     if (!currentData.length) return;
-    const cols = ['created_at','tratamiento','nombre','calle','cp','ciudad','provincia',
+    const cols = ['created_at','tratamiento','nombre','apellidos','calle','cp','ciudad','provincia',
       'asiste','con_acompanante','acompanante_nombre','transporte','alergias'];
     const csvRows = [cols.join(',')];
     currentData.forEach(r => {

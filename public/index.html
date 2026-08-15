@@ -276,14 +276,24 @@
           <option value="Sr.">Sr.</option>
           <option value="Sra.">Sra.</option>
           <option value="Srta.">Srta.</option>
-          <option value="Dr.">Dr.</option>
-          <option value="Dra.">Dra.</option>
-          <option value="Otro">Otro / prefiero no decirlo</option>
+          <option value="Otro">Otro</option>
         </select>
       </div>
-      <div class="field">
-        <label for="nombre">Nombre completo</label>
-        <input type="text" id="nombre" name="nombre" required placeholder="Nombre y apellidos">
+      <div class="conditional" id="tratamientoOtroWrap">
+        <div class="field">
+          <label for="tratamientoOtro">Especifica el tratamiento</label>
+          <input type="text" id="tratamientoOtro" name="tratamientoOtro" placeholder="Escribe aquí">
+        </div>
+      </div>
+      <div class="field" style="display:flex; gap:12px;">
+        <div style="flex:1;">
+          <label for="nombre">Nombre</label>
+          <input type="text" id="nombre" name="nombre" required placeholder="Nombre">
+        </div>
+        <div style="flex:1;">
+          <label for="apellidos">Apellidos</label>
+          <input type="text" id="apellidos" name="apellidos" required placeholder="Apellidos">
+        </div>
       </div>
 
       <fieldset style="margin-top:8px; margin-bottom:0;">
@@ -385,6 +395,21 @@
   const datosAcompanante = document.getElementById('datosAcompanante');
   const acompananteNombreInput = document.getElementById('acompananteNombre');
 
+  const tratamientoSelect = document.getElementById('tratamiento');
+  const tratamientoOtroWrap = document.getElementById('tratamientoOtroWrap');
+  const tratamientoOtroInput = document.getElementById('tratamientoOtro');
+
+  tratamientoSelect.addEventListener('change', () => {
+    if (tratamientoSelect.value === 'Otro') {
+      tratamientoOtroWrap.classList.add('visible');
+      tratamientoOtroInput.required = true;
+    } else {
+      tratamientoOtroWrap.classList.remove('visible');
+      tratamientoOtroInput.required = false;
+      tratamientoOtroInput.value = '';
+    }
+  });
+
   asistRadios.forEach(r => r.addEventListener('change', () => {
     if (r.value === 'si' && r.checked) {
       detalles.classList.add('visible');
@@ -418,9 +443,14 @@
     const asiste = form.querySelector('input[name="asiste"]:checked')?.value || '';
     const conAcompanante = form.querySelector('input[name="conAcompanante"]:checked')?.value || 'no';
 
+    const tratamientoValor = tratamientoSelect.value === 'Otro'
+      ? tratamientoOtroInput.value.trim()
+      : tratamientoSelect.value;
+
     const entry = {
-      tratamiento: document.getElementById('tratamiento').value,
+      tratamiento: tratamientoValor,
       nombre: document.getElementById('nombre').value.trim(),
+      apellidos: document.getElementById('apellidos').value.trim(),
       calle: document.getElementById('calle').value.trim(),
       cp: document.getElementById('cp').value.trim(),
       ciudad: document.getElementById('ciudad').value.trim(),
@@ -432,7 +462,7 @@
       alergias: asiste === 'si' ? alergiasInput.value.trim() : ''
     };
 
-    if (!entry.nombre || !entry.tratamiento || !entry.calle || !entry.cp || !entry.ciudad || !entry.provincia || !asiste) {
+    if (!entry.nombre || !entry.apellidos || !entry.tratamiento || !entry.calle || !entry.cp || !entry.ciudad || !entry.provincia || !asiste) {
       status.textContent = 'Por favor completa los campos obligatorios.';
       status.className = 'status error';
       submitBtn.disabled = false;

@@ -17,8 +17,9 @@ async function initDB() {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS rsvp (
       id SERIAL PRIMARY KEY,
-      tratamiento VARCHAR(20),
+      tratamiento VARCHAR(100),
       nombre VARCHAR(200) NOT NULL,
+      apellidos VARCHAR(200) NOT NULL,
       calle VARCHAR(300),
       cp VARCHAR(10),
       ciudad VARCHAR(100),
@@ -32,6 +33,8 @@ async function initDB() {
     )
   `);
   await pool.query(`ALTER TABLE rsvp DROP COLUMN IF EXISTS email`);
+  await pool.query(`ALTER TABLE rsvp ALTER COLUMN tratamiento TYPE VARCHAR(100)`);
+  await pool.query(`ALTER TABLE rsvp ADD COLUMN IF NOT EXISTS apellidos VARCHAR(200)`);
   console.log('Base de datos lista.');
 }
 
@@ -42,25 +45,25 @@ app.get('/health', (req, res) => res.json({ status: 'ok' }));
 
 app.post('/api/rsvp', async (req, res) => {
   const {
-    tratamiento, nombre,
+    tratamiento, nombre, apellidos,
     calle, cp, ciudad, provincia,
     asiste, conAcompanante, acompananteNombre,
     transporte, alergias
   } = req.body;
 
-  if (!nombre || !asiste) {
+  if (!tratamiento || !nombre || !apellidos || !calle || !cp || !ciudad || !provincia || !asiste) {
     return res.status(400).json({ error: 'Faltan campos obligatorios.' });
   }
 
   try {
     await pool.query(
       `INSERT INTO rsvp
-        (tratamiento, nombre, calle, cp, ciudad, provincia,
+        (tratamiento, nombre, apellidos, calle, cp, ciudad, provincia,
          asiste, con_acompanante, acompanante_nombre, transporte, alergias)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`,
       [
-        tratamiento || '', nombre,
-        calle || '', cp || '', ciudad || '', provincia || '',
+        tratamiento, nombre, apellidos,
+        calle, cp, ciudad, provincia,
         asiste, conAcompanante || 'no', acompananteNombre || '',
         transporte || '', alergias || ''
       ]
