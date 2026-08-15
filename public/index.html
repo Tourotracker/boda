@@ -472,9 +472,15 @@
           </div>
 
           <div class="conditional" id="datosAcompanante">
-            <div class="field">
-              <label for="acompananteNombre">Nombre y apellidos del acompañante</label>
-              <input type="text" id="acompananteNombre" name="acompananteNombre" placeholder="Nombre y apellidos">
+            <div class="field field-row">
+              <div class="col-1">
+                <label for="acompananteNombre">Nombre del acompañante</label>
+                <input type="text" id="acompananteNombre" name="acompananteNombre" placeholder="Nombre">
+              </div>
+              <div class="col-1">
+                <label for="acompananteApellidos">Apellidos del acompañante</label>
+                <input type="text" id="acompananteApellidos" name="acompananteApellidos" placeholder="Apellidos">
+              </div>
             </div>
           </div>
 
@@ -545,6 +551,7 @@
   const acompRadios = document.querySelectorAll('input[name="conAcompanante"]');
   const datosAcompanante = document.getElementById('datosAcompanante');
   const acompananteNombreInput = document.getElementById('acompananteNombre');
+  const acompananteApellidosInput = document.getElementById('acompananteApellidos');
 
   const tratamientoSelect = document.getElementById('tratamiento');
   const tratamientoOtroWrap = document.getElementById('tratamientoOtroWrap');
@@ -574,10 +581,13 @@
     if (r.value === 'si' && r.checked) {
       datosAcompanante.classList.add('visible');
       acompananteNombreInput.required = true;
+      acompananteApellidosInput.required = true;
     } else if (r.checked) {
       datosAcompanante.classList.remove('visible');
       acompananteNombreInput.required = false;
       acompananteNombreInput.value = '';
+      acompananteApellidosInput.required = false;
+      acompananteApellidosInput.value = '';
     }
   }));
 
@@ -607,6 +617,7 @@
       asiste: asiste,
       conAcompanante: asiste !== 'no' ? conAcompanante : 'no',
       acompananteNombre: (asiste !== 'no' && conAcompanante === 'si') ? acompananteNombreInput.value.trim() : '',
+      acompananteApellidos: (asiste !== 'no' && conAcompanante === 'si') ? acompananteApellidosInput.value.trim() : '',
       transporte: asiste !== 'no' ? (form.querySelector('input[name="transporte"]:checked')?.value || 'no') : '',
       alergias: asiste !== 'no' ? alergiasInput.value.trim() : ''
     };
@@ -626,8 +637,9 @@
       if (!entry.provincia) faltantes.push({ label: 'Provincia', el: document.getElementById('provincia'), paso });
     } else if (paso === 3) {
       if (!entry.asiste) faltantes.push({ label: '¿Cuándo podrás acompañarnos?', el: document.getElementById('asiste-completa'), paso });
-      if (entry.asiste !== 'no' && entry.conAcompanante === 'si' && !entry.acompananteNombre) {
-        faltantes.push({ label: 'Nombre del acompañante', el: acompananteNombreInput, paso });
+      if (entry.asiste !== 'no' && entry.conAcompanante === 'si') {
+        if (!entry.acompananteNombre) faltantes.push({ label: 'Nombre del acompañante', el: acompananteNombreInput, paso });
+        if (!entry.acompananteApellidos) faltantes.push({ label: 'Apellidos del acompañante', el: acompananteApellidosInput, paso });
       }
     }
     return faltantes;
