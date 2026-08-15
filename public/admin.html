@@ -54,16 +54,17 @@
   th{background:var(--gold-soft); font-weight:700; position:sticky; top:0;}
   tr:last-child td{border-bottom:none;}
   th:nth-child(1){width:6%;}
-  th:nth-child(2){width:9%;}
-  th:nth-child(3){width:9%;}
-  th:nth-child(4){width:8%;}
+  th:nth-child(2){width:8%;}
+  th:nth-child(3){width:8%;}
+  th:nth-child(4){width:7%;}
   th:nth-child(5){width:6%;}
-  th:nth-child(6){width:9%;}
-  th:nth-child(7){width:9%;}
+  th:nth-child(6){width:8%;}
+  th:nth-child(7){width:8%;}
   th:nth-child(8){width:8%;}
-  th:nth-child(9){width:9%;}
-  th:nth-child(10){width:9%;}
-  th:nth-child(11){width:18%;}
+  th:nth-child(9){width:7%;}
+  th:nth-child(10){width:8%;}
+  th:nth-child(11){width:8%;}
+  th:nth-child(12){width:18%;}
   .si{color:var(--sage); font-weight:600;}
   .no{color:#B05A4A; font-weight:600;}
   .table-wrap{overflow-x:auto; border-radius:var(--radius-md); box-shadow:var(--shadow-card);}
@@ -93,7 +94,7 @@
       <thead>
         <tr>
           <th>Fecha</th><th>Nombre</th><th>Apellidos</th><th>Asiste</th>
-          <th>Acompañante</th><th>Nombre acomp.</th><th>Apellidos acomp.</th><th>Transporte</th>
+          <th>Acompañante</th><th>Trat. acomp.</th><th>Nombre acomp.</th><th>Apellidos acomp.</th><th>Transporte</th>
           <th>Alergias</th><th>Alergias acomp.</th><th>Dirección</th>
         </tr>
       </thead>
@@ -180,6 +181,7 @@
         <td>${escapeHtml(r.apellidos)}</td>
         <td class="${r.asiste === 'no' ? 'no' : 'si'}">${asisteLabel(r.asiste)}</td>
         <td>${r.con_acompanante === 'si' ? 'Sí' : 'No'}</td>
+        <td>${escapeHtml(r.acompanante_tratamiento)}</td>
         <td>${escapeHtml(r.acompanante_nombre)}</td>
         <td>${escapeHtml(r.acompanante_apellidos)}</td>
         <td>${escapeHtml(transporteLabel(r.transporte))}</td>
@@ -206,6 +208,7 @@
       { header: 'Apellidos', valor: r => r.apellidos || '' },
       { header: 'Asiste', valor: r => asisteLabel(r.asiste) },
       { header: 'Acompañante', valor: r => r.con_acompanante === 'si' ? 'Sí' : 'No' },
+      { header: 'Tratamiento acompañante', valor: r => r.acompanante_tratamiento || '' },
       { header: 'Nombre acompañante', valor: r => r.acompanante_nombre || '' },
       { header: 'Apellidos acompañante', valor: r => r.acompanante_apellidos || '' },
       { header: 'Transporte', valor: r => transporteLabel(r.transporte) },

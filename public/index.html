@@ -81,15 +81,19 @@
     display:flex;
     gap:36px;
     flex-wrap:wrap;
+    justify-content:center;
     margin-bottom:44px;
   }
-  .event-item{flex:1; min-width:190px;}
+  .event-item{flex:1; min-width:190px; text-align:center;}
   .event-icon img{
     display:block;
     width:100%;
-    max-width:180px;
+    max-width:200px;
     height:auto;
-    margin-bottom:16px;
+    margin:0 auto 12px;
+    mix-blend-mode:multiply;
+    -webkit-mask-image:radial-gradient(ellipse 62% 62% at center, #000 55%, transparent 85%);
+    mask-image:radial-gradient(ellipse 62% 62% at center, #000 55%, transparent 85%);
   }
   .event-label{
     font-family:'Cormorant Garamond', serif;
@@ -419,7 +423,7 @@
       <fieldset>
         <legend>Asistencia</legend>
         <div class="field">
-          <p class="asiste-intro">Sabemos que es viernes y que puede ser complicado cuadrarlo con el trabajo. Por eso, podéis acompañarnos desde la ceremonia o incorporaros después de la comida. ¡Lo importante es celebrarlo juntos!</p>
+          <p class="asiste-intro">Sabemos que es viernes y que puede ser complicado. Por eso, podéis acompañarnos desde la ceremonia o incorporaros después de la comida. ¡Lo importante es celebrarlo juntos!</p>
           <label>¿Cuándo podrás acompañarnos?</label>
           <div class="radio-group-vertical">
             <div class="radio-option-block">
@@ -521,6 +525,22 @@
             </div>
 
             <div class="conditional" id="datosAcompanante">
+              <div class="field">
+                <label for="acompananteTratamiento">Tratamiento del acompañante</label>
+                <select id="acompananteTratamiento" name="acompananteTratamiento">
+                  <option value="">Selecciona...</option>
+                  <option value="Sr.">Sr.</option>
+                  <option value="Sra.">Sra.</option>
+                  <option value="Srta.">Srta.</option>
+                  <option value="Otro">Otro</option>
+                </select>
+              </div>
+              <div class="conditional" id="acompananteTratamientoOtroWrap">
+                <div class="field">
+                  <label for="acompananteTratamientoOtro">Especifica el tratamiento</label>
+                  <input type="text" id="acompananteTratamientoOtro" name="acompananteTratamientoOtro" placeholder="Escribe aquí">
+                </div>
+              </div>
               <div class="field field-row">
                 <div class="col-1">
                   <label for="acompananteNombre">Nombre del acompañante</label>
@@ -617,6 +637,10 @@
   const tratamientoOtroWrap = document.getElementById('tratamientoOtroWrap');
   const tratamientoOtroInput = document.getElementById('tratamientoOtro');
 
+  const acompananteTratamientoSelect = document.getElementById('acompananteTratamiento');
+  const acompananteTratamientoOtroWrap = document.getElementById('acompananteTratamientoOtroWrap');
+  const acompananteTratamientoOtroInput = document.getElementById('acompananteTratamientoOtro');
+
   tratamientoSelect.addEventListener('change', () => {
     if (tratamientoSelect.value === 'Otro') {
       tratamientoOtroWrap.classList.add('visible');
@@ -625,6 +649,17 @@
       tratamientoOtroWrap.classList.remove('visible');
       tratamientoOtroInput.required = false;
       tratamientoOtroInput.value = '';
+    }
+  });
+
+  acompananteTratamientoSelect.addEventListener('change', () => {
+    if (acompananteTratamientoSelect.value === 'Otro') {
+      acompananteTratamientoOtroWrap.classList.add('visible');
+      acompananteTratamientoOtroInput.required = true;
+    } else {
+      acompananteTratamientoOtroWrap.classList.remove('visible');
+      acompananteTratamientoOtroInput.required = false;
+      acompananteTratamientoOtroInput.value = '';
     }
   });
 
@@ -640,6 +675,10 @@
       acompananteApellidosInput.required = false;
       acompananteApellidosInput.value = '';
       acompananteAlergiasInput.value = '';
+      acompananteTratamientoSelect.value = '';
+      acompananteTratamientoOtroWrap.classList.remove('visible');
+      acompananteTratamientoOtroInput.required = false;
+      acompananteTratamientoOtroInput.value = '';
     }
   }));
 
@@ -666,6 +705,10 @@
     const tratamientoValor = !noAsiste
       ? (tratamientoSelect.value === 'Otro' ? tratamientoOtroInput.value.trim() : tratamientoSelect.value)
       : '';
+    const conAcompanantePresente = !noAsiste && conAcompanante === 'si';
+    const acompananteTratamientoValor = conAcompanantePresente
+      ? (acompananteTratamientoSelect.value === 'Otro' ? acompananteTratamientoOtroInput.value.trim() : acompananteTratamientoSelect.value)
+      : '';
 
     return {
       tratamiento: tratamientoValor,
@@ -677,9 +720,10 @@
       provincia: !noAsiste ? document.getElementById('provincia').value.trim() : '',
       asiste: asiste,
       conAcompanante: conAcompanante,
-      acompananteNombre: (!noAsiste && conAcompanante === 'si') ? acompananteNombreInput.value.trim() : '',
-      acompananteApellidos: (!noAsiste && conAcompanante === 'si') ? acompananteApellidosInput.value.trim() : '',
-      acompananteAlergias: (!noAsiste && conAcompanante === 'si') ? acompananteAlergiasInput.value.trim() : '',
+      acompananteTratamiento: acompananteTratamientoValor,
+      acompananteNombre: conAcompanantePresente ? acompananteNombreInput.value.trim() : '',
+      acompananteApellidos: conAcompanantePresente ? acompananteApellidosInput.value.trim() : '',
+      acompananteAlergias: conAcompanantePresente ? acompananteAlergiasInput.value.trim() : '',
       transporte: !noAsiste ? (form.querySelector('input[name="transporte"]:checked')?.value || 'no') : '',
       alergias: !noAsiste ? alergiasInput.value.trim() : ''
     };
@@ -700,6 +744,8 @@
         if (!entry.ciudad) faltantes.push({ label: 'Ciudad', el: document.getElementById('ciudad'), paso });
         if (!entry.provincia) faltantes.push({ label: 'Provincia', el: document.getElementById('provincia'), paso });
         if (entry.conAcompanante === 'si') {
+          if (!acompananteTratamientoSelect.value) faltantes.push({ label: 'Tratamiento del acompañante', el: acompananteTratamientoSelect, paso });
+          else if (acompananteTratamientoSelect.value === 'Otro' && !entry.acompananteTratamiento) faltantes.push({ label: 'Tratamiento del acompañante (especifica cuál)', el: acompananteTratamientoOtroInput, paso });
           if (!entry.acompananteNombre) faltantes.push({ label: 'Nombre del acompañante', el: acompananteNombreInput, paso });
           if (!entry.acompananteApellidos) faltantes.push({ label: 'Apellidos del acompañante', el: acompananteApellidosInput, paso });
         }

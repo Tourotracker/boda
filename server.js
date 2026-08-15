@@ -26,6 +26,7 @@ async function initDB() {
       provincia VARCHAR(100),
       asiste VARCHAR(20) NOT NULL,
       con_acompanante VARCHAR(5),
+      acompanante_tratamiento VARCHAR(100),
       acompanante_nombre VARCHAR(200),
       acompanante_apellidos VARCHAR(200),
       acompanante_alergias TEXT,
@@ -40,6 +41,7 @@ async function initDB() {
   await pool.query(`ALTER TABLE rsvp ALTER COLUMN asiste TYPE VARCHAR(20)`);
   await pool.query(`ALTER TABLE rsvp ADD COLUMN IF NOT EXISTS acompanante_apellidos VARCHAR(200)`);
   await pool.query(`ALTER TABLE rsvp ADD COLUMN IF NOT EXISTS acompanante_alergias TEXT`);
+  await pool.query(`ALTER TABLE rsvp ADD COLUMN IF NOT EXISTS acompanante_tratamiento VARCHAR(100)`);
   console.log('Base de datos lista.');
 }
 
@@ -52,7 +54,7 @@ app.post('/api/rsvp', async (req, res) => {
   const {
     tratamiento, nombre, apellidos,
     calle, cp, ciudad, provincia,
-    asiste, conAcompanante, acompananteNombre, acompananteApellidos, acompananteAlergias,
+    asiste, conAcompanante, acompananteTratamiento, acompananteNombre, acompananteApellidos, acompananteAlergias,
     transporte, alergias
   } = req.body;
 
@@ -67,12 +69,12 @@ app.post('/api/rsvp', async (req, res) => {
     await pool.query(
       `INSERT INTO rsvp
         (tratamiento, nombre, apellidos, calle, cp, ciudad, provincia,
-         asiste, con_acompanante, acompanante_nombre, acompanante_apellidos, acompanante_alergias, transporte, alergias)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
+         asiste, con_acompanante, acompanante_tratamiento, acompanante_nombre, acompanante_apellidos, acompanante_alergias, transporte, alergias)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)`,
       [
         tratamiento || '', nombre, apellidos,
         calle || '', cp || '', ciudad || '', provincia || '',
-        asiste, conAcompanante || 'no', acompananteNombre || '', acompananteApellidos || '', acompananteAlergias || '',
+        asiste, conAcompanante || 'no', acompananteTratamiento || '', acompananteNombre || '', acompananteApellidos || '', acompananteAlergias || '',
         transporte || '', alergias || ''
       ]
     );
