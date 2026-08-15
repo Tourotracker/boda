@@ -84,13 +84,22 @@
     justify-content:center;
     margin-bottom:44px;
   }
-  .event-item{flex:1; min-width:190px; text-align:center;}
+  .event-item{flex:1; min-width:190px; text-align:center; display:flex; flex-direction:column; align-items:center;}
+  .event-icon{
+    height:170px;
+    width:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin-bottom:12px;
+  }
   .event-icon img{
     display:block;
-    width:100%;
-    max-width:200px;
+    width:auto;
     height:auto;
-    margin:0 auto 12px;
+    max-width:200px;
+    max-height:100%;
+    margin:0 auto;
     mix-blend-mode:multiply;
     -webkit-mask-image:radial-gradient(ellipse 62% 62% at center, #000 55%, transparent 85%);
     mask-image:radial-gradient(ellipse 62% 62% at center, #000 55%, transparent 85%);
@@ -440,7 +449,7 @@
       </div>
     </div>
 
-    <div class="stepper">
+    <div class="stepper" id="stepper">
       <div class="stepper-row">
         <div class="stepper-node" id="stepperNode1"><span>01</span></div>
         <div class="stepper-line" id="stepperLine1"></div>
@@ -743,6 +752,7 @@
   const form = document.getElementById('rsvpForm');
   const status = document.getElementById('status');
   const card = document.getElementById('card');
+  const stepper = document.getElementById('stepper');
   const datosCompletos = document.getElementById('datosCompletos');
   const tratamientoWrap = document.getElementById('tratamientoWrap');
   const btnDatosSiguiente = document.getElementById('btnDatosSiguiente');
@@ -858,7 +868,8 @@
     });
   }
 
-  function mostrarPaso(n) {
+  function mostrarPaso(n, opciones) {
+    const desplazar = !opciones || opciones.scroll !== false;
     pasoActual = n;
     if (n > pasoMaxAlcanzado) pasoMaxAlcanzado = n;
     pasos.forEach(p => {
@@ -867,7 +878,12 @@
     actualizarTabs();
     status.textContent = '';
     status.className = 'status';
-    card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (desplazar) {
+      const stepperTop = stepper.getBoundingClientRect().top;
+      if (stepperTop < 0 || stepperTop > 80) {
+        stepper.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
   }
 
   function actualizarAsistencia(valor) {
@@ -992,10 +1008,10 @@
       if (data && data.encontrado) {
         mostrarYaConfirmado(data.respuesta);
       } else {
-        mostrarPaso(1);
+        mostrarPaso(1, { scroll: false });
       }
     })
-    .catch(() => mostrarPaso(1));
+    .catch(() => mostrarPaso(1, { scroll: false }));
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
