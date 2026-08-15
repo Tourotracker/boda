@@ -126,9 +126,12 @@
     color:#6B6457;
   }
   .field{margin-bottom:18px;}
+  .field-row{display:flex; gap:12px;}
+  .field-row .col-1{flex:1; min-width:0;}
+  .field-row .col-2{flex:2; min-width:0;}
   input[type="text"], input[type="email"], input[type="number"], textarea, select{
     width:100%;
-    padding:13px 15px;
+    padding:14px 15px;
     border:1px solid var(--line);
     border-radius:3px;
     font-family:'Karla', sans-serif;
@@ -274,13 +277,24 @@
     border-radius:3px;
     transition:width .25s ease;
   }
-  .step-progress-label{
-    font-size:13px;
-    color:#8A8275;
-    text-transform:uppercase;
-    letter-spacing:0.05em;
-    text-align:center;
+  .step-tabs{
+    display:flex;
+    justify-content:space-between;
   }
+  .step-tab{
+    width:auto;
+    background:none;
+    padding:2px 0;
+    font-size:13px;
+    color:#C9BFA9;
+    letter-spacing:0.04em;
+    cursor:default;
+    transition:color .15s;
+  }
+  .step-tab:hover{background:none;}
+  .step-tab.completado{color:var(--sage); cursor:pointer;}
+  .step-tab.activo{color:var(--gold);}
+  .step-tab:disabled{background:none; color:#C9BFA9; cursor:default;}
   .step-nav{
     display:flex;
     gap:12px;
@@ -315,8 +329,13 @@
     font-size:17px;
   }
   @media (max-width:480px){
-    .card{padding:32px 22px;}
-    h1{font-size:34px;}
+    body{padding:20px 12px;}
+    .card{padding:28px 18px;}
+    h1{font-size:30px;}
+    .step-nav{gap:10px;}
+  }
+  @media (max-width:400px){
+    .field-row{flex-direction:column; gap:18px;}
   }
 </style>
 </head>
@@ -345,7 +364,11 @@
 
     <div class="step-progress">
       <div class="step-progress-bar"><div class="step-progress-fill" id="stepProgressFill"></div></div>
-      <div class="step-progress-label" id="stepProgressLabel">Paso 1 de 3</div>
+      <div class="step-tabs" id="stepTabs">
+        <button type="button" class="step-tab" data-step-jump="1">Datos</button>
+        <button type="button" class="step-tab" data-step-jump="2">Dirección</button>
+        <button type="button" class="step-tab" data-step-jump="3">Asistencia</button>
+      </div>
     </div>
 
     <div class="form-step" data-step="1">
@@ -367,12 +390,12 @@
             <input type="text" id="tratamientoOtro" name="tratamientoOtro" placeholder="Escribe aquí">
           </div>
         </div>
-        <div class="field" style="display:flex; gap:12px;">
-          <div style="flex:1;">
+        <div class="field field-row">
+          <div class="col-1">
             <label for="nombre">Nombre</label>
             <input type="text" id="nombre" name="nombre" required placeholder="Nombre">
           </div>
-          <div style="flex:1;">
+          <div class="col-1">
             <label for="apellidos">Apellidos</label>
             <input type="text" id="apellidos" name="apellidos" required placeholder="Apellidos">
           </div>
@@ -390,12 +413,12 @@
           <label for="calle">Calle y número</label>
           <input type="text" id="calle" name="calle" required placeholder="Calle, número, piso...">
         </div>
-        <div class="field" style="display:flex; gap:12px;">
-          <div style="flex:1;">
+        <div class="field field-row">
+          <div class="col-1">
             <label for="cp">Código postal</label>
             <input type="text" id="cp" name="cp" required placeholder="28001">
           </div>
-          <div style="flex:2;">
+          <div class="col-2">
             <label for="ciudad">Ciudad</label>
             <input type="text" id="ciudad" name="ciudad" required placeholder="Madrid">
           </div>
@@ -622,20 +645,38 @@
   const TOTAL_PASOS = 3;
   const pasos = document.querySelectorAll('.form-step');
   const stepProgressFill = document.getElementById('stepProgressFill');
-  const stepProgressLabel = document.getElementById('stepProgressLabel');
+  const stepTabs = document.querySelectorAll('.step-tab');
   let pasoActual = 1;
+  let pasoMaxAlcanzado = 1;
+
+  function actualizarTabs() {
+    stepTabs.forEach(tab => {
+      const n = Number(tab.dataset.stepJump);
+      tab.classList.toggle('activo', n === pasoActual);
+      tab.classList.toggle('completado', n <= pasoMaxAlcanzado && n !== pasoActual);
+      tab.disabled = n > pasoMaxAlcanzado;
+    });
+  }
 
   function mostrarPaso(n) {
     pasoActual = n;
+    if (n > pasoMaxAlcanzado) pasoMaxAlcanzado = n;
     pasos.forEach(p => {
       p.style.display = Number(p.dataset.step) === n ? 'block' : 'none';
     });
     stepProgressFill.style.width = (n / TOTAL_PASOS * 100) + '%';
-    stepProgressLabel.textContent = 'Paso ' + n + ' de ' + TOTAL_PASOS;
+    actualizarTabs();
     status.textContent = '';
     status.className = 'status';
     card.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
+
+  stepTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const n = Number(tab.dataset.stepJump);
+      if (n <= pasoMaxAlcanzado) mostrarPaso(n);
+    });
+  });
 
   document.querySelectorAll('.btn-next').forEach(btn => {
     btn.addEventListener('click', () => {
