@@ -19,7 +19,6 @@ async function initDB() {
       id SERIAL PRIMARY KEY,
       tratamiento VARCHAR(20),
       nombre VARCHAR(200) NOT NULL,
-      email VARCHAR(200) NOT NULL,
       calle VARCHAR(300),
       cp VARCHAR(10),
       ciudad VARCHAR(100),
@@ -32,6 +31,7 @@ async function initDB() {
       created_at TIMESTAMPTZ DEFAULT NOW()
     )
   `);
+  await pool.query(`ALTER TABLE rsvp DROP COLUMN IF EXISTS email`);
   console.log('Base de datos lista.');
 }
 
@@ -42,24 +42,24 @@ app.get('/health', (req, res) => res.json({ status: 'ok' }));
 
 app.post('/api/rsvp', async (req, res) => {
   const {
-    tratamiento, nombre, email,
+    tratamiento, nombre,
     calle, cp, ciudad, provincia,
     asiste, conAcompanante, acompananteNombre,
     transporte, alergias
   } = req.body;
 
-  if (!nombre || !email || !asiste) {
+  if (!nombre || !asiste) {
     return res.status(400).json({ error: 'Faltan campos obligatorios.' });
   }
 
   try {
     await pool.query(
       `INSERT INTO rsvp
-        (tratamiento, nombre, email, calle, cp, ciudad, provincia,
+        (tratamiento, nombre, calle, cp, ciudad, provincia,
          asiste, con_acompanante, acompanante_nombre, transporte, alergias)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`,
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
       [
-        tratamiento || '', nombre, email,
+        tratamiento || '', nombre,
         calle || '', cp || '', ciudad || '', provincia || '',
         asiste, conAcompanante || 'no', acompananteNombre || '',
         transporte || '', alergias || ''
