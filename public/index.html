@@ -142,6 +142,10 @@
     border-color:var(--gold);
     box-shadow:0 0 0 3px rgba(182,138,60,0.15);
   }
+  input.input-error, textarea.input-error, select.input-error{
+    border-color:#B05A4A;
+    box-shadow:0 0 0 3px rgba(176,90,74,0.12);
+  }
   textarea{resize:vertical; min-height:80px;}
   .radio-group{
     display:flex;
@@ -247,7 +251,7 @@
 <body>
 <div class="card" id="card">
 
-  <form id="rsvpForm">
+  <form id="rsvpForm" novalidate>
     <header>
       <div class="eyebrow">Por favor confirma antes del 1 de noviembre</div>
       <h1>La boda de <span class="names">Inés e Ignacio</span></h1>
@@ -433,6 +437,9 @@
   const status = document.getElementById('status');
   const submitBtn = document.getElementById('submitBtn');
 
+  form.addEventListener('input', (e) => e.target.classList.remove('input-error'));
+  form.addEventListener('change', (e) => e.target.classList.remove('input-error'));
+
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     status.textContent = '';
@@ -462,11 +469,30 @@
       alergias: asiste === 'si' ? alergiasInput.value.trim() : ''
     };
 
-    if (!entry.nombre || !entry.apellidos || !entry.tratamiento || !entry.calle || !entry.cp || !entry.ciudad || !entry.provincia || !asiste) {
-      status.textContent = 'Por favor completa los campos obligatorios.';
+    document.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
+
+    const faltantes = [];
+    if (!tratamientoSelect.value) faltantes.push({ label: 'Tratamiento', el: tratamientoSelect });
+    else if (tratamientoSelect.value === 'Otro' && !entry.tratamiento) faltantes.push({ label: 'Tratamiento (especifica cuál)', el: tratamientoOtroInput });
+    if (!entry.nombre) faltantes.push({ label: 'Nombre', el: document.getElementById('nombre') });
+    if (!entry.apellidos) faltantes.push({ label: 'Apellidos', el: document.getElementById('apellidos') });
+    if (!entry.calle) faltantes.push({ label: 'Calle y número', el: document.getElementById('calle') });
+    if (!entry.cp) faltantes.push({ label: 'Código postal', el: document.getElementById('cp') });
+    if (!entry.ciudad) faltantes.push({ label: 'Ciudad', el: document.getElementById('ciudad') });
+    if (!entry.provincia) faltantes.push({ label: 'Provincia', el: document.getElementById('provincia') });
+    if (!asiste) faltantes.push({ label: '¿Podrás acompañarnos?', el: document.getElementById('asiste-si') });
+    if (asiste === 'si' && conAcompanante === 'si' && !entry.acompananteNombre) {
+      faltantes.push({ label: 'Nombre del acompañante', el: acompananteNombreInput });
+    }
+
+    if (faltantes.length) {
+      faltantes.forEach(f => f.el.classList.add('input-error'));
+      status.textContent = 'Falta por rellenar: ' + faltantes.map(f => f.label).join(', ') + '.';
       status.className = 'status error';
       submitBtn.disabled = false;
       submitBtn.textContent = 'Enviar confirmación';
+      faltantes[0].el.focus();
+      faltantes[0].el.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
 
@@ -476,12 +502,15 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(entry)
       });
-      if (!response.ok) throw new Error('Error del servidor');
+      if (!response.ok) {
+        const data = await response.json().catch(() => null);
+        throw new Error(data && data.error ? data.error : 'Error del servidor');
+      }
 
       form.style.display = 'none';
       document.getElementById('successScreen').style.display = 'block';
     } catch (err) {
-      status.textContent = 'Hubo un problema al enviar. Inténtalo de nuevo.';
+      status.textContent = 'No se ha podido enviar: ' + err.message + '. Inténtalo de nuevo.';
       status.className = 'status error';
       submitBtn.disabled = false;
       submitBtn.textContent = 'Enviar confirmación';
