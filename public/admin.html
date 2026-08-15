@@ -128,6 +128,14 @@
     }
   }
 
+  function transporteLabel(v) {
+    if (v === 'ida') return 'Ida';
+    if (v === 'vuelta') return 'Vuelta';
+    if (v === 'ida_vuelta') return 'Ida y vuelta';
+    if (v === 'no') return 'No necesita';
+    return v || '';
+  }
+
   // 'si' es el valor heredado de antes de separar "toda la boda" / "solo copas"
   function asisteLabel(v) {
     if (v === 'completa' || v === 'si') return 'Toda la boda';
@@ -163,7 +171,7 @@
         <td class="${r.asiste === 'no' ? 'no' : 'si'}">${asisteLabel(r.asiste)}</td>
         <td>${r.con_acompanante === 'si' ? 'Sí' : 'No'}</td>
         <td>${escapeHtml(r.acompanante_nombre)}</td>
-        <td>${escapeHtml(r.transporte)}</td>
+        <td>${escapeHtml(transporteLabel(r.transporte))}</td>
         <td>${escapeHtml(r.alergias)}</td>
         <td>${escapeHtml(r.calle)}, ${escapeHtml(r.cp)} ${escapeHtml(r.ciudad)} (${escapeHtml(r.provincia)})</td>
       </tr>

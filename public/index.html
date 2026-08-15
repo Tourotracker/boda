@@ -405,12 +405,25 @@
         </div>
 
         <div class="field">
-          <label for="transporte">Transporte</label>
-          <select id="transporte" name="transporte">
-            <option value="propio">Llegaré con transporte propio</option>
-            <option value="autobus">Necesitaré el autobús desde la ciudad</option>
-            <option value="otro">Otro / aún no lo sé</option>
-          </select>
+          <label>Transporte</label>
+          <div class="radio-group-vertical">
+            <div class="radio-option-block" data-transporte-completa>
+              <input type="radio" id="transporte-ida" name="transporte" value="ida">
+              <label for="transporte-ida">Necesitaré transporte para la ida</label>
+            </div>
+            <div class="radio-option-block">
+              <input type="radio" id="transporte-vuelta" name="transporte" value="vuelta">
+              <label for="transporte-vuelta">Necesitaré transporte para la vuelta</label>
+            </div>
+            <div class="radio-option-block" data-transporte-completa>
+              <input type="radio" id="transporte-ida-vuelta" name="transporte" value="ida_vuelta">
+              <label for="transporte-ida-vuelta">Necesitaré transporte de ida y vuelta</label>
+            </div>
+            <div class="radio-option-block">
+              <input type="radio" id="transporte-no" name="transporte" value="no" checked>
+              <label for="transporte-no">No necesito</label>
+            </div>
+          </div>
         </div>
 
         <div class="field">
@@ -435,8 +448,21 @@
 <script>
   const asistRadios = document.querySelectorAll('input[name="asiste"]');
   const detalles = document.getElementById('detallesAsistencia');
-  const transporteInput = document.getElementById('transporte');
   const alergiasInput = document.getElementById('alergias');
+
+  const transporteBloquesCompleta = document.querySelectorAll('[data-transporte-completa]');
+  const transporteNoInput = document.getElementById('transporte-no');
+
+  function actualizarTransporte(asisteValor) {
+    const soloCopas = asisteValor === 'copas';
+    transporteBloquesCompleta.forEach(bloque => {
+      bloque.style.display = soloCopas ? 'none' : '';
+      const input = bloque.querySelector('input');
+      if (soloCopas && input.checked) {
+        transporteNoInput.checked = true;
+      }
+    });
+  }
 
   const acompRadios = document.querySelectorAll('input[name="conAcompanante"]');
   const datosAcompanante = document.getElementById('datosAcompanante');
@@ -463,6 +489,7 @@
     } else if (r.checked) {
       detalles.classList.remove('visible');
     }
+    if (r.checked) actualizarTransporte(r.value);
   }));
 
   acompRadios.forEach(r => r.addEventListener('change', () => {
@@ -508,7 +535,7 @@
       asiste: asiste,
       conAcompanante: asiste !== 'no' ? conAcompanante : 'no',
       acompananteNombre: (asiste !== 'no' && conAcompanante === 'si') ? acompananteNombreInput.value.trim() : '',
-      transporte: asiste !== 'no' ? transporteInput.value : '',
+      transporte: asiste !== 'no' ? (form.querySelector('input[name="transporte"]:checked')?.value || 'no') : '',
       alergias: asiste !== 'no' ? alergiasInput.value.trim() : ''
     };
 
