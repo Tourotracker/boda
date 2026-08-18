@@ -45,7 +45,18 @@
   .stat.highlight .n, .stat.highlight .l{color:#fff;}
   .stat .n{font-family:'Cormorant Garamond',serif; font-size:28px; color:var(--gold);}
   .stat .l{font-size:12px; color:#8A8275; text-transform:uppercase; letter-spacing:.05em;}
-  .toolbar{display:flex; justify-content:flex-end; margin-bottom:12px;}
+  .toolbar{display:flex; justify-content:space-between; align-items:center; gap:16px; margin-bottom:12px; flex-wrap:wrap;}
+  .search-wrap{position:relative; flex:1; min-width:220px; max-width:420px;}
+  .search-wrap input{
+    width:100%; padding:11px 13px; border:1.5px solid var(--line); border-radius:var(--radius-sm);
+    font-size:14px; font-family:inherit; background:#fff;
+  }
+  .search-wrap input:focus{outline:none; border-color:var(--sage);}
+  .search-count{font-size:12px; color:#8A8275; margin-top:6px;}
+  .no-results{
+    background:#fff; border-radius:var(--radius-md); box-shadow:var(--shadow-card);
+    padding:24px; text-align:center; color:#8A8275; font-size:14px; margin-bottom:16px;
+  }
   table{
     width:100%; table-layout:fixed; border-collapse:collapse; background:#fff;
     font-size:13px;
@@ -118,6 +129,7 @@
     .stat .n{font-size:22px;}
     .toolbar{justify-content:stretch;}
     .toolbar button{width:100%;}
+    .search-wrap{max-width:none; width:100%;}
 
     .table-wrap{overflow-x:visible; border-radius:0; box-shadow:none; background:none;}
     table{table-layout:auto;}
@@ -163,8 +175,14 @@
   <div class="stats" id="stats"></div>
 
   <div class="toolbar">
+    <div class="search-wrap">
+      <input type="text" id="buscador" placeholder="Buscar por nombre, apellidos, ciudad...">
+      <div class="search-count" id="buscadorCount"></div>
+    </div>
     <button id="exportar">Descargar CSV</button>
   </div>
+
+  <div class="no-results" id="noResults" style="display:none;">No hay respuestas que coincidan con la búsqueda.</div>
 
   <div class="table-wrap">
     <table>
@@ -341,6 +359,23 @@
     return 'No asiste';
   }
 
+  function normalizar(str) {
+    return String(str || '')
+      .toLowerCase()
+      .normalize('NFD').replace(/\p{Diacritic}/gu, '');
+  }
+
+  function coincideBusqueda(r, termino) {
+    if (!termino) return true;
+    const campos = [
+      r.tratamiento, r.nombre, r.apellidos,
+      r.acompanante_tratamiento, r.acompanante_nombre, r.acompanante_apellidos,
+      r.calle, r.cp, r.ciudad, r.provincia, r.alergias, r.acompanante_alergias
+    ];
+    const texto = normalizar(campos.join(' '));
+    return termino.split(/\s+/).filter(Boolean).every(palabra => texto.includes(palabra));
+  }
+
   function render(data) {
     const total = data.length;
     const completaCount = data.filter(r => r.asiste === 'completa' || r.asiste === 'si').length;
@@ -360,6 +395,18 @@
       <div class="stat"><div class="n">${pctAsistencia}%</div><div class="l">% asistencia</div></div>
       <div class="stat highlight"><div class="n">${totalInvitados}</div><div class="l">Total asistentes</div></div>
     `;
+
+    renderFiltrado();
+  }
+
+  function renderFiltrado() {
+    const termino = normalizar(document.getElementById('buscador').value.trim());
+    const data = currentData.filter(r => coincideBusqueda(r, termino));
+
+    const countEl = document.getElementById('buscadorCount');
+    countEl.textContent = termino ? `${data.length} de ${currentData.length} respuestas` : '';
+
+    document.getElementById('noResults').style.display = (termino && !data.length) ? 'block' : 'none';
 
     document.getElementById('rows').innerHTML = data.map(r => `
       <tr data-id="${r.id}">
@@ -385,6 +432,8 @@
       </tr>
     `).join('');
   }
+
+  document.getElementById('buscador').addEventListener('input', renderFiltrado);
 
   function escapeHtml(str) {
     if (!str) return '';
