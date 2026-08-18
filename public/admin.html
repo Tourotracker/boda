@@ -109,6 +109,42 @@
     transition:opacity .2s;
   }
   .toast.visible{opacity:1;}
+
+  @media (max-width:760px){
+    body{padding:20px 14px;}
+    h1{font-size:24px;}
+    .stats{gap:10px;}
+    .stat{min-width:calc(50% - 5px); padding:12px 14px;}
+    .stat .n{font-size:22px;}
+    .toolbar{justify-content:stretch;}
+    .toolbar button{width:100%;}
+
+    .table-wrap{overflow-x:visible; border-radius:0; box-shadow:none; background:none;}
+    table{table-layout:auto;}
+    thead{display:none;}
+    table, tbody, tr, td{display:block; width:100%;}
+    tr{
+      margin-bottom:14px; background:#fff; border-radius:var(--radius-md);
+      box-shadow:var(--shadow-card); overflow:hidden;
+    }
+    td{
+      display:flex; justify-content:space-between; align-items:flex-start; gap:14px;
+      padding:10px 14px; border-bottom:1px solid var(--line); text-align:right;
+    }
+    td:before{
+      content:attr(data-label); text-align:left; flex-shrink:0;
+      font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.03em;
+      color:#8A8275; padding-top:2px;
+    }
+    td.td-acciones{display:block; border-bottom:none; padding:12px 14px;}
+    td.td-acciones:before{display:block; margin-bottom:8px;}
+    td.td-acciones .row-actions button{flex:1; min-width:0;}
+
+    .modal{padding:20px;}
+    .modal-grid{grid-template-columns:1fr;}
+    .modal-actions{flex-direction:column-reverse;}
+    .modal-actions button{width:100%;}
+  }
 </style>
 </head>
 <body>
@@ -327,19 +363,19 @@
 
     document.getElementById('rows').innerHTML = data.map(r => `
       <tr data-id="${r.id}">
-        <td>${new Date(r.created_at).toLocaleDateString('es-ES')}</td>
-        <td>${escapeHtml(r.tratamiento)} ${escapeHtml(r.nombre)}</td>
-        <td>${escapeHtml(r.apellidos)}</td>
-        <td class="${r.asiste === 'no' ? 'no' : 'si'}">${asisteLabel(r.asiste)}</td>
-        <td>${r.con_acompanante === 'si' ? 'Sí' : 'No'}</td>
-        <td>${escapeHtml(r.acompanante_tratamiento)}</td>
-        <td>${escapeHtml(r.acompanante_nombre)}</td>
-        <td>${escapeHtml(r.acompanante_apellidos)}</td>
-        <td>${escapeHtml(transporteLabel(r.transporte))}</td>
-        <td>${escapeHtml(r.alergias)}</td>
-        <td>${escapeHtml(r.acompanante_alergias)}</td>
-        <td>${escapeHtml(r.calle)}, ${escapeHtml(r.cp)} ${escapeHtml(r.ciudad)} (${escapeHtml(r.provincia)})</td>
-        <td>
+        <td data-label="Fecha">${new Date(r.created_at).toLocaleDateString('es-ES')}</td>
+        <td data-label="Nombre">${escapeHtml(r.tratamiento)} ${escapeHtml(r.nombre)}</td>
+        <td data-label="Apellidos">${escapeHtml(r.apellidos)}</td>
+        <td data-label="Asiste" class="${r.asiste === 'no' ? 'no' : 'si'}">${asisteLabel(r.asiste)}</td>
+        <td data-label="Acompañante">${r.con_acompanante === 'si' ? 'Sí' : 'No'}</td>
+        <td data-label="Trat. acomp.">${escapeHtml(r.acompanante_tratamiento)}</td>
+        <td data-label="Nombre acomp.">${escapeHtml(r.acompanante_nombre)}</td>
+        <td data-label="Apellidos acomp.">${escapeHtml(r.acompanante_apellidos)}</td>
+        <td data-label="Transporte">${escapeHtml(transporteLabel(r.transporte))}</td>
+        <td data-label="Alergias">${escapeHtml(r.alergias)}</td>
+        <td data-label="Alergias acomp.">${escapeHtml(r.acompanante_alergias)}</td>
+        <td data-label="Dirección">${escapeHtml(r.calle)}, ${escapeHtml(r.cp)} ${escapeHtml(r.ciudad)} (${escapeHtml(r.provincia)})</td>
+        <td data-label="Acciones" class="td-acciones">
           <div class="row-actions">
             <button type="button" class="btn-editar" data-accion="editar" data-id="${r.id}">Editar</button>
             <button type="button" class="btn-reiniciar" data-accion="reiniciar" data-id="${r.id}">Reiniciar</button>
