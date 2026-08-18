@@ -54,6 +54,24 @@ Te dará algo como `https://rsvp-boda-production.up.railway.app`.
 Comparte la primera con los invitados (por email, WhatsApp, etc.) y guárdate
 la segunda junto con el `ADMIN_TOKEN` para ti.
 
+## Seguridad de los datos
+
+- **Activa las copias de seguridad de Railway**: en el servicio de PostgreSQL →
+  **Settings → Backups**, actívalas (o comprueba que ya lo están) y elige
+  una retención con margen. Esta es la protección real frente a un fallo
+  grave (borrado del volumen, problema de Railway, etc.) — nada de lo que
+  hace la aplicación puede sustituirla.
+- **Borrado no destructivo**: el botón "Eliminar" del panel de admin no
+  borra la fila de la base de datos; solo la oculta (`deleted_at`). Los
+  datos siguen ahí.
+- **Historial de cambios**: cada vez que se edita, reinicia o elimina una
+  respuesta desde `/admin.html`, se guarda una copia de cómo estaba antes
+  en la tabla `rsvp_history` (columna `datos`, en formato JSON). Si algún
+  día hace falta recuperar un dato concreto, está consultando esa tabla
+  directamente en la base de datos de Railway.
+- Como copia adicional, el botón **Descargar CSV** del panel de admin sirve
+  para guardar un export periódico fuera de la base de datos.
+
 ## Desarrollo local
 
 ```bash

@@ -53,21 +53,62 @@
   th,td{text-align:left; padding:11px 12px; border-bottom:1px solid var(--line); word-wrap:break-word;}
   th{background:var(--gold-soft); font-weight:700; position:sticky; top:0;}
   tr:last-child td{border-bottom:none;}
+  tr.fila-borrando{opacity:.4;}
   th:nth-child(1){width:6%;}
-  th:nth-child(2){width:8%;}
-  th:nth-child(3){width:8%;}
-  th:nth-child(4){width:7%;}
+  th:nth-child(2){width:7%;}
+  th:nth-child(3){width:7%;}
+  th:nth-child(4){width:6%;}
   th:nth-child(5){width:6%;}
-  th:nth-child(6){width:8%;}
-  th:nth-child(7){width:8%;}
-  th:nth-child(8){width:8%;}
-  th:nth-child(9){width:7%;}
-  th:nth-child(10){width:8%;}
-  th:nth-child(11){width:8%;}
-  th:nth-child(12){width:18%;}
+  th:nth-child(6){width:7%;}
+  th:nth-child(7){width:7%;}
+  th:nth-child(8){width:7%;}
+  th:nth-child(9){width:6%;}
+  th:nth-child(10){width:7%;}
+  th:nth-child(11){width:7%;}
+  th:nth-child(12){width:12%;}
+  th:nth-child(13){width:15%;}
   .si{color:var(--sage); font-weight:600;}
   .no{color:#B05A4A; font-weight:600;}
   .table-wrap{overflow-x:auto; border-radius:var(--radius-md); box-shadow:var(--shadow-card);}
+  .row-actions{display:flex; gap:6px; flex-wrap:wrap;}
+  .row-actions button{
+    padding:6px 10px; font-size:12px; font-weight:600; box-shadow:none; border-radius:8px;
+  }
+  .btn-editar{background:var(--gold-soft); color:var(--gold);}
+  .btn-editar:hover{background:#E7C4B8; transform:none;}
+  .btn-reiniciar{background:#EFE9DE; color:#8A6A2E;}
+  .btn-reiniciar:hover{background:#E3D8C0; transform:none;}
+  .btn-eliminar{background:#F3DEDE; color:#A33A3A;}
+  .btn-eliminar:hover{background:#EBC7C7; transform:none;}
+  .modal-overlay{
+    display:none; position:fixed; inset:0; background:rgba(46,38,33,.45);
+    align-items:center; justify-content:center; padding:20px; z-index:100;
+  }
+  .modal-overlay.visible{display:flex;}
+  .modal{
+    background:#fff; border-radius:var(--radius-lg); box-shadow:var(--shadow-card);
+    padding:28px; max-width:640px; width:100%; max-height:90vh; overflow-y:auto;
+  }
+  .modal h2{font-family:'Cormorant Garamond',serif; font-size:24px; margin-bottom:18px;}
+  .modal-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+  .modal-grid .span-2{grid-column:1 / -1;}
+  .modal label{display:block; font-size:12px; font-weight:600; margin-bottom:6px; color:#6B6259;}
+  .modal input, .modal select, .modal textarea{
+    width:100%; padding:9px 11px; border:1.5px solid var(--line); border-radius:var(--radius-sm);
+    font-size:14px; font-family:inherit; background:#fff;
+  }
+  .modal textarea{resize:vertical; min-height:50px;}
+  .modal-actions{display:flex; justify-content:flex-end; gap:10px; margin-top:22px;}
+  .btn-cancelar{background:#EDEAE5; color:var(--ink); box-shadow:none;}
+  .btn-cancelar:hover{background:#E2DDD5; transform:none;}
+  .modal-error{color:#B05A4A; font-size:13px; margin-top:10px; min-height:16px;}
+  .toast{
+    position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
+    background:var(--ink); color:#fff; padding:12px 20px; border-radius:var(--radius-sm);
+    font-size:14px; box-shadow:var(--shadow-card); z-index:200; opacity:0; pointer-events:none;
+    transition:opacity .2s;
+  }
+  .toast.visible{opacity:1;}
 </style>
 </head>
 <body>
@@ -95,7 +136,7 @@
         <tr>
           <th>Fecha</th><th>Nombre</th><th>Apellidos</th><th>Asiste</th>
           <th>Acompañante</th><th>Trat. acomp.</th><th>Nombre acomp.</th><th>Apellidos acomp.</th><th>Transporte</th>
-          <th>Alergias</th><th>Alergias acomp.</th><th>Dirección</th>
+          <th>Alergias</th><th>Alergias acomp.</th><th>Dirección</th><th>Acciones</th>
         </tr>
       </thead>
       <tbody id="rows"></tbody>
@@ -103,8 +144,111 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h2>Editar respuesta</h2>
+    <form id="editForm">
+      <div class="modal-grid">
+        <div>
+          <label for="editTratamiento">Tratamiento</label>
+          <select id="editTratamiento">
+            <option value="">—</option>
+            <option value="Sr.">Sr.</option>
+            <option value="Sra.">Sra.</option>
+            <option value="Srta.">Srta.</option>
+            <option value="Otro">Otro</option>
+          </select>
+        </div>
+        <div>
+          <label for="editAsiste">Asiste</label>
+          <select id="editAsiste">
+            <option value="completa">Toda la boda</option>
+            <option value="copas">Solo copas</option>
+            <option value="no">No asiste</option>
+          </select>
+        </div>
+        <div>
+          <label for="editNombre">Nombre</label>
+          <input type="text" id="editNombre">
+        </div>
+        <div>
+          <label for="editApellidos">Apellidos</label>
+          <input type="text" id="editApellidos">
+        </div>
+        <div class="span-2">
+          <label for="editCalle">Calle y número</label>
+          <input type="text" id="editCalle">
+        </div>
+        <div>
+          <label for="editCp">Código postal</label>
+          <input type="text" id="editCp">
+        </div>
+        <div>
+          <label for="editCiudad">Ciudad</label>
+          <input type="text" id="editCiudad">
+        </div>
+        <div>
+          <label for="editProvincia">Provincia</label>
+          <input type="text" id="editProvincia">
+        </div>
+        <div>
+          <label for="editTransporte">Transporte</label>
+          <select id="editTransporte">
+            <option value="no">No necesita</option>
+            <option value="ida">Ida</option>
+            <option value="vuelta">Vuelta</option>
+            <option value="ida_vuelta">Ida y vuelta</option>
+          </select>
+        </div>
+        <div class="span-2">
+          <label for="editAlergias">Alergias</label>
+          <textarea id="editAlergias"></textarea>
+        </div>
+        <div>
+          <label for="editConAcompanante">Acompañante</label>
+          <select id="editConAcompanante">
+            <option value="no">No</option>
+            <option value="si">Sí</option>
+          </select>
+        </div>
+        <div>
+          <label for="editAcompananteTratamiento">Tratamiento acomp.</label>
+          <select id="editAcompananteTratamiento">
+            <option value="">—</option>
+            <option value="Sr.">Sr.</option>
+            <option value="Sra.">Sra.</option>
+            <option value="Srta.">Srta.</option>
+            <option value="Otro">Otro</option>
+          </select>
+        </div>
+        <div>
+          <label for="editAcompananteNombre">Nombre acomp.</label>
+          <input type="text" id="editAcompananteNombre">
+        </div>
+        <div>
+          <label for="editAcompananteApellidos">Apellidos acomp.</label>
+          <input type="text" id="editAcompananteApellidos">
+        </div>
+        <div class="span-2">
+          <label for="editAcompananteAlergias">Alergias acomp.</label>
+          <textarea id="editAcompananteAlergias"></textarea>
+        </div>
+      </div>
+      <div class="modal-error" id="modalError"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn-cancelar" id="btnCancelar">Cancelar</button>
+        <button type="submit">Guardar cambios</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
 <script>
   let currentData = [];
+  let adminToken = '';
+  let editandoId = null;
 
   document.getElementById('entrar').addEventListener('click', cargar);
   document.getElementById('token').addEventListener('keydown', (e) => {
@@ -125,6 +269,7 @@
         errorEl.textContent = 'Contraseña incorrecta.';
         return;
       }
+      adminToken = token;
       currentData = await res.json();
       render(currentData);
       document.getElementById('gate').style.display = 'none';
@@ -132,6 +277,12 @@
     } catch (err) {
       errorEl.textContent = 'Error al conectar con el servidor.';
     }
+  }
+
+  async function recargar() {
+    const res = await fetch('/api/respuestas', { headers: { 'x-admin-token': adminToken } });
+    currentData = await res.json();
+    render(currentData);
   }
 
   // 'propio'/'autobus'/'otro' son valores heredados de antes de tener
@@ -175,7 +326,7 @@
     `;
 
     document.getElementById('rows').innerHTML = data.map(r => `
-      <tr>
+      <tr data-id="${r.id}">
         <td>${new Date(r.created_at).toLocaleDateString('es-ES')}</td>
         <td>${escapeHtml(r.tratamiento)} ${escapeHtml(r.nombre)}</td>
         <td>${escapeHtml(r.apellidos)}</td>
@@ -188,6 +339,13 @@
         <td>${escapeHtml(r.alergias)}</td>
         <td>${escapeHtml(r.acompanante_alergias)}</td>
         <td>${escapeHtml(r.calle)}, ${escapeHtml(r.cp)} ${escapeHtml(r.ciudad)} (${escapeHtml(r.provincia)})</td>
+        <td>
+          <div class="row-actions">
+            <button type="button" class="btn-editar" data-accion="editar" data-id="${r.id}">Editar</button>
+            <button type="button" class="btn-reiniciar" data-accion="reiniciar" data-id="${r.id}">Reiniciar</button>
+            <button type="button" class="btn-eliminar" data-accion="eliminar" data-id="${r.id}">Eliminar</button>
+          </div>
+        </td>
       </tr>
     `).join('');
   }
@@ -197,6 +355,150 @@
     return String(str).replace(/[&<>"']/g, c => ({
       '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
     }[c]));
+  }
+
+  function mostrarToast(msg) {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.classList.add('visible');
+    clearTimeout(mostrarToast._t);
+    mostrarToast._t = setTimeout(() => toast.classList.remove('visible'), 2600);
+  }
+
+  document.getElementById('rows').addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-accion]');
+    if (!btn) return;
+    const id = Number(btn.dataset.id);
+    const fila = currentData.find(r => r.id === id);
+    if (!fila) return;
+
+    if (btn.dataset.accion === 'editar') abrirModal(fila);
+    else if (btn.dataset.accion === 'reiniciar') reiniciarFila(fila);
+    else if (btn.dataset.accion === 'eliminar') eliminarFila(fila);
+  });
+
+  function abrirModal(r) {
+    editandoId = r.id;
+    document.getElementById('editTratamiento').value = r.tratamiento || '';
+    document.getElementById('editAsiste').value = (r.asiste === 'si' ? 'completa' : r.asiste) || 'completa';
+    document.getElementById('editNombre').value = r.nombre || '';
+    document.getElementById('editApellidos').value = r.apellidos || '';
+    document.getElementById('editCalle').value = r.calle || '';
+    document.getElementById('editCp').value = r.cp || '';
+    document.getElementById('editCiudad').value = r.ciudad || '';
+    document.getElementById('editProvincia').value = r.provincia || '';
+    document.getElementById('editTransporte').value = r.transporte || 'no';
+    document.getElementById('editAlergias').value = r.alergias || '';
+    document.getElementById('editConAcompanante').value = r.con_acompanante || 'no';
+    document.getElementById('editAcompananteTratamiento').value = r.acompanante_tratamiento || '';
+    document.getElementById('editAcompananteNombre').value = r.acompanante_nombre || '';
+    document.getElementById('editAcompananteApellidos').value = r.acompanante_apellidos || '';
+    document.getElementById('editAcompananteAlergias').value = r.acompanante_alergias || '';
+    document.getElementById('modalError').textContent = '';
+    document.getElementById('modalOverlay').classList.add('visible');
+  }
+
+  function cerrarModal() {
+    editandoId = null;
+    document.getElementById('modalOverlay').classList.remove('visible');
+  }
+
+  document.getElementById('btnCancelar').addEventListener('click', cerrarModal);
+  document.getElementById('modalOverlay').addEventListener('click', (e) => {
+    if (e.target.id === 'modalOverlay') cerrarModal();
+  });
+
+  document.getElementById('editForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const errorEl = document.getElementById('modalError');
+    errorEl.textContent = '';
+
+    const asiste = document.getElementById('editAsiste').value;
+    const payload = {
+      tratamiento: document.getElementById('editTratamiento').value,
+      nombre: document.getElementById('editNombre').value.trim(),
+      apellidos: document.getElementById('editApellidos').value.trim(),
+      calle: document.getElementById('editCalle').value.trim(),
+      cp: document.getElementById('editCp').value.trim(),
+      ciudad: document.getElementById('editCiudad').value.trim(),
+      provincia: document.getElementById('editProvincia').value.trim(),
+      asiste: asiste,
+      conAcompanante: document.getElementById('editConAcompanante').value,
+      acompananteTratamiento: document.getElementById('editAcompananteTratamiento').value,
+      acompananteNombre: document.getElementById('editAcompananteNombre').value.trim(),
+      acompananteApellidos: document.getElementById('editAcompananteApellidos').value.trim(),
+      acompananteAlergias: document.getElementById('editAcompananteAlergias').value.trim(),
+      transporte: document.getElementById('editTransporte').value,
+      alergias: document.getElementById('editAlergias').value.trim()
+    };
+
+    if (!payload.nombre || !payload.apellidos) {
+      errorEl.textContent = 'Nombre y apellidos son obligatorios.';
+      return;
+    }
+    if (asiste !== 'no' && (!payload.tratamiento || !payload.calle || !payload.cp || !payload.ciudad || !payload.provincia)) {
+      errorEl.textContent = 'Faltan campos obligatorios (tratamiento y dirección) para quien asiste.';
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/respuestas/' + editandoId, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'x-admin-token': adminToken },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        errorEl.textContent = (data && data.error) || 'Error al guardar.';
+        return;
+      }
+      cerrarModal();
+      await recargar();
+      mostrarToast('Cambios guardados.');
+    } catch (err) {
+      errorEl.textContent = 'Error al conectar con el servidor.';
+    }
+  });
+
+  async function reiniciarFila(r) {
+    const ok = confirm(
+      'Vas a reiniciar la respuesta de ' + r.nombre + ' ' + r.apellidos + '.\n\n' +
+      'El invitado podrá volver a rellenar el formulario desde cero la próxima vez que abra el enlace. ' +
+      'Su respuesta actual se conserva en el listado (no se borra nada); si vuelve a enviarlo, aparecerá como una respuesta nueva.'
+    );
+    if (!ok) return;
+    try {
+      const res = await fetch('/api/respuestas/' + r.id + '/reset', {
+        method: 'POST',
+        headers: { 'x-admin-token': adminToken }
+      });
+      if (!res.ok) { mostrarToast('No se ha podido reiniciar.'); return; }
+      mostrarToast('Respuesta reiniciada.');
+      await recargar();
+    } catch (err) {
+      mostrarToast('Error al conectar con el servidor.');
+    }
+  }
+
+  async function eliminarFila(r) {
+    const ok = confirm(
+      'Vas a eliminar la respuesta de ' + r.nombre + ' ' + r.apellidos + ' del listado.\n\n' +
+      'Dejará de aparecer aquí y el invitado podrá rellenar el formulario de nuevo desde el mismo enlace ' +
+      '(si lo hace, sus nuevos datos ocuparán este mismo registro). Los datos no se destruyen de forma irreversible, ' +
+      'pero esta acción no tiene un botón de deshacer en esta pantalla.'
+    );
+    if (!ok) return;
+    try {
+      const res = await fetch('/api/respuestas/' + r.id, {
+        method: 'DELETE',
+        headers: { 'x-admin-token': adminToken }
+      });
+      if (!res.ok) { mostrarToast('No se ha podido eliminar.'); return; }
+      mostrarToast('Respuesta eliminada.');
+      await recargar();
+    } catch (err) {
+      mostrarToast('Error al conectar con el servidor.');
+    }
   }
 
   document.getElementById('exportar').addEventListener('click', () => {
