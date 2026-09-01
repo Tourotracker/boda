@@ -70,14 +70,30 @@ async function registrarHistorial(rsvpId, accion, datosAnteriores) {
   );
 }
 
+const intentosFallidos = new Map();
+const MAX_INTENTOS = 10;
+const VENTANA_MS = 15 * 60 * 1000;
+
 function requireAdmin(req, res, next) {
-  const token = req.get('x-admin-token') || req.query.token;
+  const ip = req.ip;
+  const ahora = Date.now();
+  const registro = intentosFallidos.get(ip);
+  if (registro && registro.count >= MAX_INTENTOS && ahora < registro.resetAt) {
+    return res.status(429).json({ error: 'Demasiados intentos. Inténtalo de nuevo en unos minutos.' });
+  }
+
+  const token = req.get('x-admin-token');
   if (!ADMIN_TOKEN || token !== ADMIN_TOKEN) {
+    const actual = (registro && ahora < registro.resetAt) ? registro : { count: 0, resetAt: ahora + VENTANA_MS };
+    actual.count += 1;
+    intentosFallidos.set(ip, actual);
     return res.status(401).json({ error: 'No autorizado.' });
   }
+  if (registro) intentosFallidos.delete(ip);
   next();
 }
 
+app.set('trust proxy', 1);
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 

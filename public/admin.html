@@ -610,9 +610,16 @@
       { header: 'Ciudad', valor: r => r.ciudad || '' },
       { header: 'Provincia', valor: r => r.provincia || '' }
     ];
+    function celdaSegura(valor) {
+      let str = String(valor);
+      // Evita que Excel/Sheets interprete el valor como fórmula si un invitado
+      // escribe algo que empieza por =, +, -, @, tab o retorno de carro.
+      if (/^[=+\-@\t\r]/.test(str)) str = "'" + str;
+      return `"${str.replace(/"/g, '""')}"`;
+    }
     const csvRows = [columnas.map(c => c.header).join(',')];
     currentData.forEach(r => {
-      csvRows.push(columnas.map(c => `"${String(c.valor(r)).replace(/"/g,'""')}"`).join(','));
+      csvRows.push(columnas.map(c => celdaSegura(c.valor(r))).join(','));
     });
     const blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
