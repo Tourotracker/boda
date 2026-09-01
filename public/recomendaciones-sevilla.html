@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recomendaciones en Sevilla · Boda de Inés e Ignacio</title>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="icon" href="/favicon-16.png" type="image/png" sizes="16x16">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="description" content="Bares, restaurantes y visitas recomendadas en Sevilla — boda de Inés e Ignacio.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Recomendaciones en Sevilla · Boda de Inés e Ignacio">
+<meta property="og:description" content="Bares, restaurantes y visitas recomendadas en Sevilla — boda de Inés e Ignacio.">
+<meta property="og:url" content="https://boda-ines-ignacio.up.railway.app/recomendaciones-sevilla.html">
+<meta property="og:image" content="https://boda-ines-ignacio.up.railway.app/images/og-preview.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Recomendaciones en Sevilla · Boda de Inés e Ignacio">
+<meta name="twitter:description" content="Bares, restaurantes y visitas recomendadas en Sevilla — boda de Inés e Ignacio.">
+<meta name="twitter:image" content="https://boda-ines-ignacio.up.railway.app/images/og-preview.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500,600;1,400&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#FAF9F6;
+    --ink:#171717;
+    --gold:#7A1025;
+    --gray:#8A8884;
+    --line:#DDDAD4;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    font-family:'Manrope', sans-serif;
+    background:var(--cream);
+    color:var(--ink);
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    padding:56px 24px;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  .page{width:100%; max-width:600px;}
+  .meta-bar{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    width:100%;
+    margin-bottom:48px;
+    padding-bottom:14px;
+    border-bottom:1px solid var(--line);
+    font-size:11px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--gray);
+    font-weight:600;
+  }
+  header{margin-bottom:40px; text-align:center;}
+  .title-lead{
+    font-family:'Manrope', sans-serif;
+    font-size:22px;
+    font-weight:300;
+    color:var(--ink);
+    margin-bottom:2px;
+  }
+  h1{
+    font-family:'Cormorant Garamond', serif;
+    font-weight:600;
+    font-size:38px;
+    color:var(--gold);
+    line-height:1.1;
+  }
+  .title-divider{
+    width:36px;
+    height:1px;
+    background:var(--gold);
+    margin:20px auto;
+  }
+  .eyebrow{
+    font-size:12px;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--gray);
+    font-weight:600;
+  }
+  .reco-subheading{
+    font-size:11px;
+    font-weight:600;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--gold);
+    margin:30px 0 4px;
+  }
+  .reco-subheading:first-child{margin-top:0;}
+  .reco-item{
+    padding:14px 0;
+    border-bottom:1px solid var(--line);
+  }
+  .reco-item:last-child{border-bottom:none;}
+  .reco-name-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    gap:12px;
+  }
+  .reco-name{
+    font-weight:600;
+    font-size:14px;
+    color:var(--ink);
+  }
+  .reco-address{
+    font-size:11px;
+    color:var(--gray);
+    white-space:nowrap;
+    flex-shrink:0;
+  }
+  .reco-desc{
+    font-size:13px;
+    color:var(--gray);
+    margin-top:3px;
+    line-height:1.5;
+  }
+  .reco-map-link{
+    display:inline-block;
+    margin-top:6px;
+    font-size:11px;
+    letter-spacing:0.04em;
+    text-transform:uppercase;
+    font-weight:600;
+    color:var(--gold);
+    text-decoration:none;
+  }
+  .reco-map-link:hover{text-decoration:underline;}
+  .reco-details{border-bottom:1px solid var(--line);}
+  .reco-details:last-of-type{border-bottom:none;}
+  .reco-details summary{
+    cursor:pointer;
+    padding:16px 0;
+    font-weight:600;
+    font-size:15px;
+    color:var(--ink);
+    list-style:none;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+  .reco-details summary::-webkit-details-marker{display:none;}
+  .reco-details summary .reco-count{
+    font-weight:400;
+    font-size:12px;
+    color:var(--gray);
+    margin-right:auto;
+    margin-left:10px;
+  }
+  .reco-details summary::after{
+    content:'+';
+    color:var(--gold);
+    font-size:20px;
+    font-weight:400;
+    flex-shrink:0;
+  }
+  .reco-details[open] summary::after{content:'–';}
+  .reco-details .reco-body{padding-bottom:14px;}
+  .reco-details .reco-item:first-child{padding-top:0;}
+  .back-link{
+    display:inline-block;
+    margin-top:8px;
+    font-size:13px;
+    color:var(--gray);
+    text-decoration:underline;
+  }
+  .back-link:hover{color:var(--ink);}
+  .footer-nav{margin-top:44px; text-align:center;}
+  @media (max-width:480px){
+    body{padding:32px 20px;}
+    h1{font-size:32px;}
+    .meta-bar{font-size:10px; letter-spacing:0.08em;}
+    .reco-name-row{flex-direction:column; align-items:flex-start; gap:1px;}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="meta-bar">
+    <span>Inés e Ignacio</span><span>27 · 11 · 2026 — Sevilla</span>
+  </div>
+
+  <header>
+    <div class="title-lead">Una pequeña guía de</div>
+    <h1>Sevilla</h1>
+    <div class="title-divider"></div>
+    <div class="eyebrow">Zonas, bares, restaurantes y visitas que os recomendamos</div>
+  </header>
+
+    <div class="reco-subheading">Zonas de bares y copas</div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Triana</div>
+          
+        </div>
+        <div class="reco-desc">Las calles Betis y San Jacinto ofrecen un ambiente animado con múltiples opciones de bares y restaurantes junto al río Guadalquivir.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=Triana%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Calle Adriano</div>
+          
+        </div>
+        <div class="reco-desc">Ubicada en el centro, esta calle alberga diversos bares de tapas y locales para disfrutar de copas en un entorno tradicional.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=Calle%20Adriano%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Plaza del Salvador</div>
+          
+        </div>
+        <div class="reco-desc">Plaza emblemática donde locales y visitantes se reúnen para tomar cervezas al aire libre, especialmente por la tarde.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=Plaza%20del%20Salvador%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Calle Mateos Gago y Barrio de la Judería</div>
+          
+        </div>
+        <div class="reco-desc">Zona histórica con una amplia oferta de bares y restaurantes que ofrecen gastronomía tradicional sevillana.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=Calle%20Mateos%20Gago%20y%20Barrio%20de%20la%20Juder%C3%ADa%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Barrio del Arenal</div>
+          
+        </div>
+        <div class="reco-desc">Área cercana a la plaza de toros, conocida por sus cervecerías, restaurantes y locales nocturnos.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=Barrio%20del%20Arenal%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Paseo Colón</div>
+          
+        </div>
+        <div class="reco-desc">Paseo junto al río con bares y terrazas que brindan vistas panorámicas del Guadalquivir y el barrio de Triana.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=Paseo%20Col%C3%B3n%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">La Alameda</div>
+          
+        </div>
+        <div class="reco-desc">Espacio bohemio y alternativo con una variada oferta de bares, restaurantes y locales de copas, ideal para disfrutar de la vida nocturna.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=La%20Alameda%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+    <div class="reco-subheading">Restaurantes y bares por zonas</div>
+    <details class="reco-details">
+      <summary>Centro<span class="reco-count">18 sitios</span></summary>
+      <div class="reco-body">
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Tradevo Centro</div>
+          <div class="reco-address">Cuesta del Rosario, 15</div>
+        </div>
+        <div class="reco-desc">Ofrece tapas modernas en un ambiente acogedor.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=Tradevo%20Centro%2C%20Cuesta%20del%20Rosario%2C%2015%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Bodeguita Antonio Romero</div>
+          <div class="reco-address">Calle Antonia Díaz, 19</div>
+        </div>
+        <div class="reco-desc">Famosa por su montadito "piripi" y ambiente tradicional.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=Bodeguita%20Antonio%20Romero%2C%20Calle%20Antonia%20D%C3%ADaz%2C%2019%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">La Barra de Catalina</div>
+          <div class="reco-address">Plaza de la Alfalfa, 9</div>
+        </div>
+        <div class="reco-desc">Tapas tradicionales con un toque contemporáneo.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=La%20Barra%20de%20Catalina%2C%20Plaza%20de%20la%20Alfalfa%2C%209%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Salmedina</div>
+          <div class="reco-address">Calle García de Vinuesa, 26</div>
+        </div>
+        <div class="reco-desc">Especializado en mariscos y pescados frescos.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=Salmedina%2C%20Calle%20Garc%C3%ADa%20de%20Vinuesa%2C%2026%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Seis Tapas Bar</div>
+          <div class="reco-address">Plaza Nueva, 6</div>
+        </div>
+        <div class="reco-desc">Cocina creativa en un entorno elegante.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=Seis%20Tapas%20Bar%2C%20Plaza%20Nueva%2C%206%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">La Barra de Inchausti</div>
+          <div class="reco-address">Calle Tomás de Ibarra, 2</div>
+        </div>
+        <div class="reco-desc">Pescados y mariscos en un ambiente moderno.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=La%20Barra%20de%20Inchausti%2C%20Calle%20Tom%C3%A1s%20de%20Ibarra%2C%202%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Taberna Coloniales</div>
+          <div class="reco-address">Plaza del Cristo de Burgos, 19</div>
+        </div>
+        <div class="reco-desc">Conocida por sus raciones generosas y ambiente familiar.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=Taberna%20Coloniales%2C%20Plaza%20del%20Cristo%20de%20Burgos%2C%2019%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">La Flor del Toranzo</div>
+          <div class="reco-address">Calle Jimios, 1</div>
+        </div>
+        <div class="reco-desc">Ofrece embutidos y tapas cántabras en el centro de Sevilla.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=La%20Flor%20del%20Toranzo%2C%20Calle%20Jimios%2C%201%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">La Brunilda Tapas</div>
+          <div class="reco-address">Calle Galera, 5</div>
+        </div>
+        <div class="reco-desc">Destaca por sus tapas innovadoras y ambiente moderno.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=La%20Brunilda%20Tapas%2C%20Calle%20Galera%2C%205%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Charlatán</div>
+          <div class="reco-address">Calle Joaquín Guichot, 5</div>
+        </div>
+        <div class="reco-desc">Tapas creativas en un espacio contemporáneo.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=Charlat%C3%A1n%2C%20Calle%20Joaqu%C3%ADn%20Guichot%2C%205%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Petit Comité</div>
+          <div class="reco-address">Calle Dos de Mayo, 30</div>
+        </div>
+        <div class="reco-desc">Cocina andaluza con toques modernos en un ambiente íntimo.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=Petit%20Comit%C3%A9%2C%20Calle%20Dos%20de%20Mayo%2C%2030%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Tata Pila</div>
+          <div class="reco-address">Calle Julio César, 14</div>
+        </div>
+        <div class="reco-desc">Ofrece una fusión de cocina tradicional y moderna.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=Tata%20Pila%2C%20Calle%20Julio%20C%C3%A9sar%2C%2014%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Mamarracha</div>
+          <div class="reco-address">Calle Hernando Colón, 1</div>
+        </div>
+        <div class="reco-desc">Especializado en platos a la brasa y tapas creativas.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=Mamarracha%2C%20Calle%20Hernando%20Col%C3%B3n%2C%201%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">El Pintón</div>
+          <div class="reco-address">Calle Francos, 42</div>
+        </div>
+        <div class="reco-desc">Cocina contemporánea en un patio sevillano con encanto.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=El%20Pint%C3%B3n%2C%20Calle%20Francos%2C%2042%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Sal Gorda</div>
+          <div class="reco-address">Calle Alcaicería de la Loza, 17</div>
+        </div>
+        <div class="reco-desc">Tapas tradicionales con un toque personal.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=Sal%20Gorda%2C%20Calle%20Alcaicer%C3%ADa%20de%20la%20Loza%2C%2017%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Las Columnas</div>
+          <div class="reco-address">Calle Mateos Gago, 22</div>
+        </div>
+        <div class="reco-desc">Bar clásico conocido por sus tapas y ambiente auténtico.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=Las%20Columnas%2C%20Calle%20Mateos%20Gago%2C%2022%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">La Corona</div>
+          <div class="reco-address">Calle Luchana, 4</div>
+        </div>
+        <div class="reco-desc">Ofrece una variedad de tapas en un entorno acogedor.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=La%20Corona%2C%20Calle%20Luchana%2C%204%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">La Azotea</div>
+          <div class="reco-address">Calle Jesús del Gran Poder, 31</div>
+        </div>
+        <div class="reco-desc">Tapas gourmet y una cuidada selección de vinos.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=La%20Azotea%2C%20Calle%20Jes%C3%BAs%20del%20Gran%20Poder%2C%2031%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      </div>
+    </details>
+    <details class="reco-details">
+      <summary>Triana<span class="reco-count">8 sitios</span></summary>
+      <div class="reco-body">
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Blanca Paloma</div>
+          <div class="reco-address">Calle San Jacinto, 49</div>
+        </div>
+        <div class="reco-desc">Bar de tapas tradicional con ambiente familiar.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=Blanca%20Paloma%2C%20Calle%20San%20Jacinto%2C%2049%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Vega 10</div>
+          <div class="reco-address">Calle Rosario Vega, 10</div>
+        </div>
+        <div class="reco-desc">Ofrece cocina de autor en un espacio moderno.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=Vega%2010%2C%20Calle%20Rosario%20Vega%2C%2010%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Las Golondrinas</div>
+          <div class="reco-address">Calle Antillano Campos, 26</div>
+        </div>
+        <div class="reco-desc">Conocido por sus tapas clásicas y ambiente auténtico.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=Las%20Golondrinas%2C%20Calle%20Antillano%20Campos%2C%2026%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Victoria 8</div>
+          <div class="reco-address">Calle Victoria, 8</div>
+        </div>
+        <div class="reco-desc">Bar de tapas con ambiente acogedor.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=Victoria%208%2C%20Calle%20Victoria%2C%208%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Bar Periqui</div>
+          <div class="reco-address">Calle Pagés del Corro, 86</div>
+        </div>
+        <div class="reco-desc">Ofrece tapas tradicionales en un entorno familiar.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=Bar%20Periqui%2C%20Calle%20Pag%C3%A9s%20del%20Corro%2C%2086%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">María Trifulca</div>
+          <div class="reco-address">Plaza del Altozano, 1</div>
+        </div>
+        <div class="reco-desc">Restaurante con vistas panorámicas al río, se recomienda reservar con antelación.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=Mar%C3%ADa%20Trifulca%2C%20Plaza%20del%20Altozano%2C%201%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Casa Ruperto</div>
+          <div class="reco-address">Avenida Santa Cecilia, 2</div>
+        </div>
+        <div class="reco-desc">Famoso por sus codornices fritas y ambiente tradicional.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=Casa%20Ruperto%2C%20Avenida%20Santa%20Cecilia%2C%202%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Casa Casimiro</div>
+          <div class="reco-address">Calle Alfarería, 15</div>
+        </div>
+        <div class="reco-desc">Especializado en pulpo y mariscos frescos.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=Casa%20Casimiro%2C%20Calle%20Alfarer%C3%ADa%2C%2015%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      </div>
+    </details>
+    <details class="reco-details">
+      <summary>Los Remedios<span class="reco-count">9 sitios</span></summary>
+      <div class="reco-body">
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">La Coartada</div>
+          <div class="reco-address">Calle Virgen de Luján, 43</div>
+        </div>
+        <div class="reco-desc">Bar de tapas con ambiente moderno.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=La%20Coartada%2C%20Calle%20Virgen%20de%20Luj%C3%A1n%2C%2043%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Río Grande</div>
+          <div class="reco-address">Calle Betis, s/n</div>
+        </div>
+        <div class="reco-desc">Restaurante con vistas al Guadalquivir, ideal para ocasiones especiales.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=R%C3%ADo%20Grande%2C%20Calle%20Betis%2C%20s/n%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Viejo Tito</div>
+          <div class="reco-address">Calle Virgen de la Victoria, 2</div>
+        </div>
+        <div class="reco-desc">Taberna clásica con tapas tradicionales y ambiente acogedor.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=Viejo%20Tito%2C%20Calle%20Virgen%20de%20la%20Victoria%2C%202%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">La Reserva</div>
+          <div class="reco-address">Calle Asunción, 29</div>
+        </div>
+        <div class="reco-desc">Cocina andaluza con ingredientes frescos y de calidad.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=La%20Reserva%2C%20Calle%20Asunci%C3%B3n%2C%2029%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">La Cañera</div>
+          <div class="reco-address">Calle Virgen de Loreto, 35</div>
+        </div>
+        <div class="reco-desc">Tapas sabrosas en un entorno relajado.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=La%20Ca%C3%B1era%2C%20Calle%20Virgen%20de%20Loreto%2C%2035%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Rafaello</div>
+          <div class="reco-address">Calle Virgen de la Cinta, 1</div>
+        </div>
+        <div class="reco-desc">Restaurante italiano con una carta variada de pastas y pizzas.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=Rafaello%2C%20Calle%20Virgen%20de%20la%20Cinta%2C%201%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Atahualpa</div>
+          <div class="reco-address">Calle Virgen de la Antigua, 5</div>
+        </div>
+        <div class="reco-desc">Parrilla argentina, famosa por sus cortes de carne.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=Atahualpa%2C%20Calle%20Virgen%20de%20la%20Antigua%2C%205%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Los Cuevas</div>
+          <div class="reco-address">Calle Virgen de Consolación, 14</div>
+        </div>
+        <div class="reco-desc">Bar de tapas con recetas tradicionales.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=Los%20Cuevas%2C%20Calle%20Virgen%20de%20Consolaci%C3%B3n%2C%2014%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Mariscos Emilio</div>
+          <div class="reco-address">Calle Virgen de Luján, 17</div>
+        </div>
+        <div class="reco-desc">Especializado en mariscos frescos y platos típicos del sur.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=Mariscos%20Emilio%2C%20Calle%20Virgen%20de%20Luj%C3%A1n%2C%2017%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      </div>
+    </details>
+    <details class="reco-details">
+      <summary>Porvenir<span class="reco-count">9 sitios</span></summary>
+      <div class="reco-body">
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Manolo León</div>
+          <div class="reco-address">Calle Guadalquivir, 8</div>
+        </div>
+        <div class="reco-desc">Restaurante elegante con un precioso patio andaluz.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=Manolo%20Le%C3%B3n%2C%20Calle%20Guadalquivir%2C%208%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Soravito</div>
+          <div class="reco-address">Calle Porvenir, 50</div>
+        </div>
+        <div class="reco-desc">Cocina de mercado con toques modernos.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=Soravito%2C%20Calle%20Porvenir%2C%2050%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Don Matteo</div>
+          <div class="reco-address">Calle Felipe II, 14</div>
+        </div>
+        <div class="reco-desc">Pizzería con recetas auténticas italianas.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=Don%20Matteo%2C%20Calle%20Felipe%20II%2C%2014%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Bonifaz</div>
+          <div class="reco-address">Calle Progreso, 13</div>
+        </div>
+        <div class="reco-desc">Platos tradicionales en un ambiente acogedor.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=Bonifaz%2C%20Calle%20Progreso%2C%2013%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Ignacio Vidal</div>
+          <div class="reco-address">Calle Porvenir, 24</div>
+        </div>
+        <div class="reco-desc">Restaurante de cocina contemporánea con menú variado.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=Ignacio%20Vidal%2C%20Calle%20Porvenir%2C%2024%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Plató Plató</div>
+          <div class="reco-address">Calle Felipe II, 16</div>
+        </div>
+        <div class="reco-desc">Tapas creativas en un espacio moderno y acogedor.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=Plat%C3%B3%20Plat%C3%B3%2C%20Calle%20Felipe%20II%2C%2016%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">La Antojería</div>
+          <div class="reco-address">Calle Felipe II, 18</div>
+        </div>
+        <div class="reco-desc">Ofrece una carta variada de tapas con ingredientes de calidad.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=La%20Antojer%C3%ADa%2C%20Calle%20Felipe%20II%2C%2018%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Estragón</div>
+          <div class="reco-address">Calle Valparaíso, 13</div>
+        </div>
+        <div class="reco-desc">Cocina casera con un toque personal.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=Estrag%C3%B3n%2C%20Calle%20Valpara%C3%ADso%2C%2013%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Estraperlo</div>
+          <div class="reco-address">Calle Valparaíso, 21</div>
+        </div>
+        <div class="reco-desc">Bar de tapas y cocina fusión en un entorno moderno.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=Estraperlo%2C%20Calle%20Valpara%C3%ADso%2C%2021%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      </div>
+    </details>
+    <details class="reco-details">
+      <summary>Alameda<span class="reco-count">12 sitios</span></summary>
+      <div class="reco-body">
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Bar Antojo</div>
+          <div class="reco-address">Calle Calatrava, 44</div>
+        </div>
+        <div class="reco-desc">Tapas innovadoras en un espacio con estilo.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=Bar%20Antojo%2C%20Calle%20Calatrava%2C%2044%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Dúo Tapas</div>
+          <div class="reco-address">Calle Calatrava, 10</div>
+        </div>
+        <div class="reco-desc">Fusión de sabores en tapas creativas y deliciosas.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=D%C3%BAo%20Tapas%2C%20Calle%20Calatrava%2C%2010%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Mi Niña Bonita</div>
+          <div class="reco-address">Calle Peris Mencheta, 21</div>
+        </div>
+        <div class="reco-desc">Cocina casera con toques latinos.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=Mi%20Ni%C3%B1a%20Bonita%2C%20Calle%20Peris%20Mencheta%2C%2021%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Zero Tapas Bar</div>
+          <div class="reco-address">Calle Calatrava, 13</div>
+        </div>
+        <div class="reco-desc">Tapas modernas en un ambiente relajado.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=Zero%20Tapas%20Bar%2C%20Calle%20Calatrava%2C%2013%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Karpanta</div>
+          <div class="reco-address">Calle Feria, 100</div>
+        </div>
+        <div class="reco-desc">Bocadillos y tapas rápidas en un entorno informal.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=Karpanta%2C%20Calle%20Feria%2C%20100%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">La Selva</div>
+          <div class="reco-address">Calle Relator, 50</div>
+        </div>
+        <div class="reco-desc">Cocina alternativa con opciones vegetarianas y creativas.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=La%20Selva%2C%20Calle%20Relator%2C%2050%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">La Terraza</div>
+          <div class="reco-address">Alameda de Hércules, 33</div>
+        </div>
+        <div class="reco-desc">Ideal para copas al aire libre y disfrutar del ambiente nocturno.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=La%20Terraza%2C%20Alameda%20de%20H%C3%A9rcules%2C%2033%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Sidonia</div>
+          <div class="reco-address">Calle Calatrava, 16</div>
+        </div>
+        <div class="reco-desc">Cocina fusión con inspiración asiática.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=Sidonia%2C%20Calle%20Calatrava%2C%2016%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">La Gorda de Calatrava</div>
+          <div class="reco-address">Calle Calatrava, 12</div>
+        </div>
+        <div class="reco-desc">Tapas creativas en un entorno distendido.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=La%20Gorda%20de%20Calatrava%2C%20Calle%20Calatrava%2C%2012%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">El Gallinero de Sandra</div>
+          <div class="reco-address">Calle Calatrava, 22</div>
+        </div>
+        <div class="reco-desc">Cocina de autor con productos frescos de temporada.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=El%20Gallinero%20de%20Sandra%2C%20Calle%20Calatrava%2C%2022%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">El Hombre de Piedra</div>
+          <div class="reco-address">Calle Hombre de Piedra, 5</div>
+        </div>
+        <div class="reco-desc">Bar de tapas con recetas tradicionales sevillanas.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=El%20Hombre%20de%20Piedra%2C%20Calle%20Hombre%20de%20Piedra%2C%205%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">No Lugar</div>
+          <div class="reco-address">Alameda de Hércules, 37</div>
+        </div>
+        <div class="reco-desc">Espacio cultural con una interesante oferta de tapas y bebidas.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=No%20Lugar%2C%20Alameda%20de%20H%C3%A9rcules%2C%2037%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      </div>
+    </details>
+    <div class="reco-subheading">Lugares para copas</div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Hotel M</div>
+          <div class="reco-address">Azotea céntrica</div>
+        </div>
+        <div class="reco-desc">Exclusivo espacio con vistas panorámicas de Sevilla.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=Hotel%20M%2C%20Azotea%20c%C3%A9ntrica%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Hotel Los Seises</div>
+          <div class="reco-address">Calle Segovias, 6</div>
+        </div>
+        <div class="reco-desc">Ambiente juvenil en una azotea con vistas excepcionales.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=Hotel%20Los%20Seises%2C%20Calle%20Segovias%2C%206%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Embarcadero</div>
+          <div class="reco-address">Calle Betis, s/n</div>
+        </div>
+        <div class="reco-desc">Perfecto para disfrutar de copas al atardecer junto al Guadalquivir.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=Embarcadero%2C%20Calle%20Betis%2C%20s/n%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">El Kiosko Bombay</div>
+          <div class="reco-address">Paseo Colón, 16</div>
+        </div>
+        <div class="reco-desc">Bar informal con vistas al río, ideal para la tarde.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=El%20Kiosko%20Bombay%2C%20Paseo%20Col%C3%B3n%2C%2016%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">La Alameda</div>
+          <div class="reco-address">Zona de copas</div>
+        </div>
+        <div class="reco-desc">Lugar bohemio con múltiples opciones para disfrutar de la vida nocturna.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=La%20Alameda%2C%20Zona%20de%20copas%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+    <div class="reco-subheading">Visitas recomendadas</div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Real Alcázar de Sevilla</div>
+          <div class="reco-address">Patio de Banderas, s/n</div>
+        </div>
+        <div class="reco-desc">Impresionante conjunto palaciego con jardines únicos.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=Real%20Alc%C3%A1zar%20de%20Sevilla%2C%20Patio%20de%20Banderas%2C%20s/n%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Catedral de Sevilla y Giralda</div>
+          <div class="reco-address">Avda. Constitución</div>
+        </div>
+        <div class="reco-desc">Majestuosa catedral con vistas panorámicas desde la Giralda.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=Catedral%20de%20Sevilla%20y%20Giralda%2C%20Avda.%20Constituci%C3%B3n%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Iglesia del Salvador</div>
+          <div class="reco-address">Plaza del Salvador</div>
+        </div>
+        <div class="reco-desc">Joya arquitectónica y punto histórico de interés.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=Iglesia%20del%20Salvador%2C%20Plaza%20del%20Salvador%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Barrio de Santa Cruz y Judería</div>
+          
+        </div>
+        <div class="reco-desc">Calles estrechas, patios llenos de flores y un ambiente único.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=Barrio%20de%20Santa%20Cruz%20y%20Juder%C3%ADa%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Paseo junto al río Guadalquivir</div>
+          
+        </div>
+        <div class="reco-desc">Incluye la Torre del Oro y el Puente de Triana, ideal para un paseo romántico.</div>
+        <a class="reco-map-link" href="https://www.google.com/maps/search/?api=1&query=Paseo%20junto%20al%20r%C3%ADo%20Guadalquivir%2C%20Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+
+  <div class="footer-nav">
+    <a class="back-link" href="/informacion.html">← Volver a la información de la boda</a>
+  </div>
+</div>
+</body>
+</html>
