@@ -166,6 +166,82 @@
     -webkit-mask-image:radial-gradient(ellipse 62% 62% at center, #000 55%, transparent 85%);
     mask-image:radial-gradient(ellipse 62% 62% at center, #000 55%, transparent 85%);
   }
+  .reco-intro{
+    font-size:14px;
+    color:var(--gray);
+    line-height:1.6;
+    margin-bottom:22px;
+  }
+  .reco-subheading{
+    font-size:11px;
+    font-weight:600;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--gold);
+    margin:26px 0 4px;
+  }
+  .reco-subheading:first-child{margin-top:0;}
+  .reco-item{
+    padding:12px 0;
+    border-bottom:1px solid var(--line);
+  }
+  .reco-item:last-child{border-bottom:none;}
+  .reco-name-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    gap:12px;
+  }
+  .reco-name{
+    font-weight:600;
+    font-size:14px;
+    color:var(--ink);
+  }
+  .reco-address{
+    font-size:11px;
+    color:var(--gray);
+    white-space:nowrap;
+    flex-shrink:0;
+  }
+  .reco-desc{
+    font-size:13px;
+    color:var(--gray);
+    margin-top:3px;
+    line-height:1.5;
+  }
+  .reco-details{
+    border-bottom:1px solid var(--line);
+  }
+  .reco-details:last-of-type{border-bottom:none;}
+  .reco-details summary{
+    cursor:pointer;
+    padding:15px 0;
+    font-weight:600;
+    font-size:14px;
+    color:var(--ink);
+    list-style:none;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+  .reco-details summary::-webkit-details-marker{display:none;}
+  .reco-details summary .reco-count{
+    font-weight:400;
+    font-size:12px;
+    color:var(--gray);
+    margin-right:auto;
+    margin-left:10px;
+  }
+  .reco-details summary::after{
+    content:'+';
+    color:var(--gold);
+    font-size:20px;
+    font-weight:400;
+    flex-shrink:0;
+  }
+  .reco-details[open] summary::after{content:'–';}
+  .reco-details .reco-body{padding-bottom:14px;}
+  .reco-details .reco-item:first-child{padding-top:0;}
   .proximamente{
     font-size:14px;
     color:var(--gray);
@@ -188,6 +264,7 @@
     .meta-bar{font-size:10px; letter-spacing:0.08em;}
     .info-row{gap:14px;}
     .info-photo{width:92px; height:92px;}
+    .reco-name-row{flex-direction:column; align-items:flex-start; gap:1px;}
   }
 </style>
 </head>
@@ -243,7 +320,547 @@
 
   <section class="info-block">
     <div class="info-heading">Recomendaciones en Sevilla</div>
-    <p class="proximamente">Información próximamente.</p>
+    <p class="reco-intro">Una pequeña guía para descubrir la ciudad — zonas, bares, restaurantes y visitas que os recomendamos.</p>
+    <div class="reco-subheading">Zonas de bares y copas</div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Triana</div>
+          
+        </div>
+        <div class="reco-desc">Las calles Betis y San Jacinto ofrecen un ambiente animado con múltiples opciones de bares y restaurantes junto al río Guadalquivir.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Calle Adriano</div>
+          
+        </div>
+        <div class="reco-desc">Ubicada en el centro, esta calle alberga diversos bares de tapas y locales para disfrutar de copas en un entorno tradicional.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Plaza del Salvador</div>
+          
+        </div>
+        <div class="reco-desc">Plaza emblemática donde locales y visitantes se reúnen para tomar cervezas al aire libre, especialmente por la tarde.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Calle Mateos Gago y Barrio de la Judería</div>
+          
+        </div>
+        <div class="reco-desc">Zona histórica con una amplia oferta de bares y restaurantes que ofrecen gastronomía tradicional sevillana.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Barrio del Arenal</div>
+          
+        </div>
+        <div class="reco-desc">Área cercana a la plaza de toros, conocida por sus cervecerías, restaurantes y locales nocturnos.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Paseo Colón</div>
+          
+        </div>
+        <div class="reco-desc">Paseo junto al río con bares y terrazas que brindan vistas panorámicas del Guadalquivir y el barrio de Triana.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">La Alameda</div>
+          
+        </div>
+        <div class="reco-desc">Espacio bohemio y alternativo con una variada oferta de bares, restaurantes y locales de copas, ideal para disfrutar de la vida nocturna.</div>
+      </div>
+    <div class="reco-subheading">Restaurantes y bares por zonas</div>
+    <details class="reco-details">
+      <summary>Centro<span class="reco-count">18 sitios</span></summary>
+      <div class="reco-body">
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Tradevo Centro</div>
+          <div class="reco-address">Cuesta del Rosario, 15</div>
+        </div>
+        <div class="reco-desc">Ofrece tapas modernas en un ambiente acogedor.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Bodeguita Antonio Romero</div>
+          <div class="reco-address">Calle Antonia Díaz, 19</div>
+        </div>
+        <div class="reco-desc">Famosa por su montadito "piripi" y ambiente tradicional.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">La Barra de Catalina</div>
+          <div class="reco-address">Plaza de la Alfalfa, 9</div>
+        </div>
+        <div class="reco-desc">Tapas tradicionales con un toque contemporáneo.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Salmedina</div>
+          <div class="reco-address">Calle García de Vinuesa, 26</div>
+        </div>
+        <div class="reco-desc">Especializado en mariscos y pescados frescos.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Seis Tapas Bar</div>
+          <div class="reco-address">Plaza Nueva, 6</div>
+        </div>
+        <div class="reco-desc">Cocina creativa en un entorno elegante.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">La Barra de Inchausti</div>
+          <div class="reco-address">Calle Tomás de Ibarra, 2</div>
+        </div>
+        <div class="reco-desc">Pescados y mariscos en un ambiente moderno.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Taberna Coloniales</div>
+          <div class="reco-address">Plaza del Cristo de Burgos, 19</div>
+        </div>
+        <div class="reco-desc">Conocida por sus raciones generosas y ambiente familiar.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">La Flor del Toranzo</div>
+          <div class="reco-address">Calle Jimios, 1</div>
+        </div>
+        <div class="reco-desc">Ofrece embutidos y tapas cántabras en el centro de Sevilla.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">La Brunilda Tapas</div>
+          <div class="reco-address">Calle Galera, 5</div>
+        </div>
+        <div class="reco-desc">Destaca por sus tapas innovadoras y ambiente moderno.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Charlatán</div>
+          <div class="reco-address">Calle Joaquín Guichot, 5</div>
+        </div>
+        <div class="reco-desc">Tapas creativas en un espacio contemporáneo.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Petit Comité</div>
+          <div class="reco-address">Calle Dos de Mayo, 30</div>
+        </div>
+        <div class="reco-desc">Cocina andaluza con toques modernos en un ambiente íntimo.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Tata Pila</div>
+          <div class="reco-address">Calle Julio César, 14</div>
+        </div>
+        <div class="reco-desc">Ofrece una fusión de cocina tradicional y moderna.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Mamarracha</div>
+          <div class="reco-address">Calle Hernando Colón, 1</div>
+        </div>
+        <div class="reco-desc">Especializado en platos a la brasa y tapas creativas.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">El Pintón</div>
+          <div class="reco-address">Calle Francos, 42</div>
+        </div>
+        <div class="reco-desc">Cocina contemporánea en un patio sevillano con encanto.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Sal Gorda</div>
+          <div class="reco-address">Calle Alcaicería de la Loza, 17</div>
+        </div>
+        <div class="reco-desc">Tapas tradicionales con un toque personal.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Las Columnas</div>
+          <div class="reco-address">Calle Mateos Gago, 22</div>
+        </div>
+        <div class="reco-desc">Bar clásico conocido por sus tapas y ambiente auténtico.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">La Corona</div>
+          <div class="reco-address">Calle Luchana, 4</div>
+        </div>
+        <div class="reco-desc">Ofrece una variedad de tapas en un entorno acogedor.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">La Azotea</div>
+          <div class="reco-address">Calle Jesús del Gran Poder, 31</div>
+        </div>
+        <div class="reco-desc">Tapas gourmet y una cuidada selección de vinos.</div>
+      </div>
+      </div>
+    </details>
+    <details class="reco-details">
+      <summary>Triana<span class="reco-count">8 sitios</span></summary>
+      <div class="reco-body">
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Blanca Paloma</div>
+          <div class="reco-address">Calle San Jacinto, 49</div>
+        </div>
+        <div class="reco-desc">Bar de tapas tradicional con ambiente familiar.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Vega 10</div>
+          <div class="reco-address">Calle Rosario Vega, 10</div>
+        </div>
+        <div class="reco-desc">Ofrece cocina de autor en un espacio moderno.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Las Golondrinas</div>
+          <div class="reco-address">Calle Antillano Campos, 26</div>
+        </div>
+        <div class="reco-desc">Conocido por sus tapas clásicas y ambiente auténtico.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Victoria 8</div>
+          <div class="reco-address">Calle Victoria, 8</div>
+        </div>
+        <div class="reco-desc">Bar de tapas con ambiente acogedor.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Bar Periqui</div>
+          <div class="reco-address">Calle Pagés del Corro, 86</div>
+        </div>
+        <div class="reco-desc">Ofrece tapas tradicionales en un entorno familiar.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">María Trifulca</div>
+          <div class="reco-address">Plaza del Altozano, 1</div>
+        </div>
+        <div class="reco-desc">Restaurante con vistas panorámicas al río, se recomienda reservar con antelación.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Casa Ruperto</div>
+          <div class="reco-address">Avenida Santa Cecilia, 2</div>
+        </div>
+        <div class="reco-desc">Famoso por sus codornices fritas y ambiente tradicional.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Casa Casimiro</div>
+          <div class="reco-address">Calle Alfarería, 15</div>
+        </div>
+        <div class="reco-desc">Especializado en pulpo y mariscos frescos.</div>
+      </div>
+      </div>
+    </details>
+    <details class="reco-details">
+      <summary>Los Remedios<span class="reco-count">9 sitios</span></summary>
+      <div class="reco-body">
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">La Coartada</div>
+          <div class="reco-address">Calle Virgen de Luján, 43</div>
+        </div>
+        <div class="reco-desc">Bar de tapas con ambiente moderno.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Río Grande</div>
+          <div class="reco-address">Calle Betis, s/n</div>
+        </div>
+        <div class="reco-desc">Restaurante con vistas al Guadalquivir, ideal para ocasiones especiales.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Viejo Tito</div>
+          <div class="reco-address">Calle Virgen de la Victoria, 2</div>
+        </div>
+        <div class="reco-desc">Taberna clásica con tapas tradicionales y ambiente acogedor.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">La Reserva</div>
+          <div class="reco-address">Calle Asunción, 29</div>
+        </div>
+        <div class="reco-desc">Cocina andaluza con ingredientes frescos y de calidad.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">La Cañera</div>
+          <div class="reco-address">Calle Virgen de Loreto, 35</div>
+        </div>
+        <div class="reco-desc">Tapas sabrosas en un entorno relajado.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Rafaello</div>
+          <div class="reco-address">Calle Virgen de la Cinta, 1</div>
+        </div>
+        <div class="reco-desc">Restaurante italiano con una carta variada de pastas y pizzas.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Atahualpa</div>
+          <div class="reco-address">Calle Virgen de la Antigua, 5</div>
+        </div>
+        <div class="reco-desc">Parrilla argentina, famosa por sus cortes de carne.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Los Cuevas</div>
+          <div class="reco-address">Calle Virgen de Consolación, 14</div>
+        </div>
+        <div class="reco-desc">Bar de tapas con recetas tradicionales.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Mariscos Emilio</div>
+          <div class="reco-address">Calle Virgen de Luján, 17</div>
+        </div>
+        <div class="reco-desc">Especializado en mariscos frescos y platos típicos del sur.</div>
+      </div>
+      </div>
+    </details>
+    <details class="reco-details">
+      <summary>Porvenir<span class="reco-count">9 sitios</span></summary>
+      <div class="reco-body">
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Manolo León</div>
+          <div class="reco-address">Calle Guadalquivir, 8</div>
+        </div>
+        <div class="reco-desc">Restaurante elegante con un precioso patio andaluz.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Soravito</div>
+          <div class="reco-address">Calle Porvenir, 50</div>
+        </div>
+        <div class="reco-desc">Cocina de mercado con toques modernos.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Don Matteo</div>
+          <div class="reco-address">Calle Felipe II, 14</div>
+        </div>
+        <div class="reco-desc">Pizzería con recetas auténticas italianas.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Bonifaz</div>
+          <div class="reco-address">Calle Progreso, 13</div>
+        </div>
+        <div class="reco-desc">Platos tradicionales en un ambiente acogedor.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Ignacio Vidal</div>
+          <div class="reco-address">Calle Porvenir, 24</div>
+        </div>
+        <div class="reco-desc">Restaurante de cocina contemporánea con menú variado.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Plató Plató</div>
+          <div class="reco-address">Calle Felipe II, 16</div>
+        </div>
+        <div class="reco-desc">Tapas creativas en un espacio moderno y acogedor.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">La Antojería</div>
+          <div class="reco-address">Calle Felipe II, 18</div>
+        </div>
+        <div class="reco-desc">Ofrece una carta variada de tapas con ingredientes de calidad.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Estragón</div>
+          <div class="reco-address">Calle Valparaíso, 13</div>
+        </div>
+        <div class="reco-desc">Cocina casera con un toque personal.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Estraperlo</div>
+          <div class="reco-address">Calle Valparaíso, 21</div>
+        </div>
+        <div class="reco-desc">Bar de tapas y cocina fusión en un entorno moderno.</div>
+      </div>
+      </div>
+    </details>
+    <details class="reco-details">
+      <summary>Alameda<span class="reco-count">12 sitios</span></summary>
+      <div class="reco-body">
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Bar Antojo</div>
+          <div class="reco-address">Calle Calatrava, 44</div>
+        </div>
+        <div class="reco-desc">Tapas innovadoras en un espacio con estilo.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Dúo Tapas</div>
+          <div class="reco-address">Calle Calatrava, 10</div>
+        </div>
+        <div class="reco-desc">Fusión de sabores en tapas creativas y deliciosas.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Mi Niña Bonita</div>
+          <div class="reco-address">Calle Peris Mencheta, 21</div>
+        </div>
+        <div class="reco-desc">Cocina casera con toques latinos.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Zero Tapas Bar</div>
+          <div class="reco-address">Calle Calatrava, 13</div>
+        </div>
+        <div class="reco-desc">Tapas modernas en un ambiente relajado.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Karpanta</div>
+          <div class="reco-address">Calle Feria, 100</div>
+        </div>
+        <div class="reco-desc">Bocadillos y tapas rápidas en un entorno informal.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">La Selva</div>
+          <div class="reco-address">Calle Relator, 50</div>
+        </div>
+        <div class="reco-desc">Cocina alternativa con opciones vegetarianas y creativas.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">La Terraza</div>
+          <div class="reco-address">Alameda de Hércules, 33</div>
+        </div>
+        <div class="reco-desc">Ideal para copas al aire libre y disfrutar del ambiente nocturno.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Sidonia</div>
+          <div class="reco-address">Calle Calatrava, 16</div>
+        </div>
+        <div class="reco-desc">Cocina fusión con inspiración asiática.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">La Gorda de Calatrava</div>
+          <div class="reco-address">Calle Calatrava, 12</div>
+        </div>
+        <div class="reco-desc">Tapas creativas en un entorno distendido.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">El Gallinero de Sandra</div>
+          <div class="reco-address">Calle Calatrava, 22</div>
+        </div>
+        <div class="reco-desc">Cocina de autor con productos frescos de temporada.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">El Hombre de Piedra</div>
+          <div class="reco-address">Calle Hombre de Piedra, 5</div>
+        </div>
+        <div class="reco-desc">Bar de tapas con recetas tradicionales sevillanas.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">No Lugar</div>
+          <div class="reco-address">Alameda de Hércules, 37</div>
+        </div>
+        <div class="reco-desc">Espacio cultural con una interesante oferta de tapas y bebidas.</div>
+      </div>
+      </div>
+    </details>
+    <div class="reco-subheading">Lugares para copas</div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Hotel M</div>
+          <div class="reco-address">Azotea céntrica</div>
+        </div>
+        <div class="reco-desc">Exclusivo espacio con vistas panorámicas de Sevilla.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Hotel Los Seises</div>
+          <div class="reco-address">Calle Segovias, 6</div>
+        </div>
+        <div class="reco-desc">Ambiente juvenil en una azotea con vistas excepcionales.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Embarcadero</div>
+          <div class="reco-address">Calle Betis, s/n</div>
+        </div>
+        <div class="reco-desc">Perfecto para disfrutar de copas al atardecer junto al Guadalquivir.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">El Kiosko Bombay</div>
+          <div class="reco-address">Paseo Colón, 16</div>
+        </div>
+        <div class="reco-desc">Bar informal con vistas al río, ideal para la tarde.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">La Alameda</div>
+          <div class="reco-address">Zona de copas</div>
+        </div>
+        <div class="reco-desc">Lugar bohemio con múltiples opciones para disfrutar de la vida nocturna.</div>
+      </div>
+    <div class="reco-subheading">Visitas recomendadas</div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Real Alcázar de Sevilla</div>
+          <div class="reco-address">Patio de Banderas, s/n</div>
+        </div>
+        <div class="reco-desc">Impresionante conjunto palaciego con jardines únicos.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Catedral de Sevilla y Giralda</div>
+          <div class="reco-address">Avda. Constitución</div>
+        </div>
+        <div class="reco-desc">Majestuosa catedral con vistas panorámicas desde la Giralda.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Iglesia del Salvador</div>
+          <div class="reco-address">Plaza del Salvador</div>
+        </div>
+        <div class="reco-desc">Joya arquitectónica y punto histórico de interés.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Barrio de Santa Cruz y Judería</div>
+          
+        </div>
+        <div class="reco-desc">Calles estrechas, patios llenos de flores y un ambiente único.</div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-name-row">
+          <div class="reco-name">Paseo junto al río Guadalquivir</div>
+          
+        </div>
+        <div class="reco-desc">Incluye la Torre del Oro y el Puente de Triana, ideal para un paseo romántico.</div>
+      </div>
   </section>
 
   <section class="info-block">
