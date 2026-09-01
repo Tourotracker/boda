@@ -51,6 +51,13 @@
   .stat .l{font-size:12px; color:#8A8275; text-transform:uppercase; letter-spacing:.05em;}
   .toolbar{display:flex; justify-content:space-between; align-items:center; gap:16px; margin-bottom:12px; flex-wrap:wrap;}
   .search-wrap{position:relative; flex:1; min-width:220px; max-width:420px;}
+  .toolbar-actions{display:flex; gap:10px;}
+  .btn-secundario{
+    background:#fff; color:var(--gold); border:1.5px solid var(--gold);
+    box-shadow:none;
+  }
+  .btn-secundario:hover{background:var(--gold-soft); transform:none;}
+  .btn-secundario.girando{pointer-events:none; opacity:.7;}
   .search-wrap input{
     width:100%; padding:11px 13px; border:1.5px solid var(--line); border-radius:var(--radius-sm);
     font-size:14px; font-family:inherit; background:#fff;
@@ -132,7 +139,8 @@
     .stat{min-width:calc(50% - 5px); padding:12px 14px;}
     .stat .n{font-size:22px;}
     .toolbar{justify-content:stretch;}
-    .toolbar button{width:100%;}
+    .toolbar-actions{width:100%;}
+    .toolbar-actions button{flex:1; width:auto;}
     .search-wrap{max-width:none; width:100%;}
 
     .table-wrap{overflow-x:visible; border-radius:0; box-shadow:none; background:none;}
@@ -183,7 +191,10 @@
       <input type="text" id="buscador" placeholder="Buscar por nombre, apellidos, ciudad...">
       <div class="search-count" id="buscadorCount"></div>
     </div>
-    <button id="exportar">Descargar CSV</button>
+    <div class="toolbar-actions">
+      <button id="actualizar" class="btn-secundario">Actualizar</button>
+      <button id="exportar">Descargar CSV</button>
+    </div>
   </div>
 
   <div class="no-results" id="noResults" style="display:none;">No hay respuestas que coincidan con la búsqueda.</div>
@@ -589,6 +600,22 @@
       mostrarToast('Error al conectar con el servidor.');
     }
   }
+
+  document.getElementById('actualizar').addEventListener('click', async () => {
+    const btn = document.getElementById('actualizar');
+    btn.classList.add('girando');
+    const textoOriginal = btn.textContent;
+    btn.textContent = 'Actualizando...';
+    try {
+      await recargar();
+      mostrarToast('Datos actualizados.');
+    } catch (err) {
+      mostrarToast('Error al conectar con el servidor.');
+    } finally {
+      btn.classList.remove('girando');
+      btn.textContent = textoOriginal;
+    }
+  });
 
   document.getElementById('exportar').addEventListener('click', () => {
     if (!currentData.length) return;
