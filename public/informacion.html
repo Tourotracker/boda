@@ -134,6 +134,38 @@
     text-decoration:none;
   }
   .info-link:hover{text-decoration:underline;}
+  .info-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:24px;
+  }
+  .info-text{flex:1; min-width:0;}
+  .info-time{
+    font-family:'Cormorant Garamond', serif;
+    font-weight:600;
+    font-size:20px;
+    color:var(--gold);
+    margin-bottom:4px;
+  }
+  .info-photo{
+    flex:0 0 auto;
+    width:130px;
+    height:130px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .info-photo img{
+    display:block;
+    width:auto;
+    height:auto;
+    max-width:100%;
+    max-height:100%;
+    mix-blend-mode:multiply;
+    -webkit-mask-image:radial-gradient(ellipse 62% 62% at center, #000 55%, transparent 85%);
+    mask-image:radial-gradient(ellipse 62% 62% at center, #000 55%, transparent 85%);
+  }
   .proximamente{
     font-size:14px;
     color:var(--gray);
@@ -154,6 +186,8 @@
     body{padding:32px 20px;}
     h1{font-size:36px;}
     .meta-bar{font-size:10px; letter-spacing:0.08em;}
+    .info-row{gap:14px;}
+    .info-photo{width:92px; height:92px;}
   }
 </style>
 </head>
@@ -172,19 +206,28 @@
 
   <section class="info-block">
     <div class="info-heading">Ceremonia</div>
-    <div class="info-item">
-      <div class="info-label">Hora y lugar</div>
-      <div class="info-value">12:00h · Iglesia de Santa Cruz, Sevilla</div>
-      <a class="info-link" href="https://www.google.com/maps/search/?api=1&query=Parroquia+de+Santa+Cruz+Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+    <div class="info-row">
+      <div class="info-text">
+        <div class="info-time">12:00h</div>
+        <div class="info-value">Iglesia de Santa Cruz, Sevilla</div>
+        <a class="info-link" href="https://www.google.com/maps/search/?api=1&query=Parroquia+de+Santa+Cruz+Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="info-photo">
+        <img src="/images/santa-cruz.jpg" alt="Iglesia de Santa Cruz">
+      </div>
     </div>
   </section>
 
   <section class="info-block">
     <div class="info-heading">Celebración</div>
-    <div class="info-item">
-      <div class="info-label">Lugar</div>
-      <div class="info-value">Cortijo Torrequemada</div>
-      <a class="info-link" href="https://www.google.com/maps/search/?api=1&query=Cortijo+Torrequemada+Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+    <div class="info-row">
+      <div class="info-text">
+        <div class="info-value">Cortijo Torrequemada</div>
+        <a class="info-link" href="https://www.google.com/maps/search/?api=1&query=Cortijo+Torrequemada+Sevilla" target="_blank" rel="noopener">Ver en Google Maps →</a>
+      </div>
+      <div class="info-photo">
+        <img src="/images/torrequemada.jpg" alt="Cortijo Torrequemada">
+      </div>
     </div>
   </section>
 
