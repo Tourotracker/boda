@@ -97,6 +97,15 @@ function requireAdmin(req, res, next) {
 
 app.set('trust proxy', 1);
 app.use(express.json());
+app.use((req, res, next) => {
+  // Las páginas HTML cambian con frecuencia (contenido, admin) y no deben
+  // quedarse cacheadas en el móvil de nadie; las imágenes y favicons sí
+  // pueden cachearse normalmente.
+  if (req.path === '/' || req.path.endsWith('.html')) {
+    res.set('Cache-Control', 'no-store, must-revalidate');
+  }
+  next();
+});
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
