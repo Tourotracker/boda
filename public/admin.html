@@ -633,20 +633,17 @@
       { header: 'Tratamiento', valor: r => r.tratamiento || '' },
       { header: 'Nombre', valor: r => r.nombre || '' },
       { header: 'Apellidos', valor: r => r.apellidos || '' },
-      { header: 'Asiste', valor: r => asisteLabel(r.asiste) },
+      { header: 'Alergias', valor: r => r.alergias || '' },
       { header: 'Acompañante', valor: r => r.con_acompanante === 'si' ? 'Sí' : 'No' },
       { header: 'Tratamiento acompañante', valor: r => r.acompanante_tratamiento || '' },
       { header: 'Nombre acompañante', valor: r => r.acompanante_nombre || '' },
       { header: 'Apellidos acompañante', valor: r => r.acompanante_apellidos || '' },
-      { header: 'Transporte', valor: r => transporteLabel(r.transporte) },
-      { header: 'Alergias', valor: r => r.alergias || '' },
       { header: 'Alergias acompañante', valor: r => r.acompanante_alergias || '' },
+      { header: 'Transporte', valor: r => transporteLabel(r.transporte) },
       { header: 'Calle', valor: r => r.calle || '' },
       { header: 'Código postal', valor: r => r.cp || '' },
       { header: 'Ciudad', valor: r => r.ciudad || '' },
-      { header: 'Provincia', valor: r => r.provincia || '' },
-      { header: 'Lista El Corte Inglés', valor: r => fechaHora(r.lista_click_at) },
-      { header: 'IBAN copiado', valor: r => fechaHora(r.iban_copiado_at) }
+      { header: 'Provincia', valor: r => r.provincia || '' }
     ];
     function celdaSegura(valor) {
       let str = String(valor);
