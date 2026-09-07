@@ -47,6 +47,8 @@ async function initDB() {
   await pool.query(`ALTER TABLE rsvp ADD COLUMN IF NOT EXISTS guest_token VARCHAR(64)`);
   await pool.query(`ALTER TABLE rsvp ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW()`);
   await pool.query(`ALTER TABLE rsvp ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ`);
+  await pool.query(`ALTER TABLE rsvp ADD COLUMN IF NOT EXISTS iban_copiado_at TIMESTAMPTZ`);
+  await pool.query(`ALTER TABLE rsvp ADD COLUMN IF NOT EXISTS lista_click_at TIMESTAMPTZ`);
   await pool.query(`
     CREATE UNIQUE INDEX IF NOT EXISTS rsvp_guest_token_idx
     ON rsvp(guest_token) WHERE guest_token IS NOT NULL
@@ -164,6 +166,28 @@ app.get('/api/rsvp/estado', async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error al consultar.' });
+  }
+});
+
+app.post('/api/evento', async (req, res) => {
+  const { guestToken, tipo } = req.body;
+  if (tipo !== 'iban' && tipo !== 'lista') {
+    return res.status(400).json({ error: 'Tipo inválido.' });
+  }
+  if (typeof guestToken !== 'string' || guestToken.length < 8 || guestToken.length > 64) {
+    return res.json({ ok: true });
+  }
+
+  const columna = tipo === 'iban' ? 'iban_copiado_at' : 'lista_click_at';
+  try {
+    await pool.query(
+      `UPDATE rsvp SET ${columna} = NOW() WHERE guest_token = $1 AND deleted_at IS NULL`,
+      [guestToken]
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al registrar.' });
   }
 });
 

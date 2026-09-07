@@ -289,7 +289,7 @@
 
     <div class="lista-opcion">
       <div class="info-label">Lista en El Corte Inglés</div>
-      <a class="info-link" href="https://www.elcorteingles.es/listas/bodamas/eventos/hedvzt-boda-de-ignacio-y-ines-caballos-torroba/" target="_blank" rel="noopener">Ver la lista →</a>
+      <a class="info-link" id="listaEciLink" href="https://www.elcorteingles.es/listas/bodamas/eventos/hedvzt-boda-de-ignacio-y-ines-caballos-torroba/" target="_blank" rel="noopener">Ver la lista →</a>
     </div>
 
     <div class="lista-opcion">
@@ -313,6 +313,27 @@
 </div>
 
 <script>
+  function getCookie(nombre) {
+    const match = document.cookie.match('(^|;)\\s*' + nombre + '\\s*=\\s*([^;]+)');
+    return match ? decodeURIComponent(match.pop()) : '';
+  }
+  const guestToken = getCookie('guestToken');
+
+  function registrarEvento(tipo) {
+    if (!guestToken) return;
+    const datos = JSON.stringify({ guestToken, tipo });
+    if (navigator.sendBeacon) {
+      navigator.sendBeacon('/api/evento', new Blob([datos], { type: 'application/json' }));
+    } else {
+      fetch('/api/evento', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: datos, keepalive: true }).catch(() => {});
+    }
+  }
+
+  const listaEciLink = document.getElementById('listaEciLink');
+  if (listaEciLink) {
+    listaEciLink.addEventListener('click', () => registrarEvento('lista'));
+  }
+
   const ibanBtn = document.getElementById('ibanCopy');
   const ibanHint = document.getElementById('ibanHint');
 
@@ -338,6 +359,7 @@
         await copiarTexto(ibanBtn.dataset.iban);
         ibanHint.textContent = '¡Copiado!';
         ibanHint.classList.add('copiado');
+        registrarEvento('iban');
       } catch (err) {
         ibanHint.textContent = 'No se ha podido copiar, cópialo a mano.';
       }

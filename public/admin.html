@@ -87,8 +87,10 @@
   th:nth-child(9){width:6%;}
   th:nth-child(10){width:7%;}
   th:nth-child(11){width:7%;}
-  th:nth-child(12){width:12%;}
-  th:nth-child(13){width:15%;}
+  th:nth-child(12){width:10%;}
+  th:nth-child(13){width:6%;}
+  th:nth-child(14){width:6%;}
+  th:nth-child(15){width:12%;}
   .si{color:var(--sage); font-weight:600;}
   .no{color:#B05A4A; font-weight:600;}
   .table-wrap{overflow-x:auto; border-radius:var(--radius-md); box-shadow:var(--shadow-card);}
@@ -205,7 +207,7 @@
         <tr>
           <th>Fecha</th><th>Nombre</th><th>Apellidos</th><th>Asiste</th>
           <th>Acompañante</th><th>Trat. acomp.</th><th>Nombre acomp.</th><th>Apellidos acomp.</th><th>Transporte</th>
-          <th>Alergias</th><th>Alergias acomp.</th><th>Dirección</th><th>Acciones</th>
+          <th>Alergias</th><th>Alergias acomp.</th><th>Dirección</th><th>Lista ECI</th><th>IBAN</th><th>Acciones</th>
         </tr>
       </thead>
       <tbody id="rows"></tbody>
@@ -374,6 +376,11 @@
     return 'No asiste';
   }
 
+  function fechaHora(v) {
+    if (!v) return '—';
+    return new Date(v).toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+  }
+
   function normalizar(str) {
     return String(str || '')
       .toLowerCase()
@@ -437,6 +444,8 @@
         <td data-label="Alergias">${escapeHtml(r.alergias)}</td>
         <td data-label="Alergias acomp.">${escapeHtml(r.acompanante_alergias)}</td>
         <td data-label="Dirección">${escapeHtml(r.calle)}, ${escapeHtml(r.cp)} ${escapeHtml(r.ciudad)} (${escapeHtml(r.provincia)})</td>
+        <td data-label="Lista ECI" class="${r.lista_click_at ? 'si' : ''}">${fechaHora(r.lista_click_at)}</td>
+        <td data-label="IBAN" class="${r.iban_copiado_at ? 'si' : ''}">${fechaHora(r.iban_copiado_at)}</td>
         <td data-label="Acciones" class="td-acciones">
           <div class="row-actions">
             <button type="button" class="btn-editar" data-accion="editar" data-id="${r.id}">Editar</button>
@@ -635,7 +644,9 @@
       { header: 'Calle', valor: r => r.calle || '' },
       { header: 'Código postal', valor: r => r.cp || '' },
       { header: 'Ciudad', valor: r => r.ciudad || '' },
-      { header: 'Provincia', valor: r => r.provincia || '' }
+      { header: 'Provincia', valor: r => r.provincia || '' },
+      { header: 'Lista El Corte Inglés', valor: r => fechaHora(r.lista_click_at) },
+      { header: 'IBAN copiado', valor: r => fechaHora(r.iban_copiado_at) }
     ];
     function celdaSegura(valor) {
       let str = String(valor);
