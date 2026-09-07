@@ -141,6 +141,39 @@
     text-decoration:none;
   }
   .info-link:hover{text-decoration:underline;}
+  .lista-opcion{margin-bottom:24px;}
+  .lista-opcion:last-child{margin-bottom:0;}
+  .iban-copy{
+    display:block;
+    width:100%;
+    text-align:left;
+    background:none;
+    border:none;
+    padding:0;
+    cursor:pointer;
+    font-family:'Manrope', sans-serif;
+  }
+  .iban-value{
+    display:inline-block;
+    font-size:16px;
+    letter-spacing:0.04em;
+    color:var(--ink);
+    border-bottom:1px dashed var(--line);
+    padding-bottom:6px;
+    transition:border-color .15s;
+  }
+  .iban-copy:hover .iban-value{border-color:var(--gold);}
+  .iban-hint{
+    display:block;
+    margin-top:8px;
+    font-size:11px;
+    letter-spacing:0.05em;
+    text-transform:uppercase;
+    font-weight:600;
+    color:var(--gray);
+    transition:color .15s;
+  }
+  .iban-hint.copiado{color:var(--green);}
   .info-row{
     display:flex;
     justify-content:space-between;
@@ -252,7 +285,20 @@
 
   <section class="info-block">
     <div class="info-heading">Lista de bodas</div>
-    <p class="proximamente">Información próximamente.</p>
+    <p class="reco-intro">Vuestra presencia es el mejor regalo, pero si queréis tener un detalle con nosotros, aquí tenéis dos opciones.</p>
+
+    <div class="lista-opcion">
+      <div class="info-label">Lista en El Corte Inglés</div>
+      <a class="info-link" href="https://www.elcorteingles.es/listas/bodamas/eventos/hedvzt-boda-de-ignacio-y-ines-caballos-torroba/" target="_blank" rel="noopener">Ver la lista →</a>
+    </div>
+
+    <div class="lista-opcion">
+      <div class="info-label">Transferencia directa</div>
+      <button type="button" class="iban-copy" id="ibanCopy" data-iban="ES5900812719290008344551">
+        <span class="iban-value">ES59 0081 2719 2900 0834 4551</span>
+        <span class="iban-hint" id="ibanHint">Toca para copiar</span>
+      </button>
+    </div>
   </section>
 
   <section class="info-block">
@@ -265,5 +311,43 @@
     <a class="back-link" href="/">← Volver al formulario</a>
   </div>
 </div>
+
+<script>
+  const ibanBtn = document.getElementById('ibanCopy');
+  const ibanHint = document.getElementById('ibanHint');
+
+  async function copiarTexto(texto) {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(texto);
+      return;
+    }
+    const textarea = document.createElement('textarea');
+    textarea.value = texto;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+  }
+
+  if (ibanBtn) {
+    ibanBtn.addEventListener('click', async () => {
+      try {
+        await copiarTexto(ibanBtn.dataset.iban);
+        ibanHint.textContent = '¡Copiado!';
+        ibanHint.classList.add('copiado');
+      } catch (err) {
+        ibanHint.textContent = 'No se ha podido copiar, cópialo a mano.';
+      }
+      clearTimeout(ibanBtn._t);
+      ibanBtn._t = setTimeout(() => {
+        ibanHint.textContent = 'Toca para copiar';
+        ibanHint.classList.remove('copiado');
+      }, 2200);
+    });
+  }
+</script>
 </body>
 </html>
