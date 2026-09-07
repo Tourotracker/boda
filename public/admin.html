@@ -629,6 +629,7 @@
   document.getElementById('exportar').addEventListener('click', () => {
     if (!currentData.length) return;
     const columnas = [
+      { header: 'Asiste', valor: r => asisteLabel(r.asiste) },
       { header: 'Fecha', valor: r => new Date(r.created_at).toLocaleDateString('es-ES') },
       { header: 'Tratamiento', valor: r => r.tratamiento || '' },
       { header: 'Nombre', valor: r => r.nombre || '' },
