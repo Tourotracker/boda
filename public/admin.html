@@ -63,6 +63,11 @@
     font-size:14px; font-family:inherit; background:#fff;
   }
   .search-wrap input:focus{outline:none; border-color:var(--sage);}
+  .filtro-asiste{
+    padding:11px 13px; border:1.5px solid var(--line); border-radius:var(--radius-sm);
+    font-size:14px; font-family:inherit; background:#fff; cursor:pointer;
+  }
+  .filtro-asiste:focus{outline:none; border-color:var(--sage);}
   .search-count{font-size:12px; color:#8A8275; margin-top:6px;}
   .no-results{
     background:#fff; border-radius:var(--radius-md); box-shadow:var(--shadow-card);
@@ -144,6 +149,7 @@
     .toolbar-actions{width:100%;}
     .toolbar-actions button{flex:1; width:auto;}
     .search-wrap{max-width:none; width:100%;}
+    .filtro-asiste{width:100%;}
 
     .table-wrap{overflow-x:visible; border-radius:0; box-shadow:none; background:none;}
     table{table-layout:auto;}
@@ -193,6 +199,12 @@
       <input type="text" id="buscador" placeholder="Buscar por nombre, apellidos, ciudad...">
       <div class="search-count" id="buscadorCount"></div>
     </div>
+    <select id="filtroAsiste" class="filtro-asiste">
+      <option value="">Todos</option>
+      <option value="completa">Toda la boda</option>
+      <option value="copas">Solo copas</option>
+      <option value="no">No asiste</option>
+    </select>
     <div class="toolbar-actions">
       <button id="actualizar" class="btn-secundario">Actualizar</button>
       <button id="exportar">Descargar CSV</button>
@@ -421,14 +433,21 @@
     renderFiltrado();
   }
 
+  function coincideAsiste(r, filtro) {
+    if (!filtro) return true;
+    if (filtro === 'completa') return r.asiste === 'completa' || r.asiste === 'si';
+    return r.asiste === filtro;
+  }
+
   function renderFiltrado() {
     const termino = normalizar(document.getElementById('buscador').value.trim());
-    const data = currentData.filter(r => coincideBusqueda(r, termino));
+    const filtroAsiste = document.getElementById('filtroAsiste').value;
+    const data = currentData.filter(r => coincideBusqueda(r, termino) && coincideAsiste(r, filtroAsiste));
 
     const countEl = document.getElementById('buscadorCount');
-    countEl.textContent = termino ? `${data.length} de ${currentData.length} respuestas` : '';
+    countEl.textContent = (termino || filtroAsiste) ? `${data.length} de ${currentData.length} respuestas` : '';
 
-    document.getElementById('noResults').style.display = (termino && !data.length) ? 'block' : 'none';
+    document.getElementById('noResults').style.display = (data.length === 0 && (termino || filtroAsiste)) ? 'block' : 'none';
 
     document.getElementById('rows').innerHTML = data.map(r => `
       <tr data-id="${r.id}">
@@ -458,6 +477,7 @@
   }
 
   document.getElementById('buscador').addEventListener('input', renderFiltrado);
+  document.getElementById('filtroAsiste').addEventListener('change', renderFiltrado);
 
   function escapeHtml(str) {
     if (!str) return '';
