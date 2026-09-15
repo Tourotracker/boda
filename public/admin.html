@@ -207,6 +207,7 @@
     </select>
     <div class="toolbar-actions">
       <button id="actualizar" class="btn-secundario">Actualizar</button>
+      <button id="anadir" class="btn-secundario">Añadir invitado</button>
       <button id="exportar">Descargar CSV</button>
     </div>
   </div>
@@ -229,7 +230,7 @@
 
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal">
-    <h2>Editar respuesta</h2>
+    <h2 id="modalTitulo">Editar respuesta</h2>
     <form id="editForm">
       <div class="modal-grid">
         <div>
@@ -320,7 +321,7 @@
       <div class="modal-error" id="modalError"></div>
       <div class="modal-actions">
         <button type="button" class="btn-cancelar" id="btnCancelar">Cancelar</button>
-        <button type="submit">Guardar cambios</button>
+        <button type="submit" id="btnGuardar">Guardar cambios</button>
       </div>
     </form>
   </div>
@@ -524,11 +525,40 @@
     document.getElementById('editAcompananteApellidos').value = r.acompanante_apellidos || '';
     document.getElementById('editAcompananteAlergias').value = r.acompanante_alergias || '';
     document.getElementById('modalError').textContent = '';
+    document.getElementById('modalTitulo').textContent = 'Editar respuesta';
+    document.getElementById('btnGuardar').textContent = 'Guardar cambios';
     document.getElementById('modalOverlay').classList.add('visible');
   }
 
+  function abrirModalNuevo() {
+    editandoId = null;
+    document.getElementById('editTratamiento').value = '';
+    document.getElementById('editAsiste').value = 'completa';
+    document.getElementById('editNombre').value = '';
+    document.getElementById('editApellidos').value = '';
+    document.getElementById('editCalle').value = '';
+    document.getElementById('editCp').value = '';
+    document.getElementById('editCiudad').value = '';
+    document.getElementById('editProvincia').value = '';
+    document.getElementById('editTransporte').value = 'no';
+    document.getElementById('editAlergias').value = '';
+    document.getElementById('editConAcompanante').value = 'no';
+    document.getElementById('editAcompananteTratamiento').value = '';
+    document.getElementById('editAcompananteNombre').value = '';
+    document.getElementById('editAcompananteApellidos').value = '';
+    document.getElementById('editAcompananteAlergias').value = '';
+    document.getElementById('modalError').textContent = '';
+    document.getElementById('modalTitulo').textContent = 'Añadir invitado';
+    document.getElementById('btnGuardar').textContent = 'Añadir';
+    document.getElementById('modalOverlay').classList.add('visible');
+  }
+
+  document.getElementById('anadir').addEventListener('click', abrirModalNuevo);
+
   function cerrarModal() {
     editandoId = null;
+    document.getElementById('modalTitulo').textContent = 'Editar respuesta';
+    document.getElementById('btnGuardar').textContent = 'Guardar cambios';
     document.getElementById('modalOverlay').classList.remove('visible');
   }
 
@@ -570,9 +600,10 @@
       return;
     }
 
+    const esNuevo = editandoId === null;
     try {
-      const res = await fetch('/api/respuestas/' + editandoId, {
-        method: 'PUT',
+      const res = await fetch(esNuevo ? '/api/respuestas' : ('/api/respuestas/' + editandoId), {
+        method: esNuevo ? 'POST' : 'PUT',
         headers: { 'Content-Type': 'application/json', 'x-admin-token': adminToken },
         body: JSON.stringify(payload)
       });
@@ -583,7 +614,7 @@
       }
       cerrarModal();
       await recargar();
-      mostrarToast('Cambios guardados.');
+      mostrarToast(esNuevo ? 'Invitado añadido.' : 'Cambios guardados.');
     } catch (err) {
       errorEl.textContent = 'Error al conectar con el servidor.';
     }

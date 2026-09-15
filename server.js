@@ -212,6 +212,43 @@ app.get('/api/respuestas', requireAdmin, async (req, res) => {
   }
 });
 
+app.post('/api/respuestas', requireAdmin, async (req, res) => {
+  const {
+    tratamiento, nombre, apellidos,
+    calle, cp, ciudad, provincia,
+    asiste, conAcompanante, acompananteTratamiento, acompananteNombre, acompananteApellidos, acompananteAlergias,
+    transporte, alergias
+  } = req.body;
+
+  if (!nombre || !apellidos || !asiste) {
+    return res.status(400).json({ error: 'Faltan campos obligatorios.' });
+  }
+  if (asiste !== 'no' && (!tratamiento || !calle || !cp || !ciudad || !provincia)) {
+    return res.status(400).json({ error: 'Faltan campos obligatorios.' });
+  }
+
+  try {
+    const { rows } = await pool.query(
+      `INSERT INTO rsvp
+        (tratamiento, nombre, apellidos, calle, cp, ciudad, provincia,
+         asiste, con_acompanante, acompanante_tratamiento, acompanante_nombre, acompanante_apellidos, acompanante_alergias, transporte, alergias)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
+       RETURNING *`,
+      [
+        tratamiento || '', nombre, apellidos,
+        calle || '', cp || '', ciudad || '', provincia || '',
+        asiste, conAcompanante || 'no', acompananteTratamiento || '', acompananteNombre || '', acompananteApellidos || '', acompananteAlergias || '',
+        transporte || '', alergias || ''
+      ]
+    );
+    await registrarHistorial(rows[0].id, 'crear', rows[0]);
+    res.json({ ok: true, respuesta: rows[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al crear.' });
+  }
+});
+
 app.put('/api/respuestas/:id', requireAdmin, async (req, res) => {
   const id = Number(req.params.id);
   if (!Number.isInteger(id)) {
