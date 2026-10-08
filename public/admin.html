@@ -146,8 +146,8 @@
     .stat{min-width:calc(50% - 5px); padding:12px 14px;}
     .stat .n{font-size:22px;}
     .toolbar{justify-content:stretch;}
-    .toolbar-actions{width:100%;}
-    .toolbar-actions button{flex:1; width:auto;}
+    .toolbar-actions{width:100%; flex-wrap:wrap;}
+    .toolbar-actions button{flex:1 1 calc(50% - 5px); width:auto;}
     .search-wrap{max-width:none; width:100%;}
     .filtro-asiste{width:100%;}
 
@@ -208,6 +208,7 @@
     <div class="toolbar-actions">
       <button id="actualizar" class="btn-secundario">Actualizar</button>
       <button id="anadir" class="btn-secundario">Añadir invitado</button>
+      <button id="verQr" class="btn-secundario">Ver código QR</button>
       <button id="exportar">Descargar CSV</button>
     </div>
   </div>
@@ -333,6 +334,8 @@
   let currentData = [];
   let adminToken = '';
   let editandoId = null;
+  let qrScansTotal = 0;
+  let qrScansUltimo = null;
 
   document.getElementById('entrar').addEventListener('click', cargar);
   document.getElementById('token').addEventListener('keydown', (e) => {
@@ -355,6 +358,7 @@
       }
       adminToken = token;
       currentData = await res.json();
+      await cargarQrScans();
       render(currentData);
       document.getElementById('gate').style.display = 'none';
       document.getElementById('panel').style.display = 'block';
@@ -366,8 +370,25 @@
   async function recargar() {
     const res = await fetch('/api/respuestas', { headers: { 'x-admin-token': adminToken } });
     currentData = await res.json();
+    await cargarQrScans();
     render(currentData);
   }
+
+  async function cargarQrScans() {
+    try {
+      const res = await fetch('/api/qr-scans', { headers: { 'x-admin-token': adminToken } });
+      if (!res.ok) return;
+      const data = await res.json();
+      qrScansTotal = data.total;
+      qrScansUltimo = data.ultimo;
+    } catch (err) {
+      // No es crítico si falla; se mantiene el último valor conocido.
+    }
+  }
+
+  document.getElementById('verQr').addEventListener('click', () => {
+    window.open('/images/qr-boda.png', '_blank');
+  });
 
   // 'propio'/'autobus'/'otro' son valores heredados de antes de tener
   // las opciones ida/vuelta/ida y vuelta/no necesito
@@ -429,6 +450,7 @@
       <div class="stat"><div class="n">${acompanantes}</div><div class="l">Acompañantes</div></div>
       <div class="stat"><div class="n">${pctAsistencia}%</div><div class="l">% asistencia</div></div>
       <div class="stat highlight"><div class="n">${totalInvitados}</div><div class="l">Total asistentes</div></div>
+      <div class="stat" title="${qrScansUltimo ? 'Último escaneo: ' + fechaHora(qrScansUltimo) : 'Todavía no se ha escaneado'}"><div class="n">${qrScansTotal}</div><div class="l">Escaneos QR</div></div>
     `;
 
     renderFiltrado();

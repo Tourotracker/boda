@@ -62,6 +62,12 @@ async function initDB() {
       changed_at TIMESTAMPTZ DEFAULT NOW()
     )
   `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS qr_scans (
+      id SERIAL PRIMARY KEY,
+      scanned_at TIMESTAMPTZ DEFAULT NOW()
+    )
+  `);
   console.log('Base de datos lista.');
 }
 
@@ -110,6 +116,15 @@ app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'informac
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
+
+app.get('/qr', async (req, res) => {
+  try {
+    await pool.query('INSERT INTO qr_scans DEFAULT VALUES');
+  } catch (err) {
+    console.error(err);
+  }
+  res.redirect(302, '/');
+});
 
 app.post('/api/rsvp', async (req, res) => {
   const {
@@ -207,6 +222,20 @@ app.get('/api/respuestas', requireAdmin, async (req, res) => {
       'SELECT * FROM rsvp WHERE deleted_at IS NULL ORDER BY created_at DESC'
     );
     res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al obtener datos.' });
+  }
+});
+
+app.get('/api/qr-scans', requireAdmin, async (req, res) => {
+  try {
+    const total = await pool.query('SELECT COUNT(*) FROM qr_scans');
+    const ultimo = await pool.query('SELECT scanned_at FROM qr_scans ORDER BY scanned_at DESC LIMIT 1');
+    res.json({
+      total: Number(total.rows[0].count),
+      ultimo: ultimo.rows[0] ? ultimo.rows[0].scanned_at : null
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error al obtener datos.' });
