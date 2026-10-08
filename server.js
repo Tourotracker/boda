@@ -106,6 +106,7 @@ app.use((req, res, next) => {
   }
   next();
 });
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'informacion.html')));
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
