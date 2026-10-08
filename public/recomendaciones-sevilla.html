@@ -816,5 +816,13 @@
     <a class="back-link" href="/informacion.html">← Volver a la información de la boda</a>
   </div>
 </div>
+<script>
+  // Al abrir el archivo descargado (sin conexión al sitio), ocultamos lo que
+  // no tiene sentido fuera de la web de la boda: el enlace de "volver" y el
+  // propio botón de descarga.
+  if (location.protocol === 'file:') {
+    document.querySelectorAll('.footer-nav, .header-download-link').forEach(el => el.remove());
+  }
+</script>
 </body>
 </html>
