@@ -54,6 +54,8 @@ async function initDB() {
   await pool.query(`ALTER TABLE rsvp ADD COLUMN IF NOT EXISTS lista_click_at TIMESTAMPTZ`);
   await pool.query(`ALTER TABLE rsvp ADD COLUMN IF NOT EXISTS invitado_por VARCHAR(20) NOT NULL DEFAULT ''`);
   await pool.query(`ALTER TABLE rsvp ADD COLUMN IF NOT EXISTS grupo VARCHAR(100) NOT NULL DEFAULT ''`);
+  // Respuesta llegada por el formulario que aún no se ha revisado en el panel.
+  await pool.query(`ALTER TABLE rsvp ADD COLUMN IF NOT EXISTS nuevo BOOLEAN NOT NULL DEFAULT FALSE`);
   await pool.query(`
     CREATE UNIQUE INDEX IF NOT EXISTS rsvp_guest_token_idx
     ON rsvp(guest_token) WHERE guest_token IS NOT NULL
@@ -171,8 +173,8 @@ app.post('/api/rsvp', async (req, res) => {
     await pool.query(
       `INSERT INTO rsvp
         (guest_token, tratamiento, nombre, apellidos, calle, cp, ciudad, provincia,
-         asiste, con_acompanante, acompanante_tratamiento, acompanante_nombre, acompanante_apellidos, acompanante_alergias, transporte, alergias, updated_at)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,NOW())
+         asiste, con_acompanante, acompanante_tratamiento, acompanante_nombre, acompanante_apellidos, acompanante_alergias, transporte, alergias, updated_at, nuevo)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,NOW(),TRUE)
        ON CONFLICT (guest_token) WHERE guest_token IS NOT NULL
        DO UPDATE SET
          tratamiento=EXCLUDED.tratamiento, nombre=EXCLUDED.nombre, apellidos=EXCLUDED.apellidos,
@@ -180,7 +182,7 @@ app.post('/api/rsvp', async (req, res) => {
          asiste=EXCLUDED.asiste, con_acompanante=EXCLUDED.con_acompanante,
          acompanante_tratamiento=EXCLUDED.acompanante_tratamiento, acompanante_nombre=EXCLUDED.acompanante_nombre,
          acompanante_apellidos=EXCLUDED.acompanante_apellidos, acompanante_alergias=EXCLUDED.acompanante_alergias,
-         transporte=EXCLUDED.transporte, alergias=EXCLUDED.alergias, updated_at=NOW(), deleted_at=NULL`,
+         transporte=EXCLUDED.transporte, alergias=EXCLUDED.alergias, updated_at=NOW(), deleted_at=NULL, nuevo=TRUE`,
       [
         token,
         tratamiento || '', nombre, apellidos,
@@ -328,7 +330,7 @@ app.put('/api/respuestas/:id', requireAdmin, async (req, res) => {
          tratamiento=$1, nombre=$2, apellidos=$3, calle=$4, cp=$5, ciudad=$6, provincia=$7,
          asiste=$8, con_acompanante=$9, acompanante_tratamiento=$10, acompanante_nombre=$11,
          acompanante_apellidos=$12, acompanante_alergias=$13, transporte=$14, alergias=$15,
-         invitado_por=$16, grupo=$17, updated_at=NOW()
+         invitado_por=$16, grupo=$17, nuevo=FALSE, updated_at=NOW()
        WHERE id=$18
        RETURNING *`,
       [
@@ -428,6 +430,20 @@ app.post('/api/respuestas/categorias', requireAdmin, async (req, res) => {
     res.status(500).json({ error: 'Error al asignar la categoría.' });
   } finally {
     client.release();
+  }
+});
+
+app.post('/api/respuestas/:id/visto', requireAdmin, async (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) {
+    return res.status(400).json({ error: 'Id inválido.' });
+  }
+  try {
+    await pool.query('UPDATE rsvp SET nuevo = FALSE WHERE id = $1', [id]);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al marcar como visto.' });
   }
 });
 

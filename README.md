@@ -25,6 +25,11 @@ y expone un panel de administración para consultarlas.
 - **Asignar en bloque**: marca varias filas (o todas las filtradas con la casilla
   de la cabecera) y asígnales "Invitado por" y/o grupo de una vez. Lo que se deje
   vacío no cambia. Cada cambio queda en `rsvp_history` con la acción `categorizar`.
+- **NUEVO**: cada respuesta que llega (o se modifica) desde el formulario sale
+  resaltada con la etiqueta *NUEVO* y, si alguna de las personas ya estaba en
+  la lista (mismo nombre y primer apellido), con un aviso de posible duplicado.
+  La marca se quita con *Visto* o al editar y guardar la ficha. El botón
+  *Ver nuevos* filtra solo esas respuestas.
 - **Descargar CSV** respeta los filtros activos; el **Excel de direcciones** sale
   siempre con todos los invitados.
 - **Casados**: se deduce del tratamiento. Si en la pareja hay una *Sra.*, se

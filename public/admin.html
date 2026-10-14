@@ -100,6 +100,20 @@
   th:nth-child(17){width:10%;}
   .td-check input, .th-check input{width:17px; height:17px; cursor:pointer; accent-color:var(--gold);}
   tr.seleccionada td{background:#FBF3F0;}
+  tr.fila-nueva td{background:#FFF6E0;}
+  tr.fila-nueva td:first-child{box-shadow:inset 4px 0 0 #E0A526;}
+  .etiqueta-nuevo{
+    display:inline-block; background:#E0A526; color:#fff; font-size:10px; font-weight:800;
+    letter-spacing:.06em; padding:2px 7px; border-radius:999px; margin-right:4px; vertical-align:middle;
+  }
+  .aviso-duplicado{display:block; margin-top:4px; font-size:11px; color:#9A6B00; font-weight:600;}
+  .btn-visto{background:#FCEBC4; color:#8A5F00;}
+  .btn-visto:hover{background:#F6DDA0; transform:none;}
+  .btn-solo-nuevos{display:none; border-color:#E0A526; color:#8A5F00;}
+  .btn-solo-nuevos.visible{display:inline-block;}
+  .btn-solo-nuevos.activo{background:#E0A526; color:#fff;}
+  .btn-solo-nuevos:hover{background:#FCEBC4; transform:none;}
+  .btn-solo-nuevos.activo:hover{background:#C98F14;}
 
   /* Barra de asignación en bloque */
   .barra-seleccion{
@@ -291,6 +305,7 @@
         <button type="button" class="filtro-limpiar">Quitar filtro</button>
       </div>
     </details>
+    <button type="button" class="btn-secundario btn-solo-nuevos" id="soloNuevos"></button>
     <div class="toolbar-actions">
       <button id="actualizar" class="btn-secundario">Actualizar</button>
       <button id="anadir" class="btn-secundario">Añadir invitado</button>
@@ -712,14 +727,68 @@
       : 'Descargar CSV';
   }
 
+  // --- Respuestas nuevas del formulario ---
+  let soloNuevos = false;
+
+  document.getElementById('soloNuevos').addEventListener('click', () => {
+    soloNuevos = !soloNuevos;
+    renderFiltrado();
+  });
+
+  // Personas de una fila como "nombre + primer apellido" normalizados.
+  function personas(r) {
+    const clave = (nombre, apellidos) => {
+      const n = normalizar(nombre).trim().split(/\s+/)[0];
+      const a = normalizar(apellidos).trim().split(/\s+/).filter(p => !['de', 'del', 'la', 'las', 'los', 'y'].includes(p))[0];
+      return n && a ? n + ' ' + a : '';
+    };
+    return [
+      clave(r.nombre, r.apellidos),
+      r.con_acompanante === 'si' ? clave(r.acompanante_nombre, r.acompanante_apellidos) : ''
+    ].filter(Boolean);
+  }
+
+  // Otras filas en las que aparece alguna de las mismas personas (p. ej. el
+  // invitado que metisteis a mano antes de que rellenara el formulario).
+  function avisoDuplicado(r) {
+    const mias = personas(r);
+    if (!mias.length) return '';
+    const parecidos = currentData.filter(o => o.id !== r.id && personas(o).some(p => mias.includes(p)));
+    if (!parecidos.length) return '';
+    const nombres = parecidos.map(o => `${o.nombre} ${o.apellidos}`.trim());
+    return `<span class="aviso-duplicado">⚠ ¿Duplicado? Ya está: ${escapeHtml(nombres.join(', '))}</span>`;
+  }
+
+  async function marcarVisto(r) {
+    try {
+      const res = await fetch('/api/respuestas/' + r.id + '/visto', {
+        method: 'POST',
+        headers: { 'x-admin-token': adminToken }
+      });
+      if (!res.ok) { mostrarToast('No se ha podido marcar como visto.'); return; }
+      r.nuevo = false;
+      renderFiltrado();
+    } catch (err) {
+      mostrarToast('Error al conectar con el servidor.');
+    }
+  }
+
   function renderFiltrado() {
     const termino = normalizar(document.getElementById('buscador').value.trim());
     const filtroAsiste = document.getElementById('filtroAsiste').value;
     const data = currentData.filter(r =>
       coincideBusqueda(r, termino) && coincideAsiste(r, filtroAsiste) &&
-      filtrosMulti.invitadoPor.coincide(r.invitado_por) && filtrosMulti.grupo.coincide(r.grupo));
-    const hayFiltro = Boolean(termino || filtroAsiste ||
+      filtrosMulti.invitadoPor.coincide(r.invitado_por) && filtrosMulti.grupo.coincide(r.grupo) &&
+      (!soloNuevos || r.nuevo));
+    const hayFiltro = Boolean(termino || filtroAsiste || soloNuevos ||
       filtrosMulti.invitadoPor.seleccion.size || filtrosMulti.grupo.seleccion.size);
+
+    const nuevos = currentData.filter(r => r.nuevo).length;
+    if (!nuevos) soloNuevos = false;
+    const btnNuevos = document.getElementById('soloNuevos');
+    btnNuevos.textContent = soloNuevos ? `Viendo solo nuevos (${nuevos}) ✕` : `Ver nuevos (${nuevos})`;
+    btnNuevos.classList.toggle('visible', nuevos > 0);
+    btnNuevos.classList.toggle('activo', soloNuevos);
 
     const countEl = document.getElementById('buscadorCount');
     countEl.textContent = hayFiltro ? `${data.length} de ${currentData.length} respuestas` : '';
@@ -730,10 +799,10 @@
     actualizarBotonCsv(hayFiltro);
 
     document.getElementById('rows').innerHTML = data.map(r => `
-      <tr data-id="${r.id}" class="${seleccionados.has(r.id) ? 'seleccionada' : ''}">
+      <tr data-id="${r.id}" class="${seleccionados.has(r.id) ? 'seleccionada' : ''} ${r.nuevo ? 'fila-nueva' : ''}">
         <td data-label="Seleccionar" class="td-check"><input type="checkbox" class="check-fila" data-id="${r.id}"${seleccionados.has(r.id) ? ' checked' : ''}></td>
         <td data-label="Fecha">${new Date(r.created_at).toLocaleDateString('es-ES')}</td>
-        <td data-label="Nombre">${escapeHtml(r.tratamiento)} ${escapeHtml(r.nombre)}</td>
+        <td data-label="Nombre">${r.nuevo ? '<span class="etiqueta-nuevo">NUEVO</span>' : ''}${escapeHtml(r.tratamiento)} ${escapeHtml(r.nombre)}${r.nuevo ? avisoDuplicado(r) : ''}</td>
         <td data-label="Apellidos">${escapeHtml(r.apellidos)}</td>
         <td data-label="Categoría">${r.invitado_por || r.grupo
           ? `${escapeHtml(r.invitado_por) || '<span class="sin-asignar">—</span>'}<span class="categoria-grupo">${escapeHtml(r.grupo)}</span>`
@@ -751,6 +820,7 @@
         <td data-label="IBAN" class="${r.iban_copiado_at ? 'si' : ''}">${fechaHora(r.iban_copiado_at)}</td>
         <td data-label="Acciones" class="td-acciones">
           <div class="row-actions">
+            ${r.nuevo ? `<button type="button" class="btn-visto" data-accion="visto" data-id="${r.id}" title="Quitar la marca de nuevo">Visto</button>` : ''}
             <button type="button" class="btn-editar" data-accion="editar" data-id="${r.id}">Editar</button>
             <button type="button" class="btn-reiniciar" data-accion="reiniciar" data-id="${r.id}">Reiniciar</button>
             <button type="button" class="btn-eliminar" data-accion="eliminar" data-id="${r.id}">Eliminar</button>
@@ -789,6 +859,7 @@
     if (btn.dataset.accion === 'editar') abrirModal(fila);
     else if (btn.dataset.accion === 'reiniciar') reiniciarFila(fila);
     else if (btn.dataset.accion === 'eliminar') eliminarFila(fila);
+    else if (btn.dataset.accion === 'visto') marcarVisto(fila);
   });
 
   // Devuelve la opción de la lista que coincide con lo escrito (sin tener en
