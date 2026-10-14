@@ -520,13 +520,6 @@
     return 'No asiste';
   }
 
-  // Misma regla que lib/sobres.js: "Sra." indica casada, "Srta." no.
-  function estanCasados(r) {
-    return r.con_acompanante === 'si' &&
-      Boolean((r.acompanante_nombre || '').trim() || (r.acompanante_apellidos || '').trim()) &&
-      (r.tratamiento === 'Sra.' || r.acompanante_tratamiento === 'Sra.');
-  }
-
   function fechaHora(v) {
     if (!v) return '—';
     return new Date(v).toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
@@ -1105,7 +1098,6 @@
       { header: 'Apellidos', valor: r => r.apellidos || '' },
       { header: 'Alergias', valor: r => r.alergias || '' },
       { header: 'Acompañante', valor: r => r.con_acompanante === 'si' ? 'Sí' : 'No' },
-      { header: 'Casados', valor: r => estanCasados(r) ? 'Sí' : 'No' },
       { header: 'Tratamiento acompañante', valor: r => r.acompanante_tratamiento || '' },
       { header: 'Nombre acompañante', valor: r => r.acompanante_nombre || '' },
       { header: 'Apellidos acompañante', valor: r => r.acompanante_apellidos || '' },
