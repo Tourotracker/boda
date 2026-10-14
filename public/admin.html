@@ -746,7 +746,7 @@
           ? `${escapeHtml(r.invitado_por) || '<span class="sin-asignar">—</span>'}<span class="categoria-grupo">${escapeHtml(r.grupo)}</span>`
           : '<span class="sin-asignar">Sin asignar</span>'}</td>
         <td data-label="Asiste" class="${r.asiste === 'no' ? 'no' : (r.asiste === 'pendiente' ? '' : 'si')}">${asisteLabel(r.asiste)}</td>
-        <td data-label="Acompañante">${r.con_acompanante === 'si' ? (estanCasados(r) ? 'Sí (casados)' : 'Sí') : 'No'}</td>
+        <td data-label="Acompañante">${r.con_acompanante === 'si' ? 'Sí' : 'No'}</td>
         <td data-label="Trat. acomp.">${escapeHtml(r.acompanante_tratamiento)}</td>
         <td data-label="Nombre acomp.">${escapeHtml(r.acompanante_nombre)}</td>
         <td data-label="Apellidos acomp.">${escapeHtml(r.acompanante_apellidos)}</td>
