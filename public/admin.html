@@ -947,9 +947,13 @@
 
   // --- Vista árbol: Invitado por > Grupo > invitados ---
   let modoArbol = false;
+  // Grupos que se han desplegado en esta visita al árbol, para que sigan
+  // abiertos al filtrar o actualizar.
+  const gruposAbiertos = new Set();
 
   document.getElementById('verArbol').addEventListener('click', () => {
     modoArbol = !modoArbol;
+    gruposAbiertos.clear(); // al entrar, todo plegado
     document.getElementById('panel').classList.toggle('modo-arbol', modoArbol);
     document.getElementById('verArbol').textContent = modoArbol ? 'Vista tabla' : 'Vista árbol';
     renderFiltrado();
@@ -994,7 +998,7 @@
         .filter(x => x.filas.length);
       const htmlGrupos = grupos.map(({ g, filas: fg }) => `
         <div class="grupo">
-          <details open>
+          <details data-clave="${escapeHtml(por + '|' + g)}"${gruposAbiertos.has(por + '|' + g) ? ' open' : ''}>
             <summary class="grupo-cabecera">
               <span class="nombre-grupo ${g ? '' : 'grupo-sin'}">${g ? escapeHtml(g) : 'Sin grupo'}</span>
               <span class="cuenta">${cuenta(fg)}</span>
@@ -1028,7 +1032,7 @@
         <span><i class="punto pendiente"></i>Pendiente</span>
         <span><i class="punto no"></i>No asiste</span>
         <span>Fichas = invitados de la lista · Personas = invitados + acompañantes (incluye a los que no vienen, tachados)</span>
-        <span>Pulsa un invitado para abrir su ficha · pulsa un grupo para plegarlo</span>
+        <span>Pulsa un invitado para abrir su ficha · pulsa un grupo para desplegarlo</span>
       </div>
       <div class="arbol-raiz"><div class="nodo-raiz">
         <div class="titulo">Ignacio &amp; Ines</div>
@@ -1036,6 +1040,14 @@
       </div></div>
       <div class="arbol-ramas">${htmlRamas}</div>`;
   }
+
+  // 'toggle' no burbujea: se escucha en fase de captura.
+  document.getElementById('arbol').addEventListener('toggle', (e) => {
+    const clave = e.target.dataset && e.target.dataset.clave;
+    if (clave === undefined) return;
+    if (e.target.open) gruposAbiertos.add(clave);
+    else gruposAbiertos.delete(clave);
+  }, true);
 
   document.getElementById('arbol').addEventListener('click', (e) => {
     const li = e.target.closest('.invitado');
