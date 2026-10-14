@@ -18,6 +18,10 @@ y expone un panel de administración para consultarlas.
   de alta a mano. Pueden quedar como *Pendiente de contestar* (no exige dirección).
   Si luego esa persona rellena el formulario, aparecerá como una respuesta nueva:
   elimina la entrada manual.
+- **Categorías**: cada invitado tiene *Invitado por* (Ignacio / Ines / Ambos) y
+  *Grupo*. En la ficha se puede escribir para buscar la opción, y en el listado
+  se filtra por varias a la vez (incluido "Sin asignar"). Las listas están en
+  `public/categorias.js`: para añadir o renombrar un grupo, se cambia ahí.
 - **Casados**: se deduce del tratamiento. Si en la pareja hay una *Sra.*, se
   consideran casados; con *Srta.*, pareja. Para cambiarlo, edita el tratamiento
   desde el panel.

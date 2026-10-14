@@ -3,6 +3,7 @@ const express = require('express');
 const { Pool } = require('pg');
 const { generarXlsx } = require('./lib/xlsx');
 const { sobresParaEnviar } = require('./lib/sobres');
+const CATEGORIAS = require('./public/categorias');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -51,6 +52,8 @@ async function initDB() {
   await pool.query(`ALTER TABLE rsvp ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ`);
   await pool.query(`ALTER TABLE rsvp ADD COLUMN IF NOT EXISTS iban_copiado_at TIMESTAMPTZ`);
   await pool.query(`ALTER TABLE rsvp ADD COLUMN IF NOT EXISTS lista_click_at TIMESTAMPTZ`);
+  await pool.query(`ALTER TABLE rsvp ADD COLUMN IF NOT EXISTS invitado_por VARCHAR(20) NOT NULL DEFAULT ''`);
+  await pool.query(`ALTER TABLE rsvp ADD COLUMN IF NOT EXISTS grupo VARCHAR(100) NOT NULL DEFAULT ''`);
   await pool.query(`
     CREATE UNIQUE INDEX IF NOT EXISTS rsvp_guest_token_idx
     ON rsvp(guest_token) WHERE guest_token IS NOT NULL
@@ -88,6 +91,8 @@ function validarAdmin(body) {
   const { tratamiento, nombre, apellidos, calle, cp, ciudad, provincia, asiste } = body;
   if (!nombre || !apellidos || !asiste) return 'Faltan campos obligatorios.';
   if (!ASISTE_ADMIN.includes(asiste)) return 'Valor de asistencia no válido.';
+  if (body.invitadoPor && !CATEGORIAS.invitadoPor.includes(body.invitadoPor)) return '"Invitado por" no válido.';
+  if (body.grupo && !CATEGORIAS.grupos.includes(body.grupo)) return 'Grupo no válido.';
   if ((asiste === 'completa' || asiste === 'copas') && (!tratamiento || !calle || !cp || !ciudad || !provincia)) {
     return 'Faltan campos obligatorios.';
   }
@@ -263,7 +268,7 @@ app.post('/api/respuestas', requireAdmin, async (req, res) => {
     tratamiento, nombre, apellidos,
     calle, cp, ciudad, provincia,
     asiste, conAcompanante, acompananteTratamiento, acompananteNombre, acompananteApellidos, acompananteAlergias,
-    transporte, alergias
+    transporte, alergias, invitadoPor, grupo
   } = req.body;
 
   const errorValidacion = validarAdmin(req.body);
@@ -275,14 +280,14 @@ app.post('/api/respuestas', requireAdmin, async (req, res) => {
     const { rows } = await pool.query(
       `INSERT INTO rsvp
         (tratamiento, nombre, apellidos, calle, cp, ciudad, provincia,
-         asiste, con_acompanante, acompanante_tratamiento, acompanante_nombre, acompanante_apellidos, acompanante_alergias, transporte, alergias)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
+         asiste, con_acompanante, acompanante_tratamiento, acompanante_nombre, acompanante_apellidos, acompanante_alergias, transporte, alergias, invitado_por, grupo)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
        RETURNING *`,
       [
         tratamiento || '', nombre, apellidos,
         calle || '', cp || '', ciudad || '', provincia || '',
         asiste, conAcompanante || 'no', acompananteTratamiento || '', acompananteNombre || '', acompananteApellidos || '', acompananteAlergias || '',
-        transporte || '', alergias || ''
+        transporte || '', alergias || '', invitadoPor || '', grupo || ''
       ]
     );
     await registrarHistorial(rows[0].id, 'crear', rows[0]);
@@ -303,7 +308,7 @@ app.put('/api/respuestas/:id', requireAdmin, async (req, res) => {
     tratamiento, nombre, apellidos,
     calle, cp, ciudad, provincia,
     asiste, conAcompanante, acompananteTratamiento, acompananteNombre, acompananteApellidos, acompananteAlergias,
-    transporte, alergias
+    transporte, alergias, invitadoPor, grupo
   } = req.body;
 
   const errorValidacion = validarAdmin(req.body);
@@ -322,14 +327,15 @@ app.put('/api/respuestas/:id', requireAdmin, async (req, res) => {
       `UPDATE rsvp SET
          tratamiento=$1, nombre=$2, apellidos=$3, calle=$4, cp=$5, ciudad=$6, provincia=$7,
          asiste=$8, con_acompanante=$9, acompanante_tratamiento=$10, acompanante_nombre=$11,
-         acompanante_apellidos=$12, acompanante_alergias=$13, transporte=$14, alergias=$15, updated_at=NOW()
-       WHERE id=$16
+         acompanante_apellidos=$12, acompanante_alergias=$13, transporte=$14, alergias=$15,
+         invitado_por=$16, grupo=$17, updated_at=NOW()
+       WHERE id=$18
        RETURNING *`,
       [
         tratamiento || '', nombre, apellidos,
         calle || '', cp || '', ciudad || '', provincia || '',
         asiste, conAcompanante || 'no', acompananteTratamiento || '', acompananteNombre || '', acompananteApellidos || '', acompananteAlergias || '',
-        transporte || '', alergias || '',
+        transporte || '', alergias || '', invitadoPor || '', grupo || '',
         id
       ]
     );
@@ -354,6 +360,8 @@ app.get('/api/export/direcciones', requireAdmin, async (req, res) => {
     const columnas = [
       { titulo: 'Destinatario (sobre)', ancho: 48 },
       { titulo: 'Invitados', ancho: 28 },
+      { titulo: 'Invitado por', ancho: 13 },
+      { titulo: 'Grupo', ancho: 26 },
       { titulo: 'Dirección', ancho: 40 },
       { titulo: 'Código postal', ancho: 13 },
       { titulo: 'Ciudad', ancho: 20 },
@@ -364,7 +372,7 @@ app.get('/api/export/direcciones', requireAdmin, async (req, res) => {
       { titulo: 'Avisos', ancho: 60 }
     ];
     const filas = sobres.map(s => [
-      s.destinatario, s.nombres, s.calle, s.cp, s.ciudad, s.provincia,
+      s.destinatario, s.nombres, s.invitadoPor, s.grupo, s.calle, s.cp, s.ciudad, s.provincia,
       s.tipo, s.personas, asisteTexto(s.asiste), s.avisos.join(' · ')
     ]);
     const xlsx = generarXlsx('Direcciones', columnas, filas);

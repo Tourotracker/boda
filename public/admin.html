@@ -49,7 +49,7 @@
   .stat.highlight .n, .stat.highlight .l{color:#fff;}
   .stat .n{font-family:'Cormorant Garamond',serif; font-size:28px; color:var(--gold);}
   .stat .l{font-size:12px; color:#8A8275; text-transform:uppercase; letter-spacing:.05em;}
-  .toolbar{display:flex; justify-content:space-between; align-items:center; gap:16px; margin-bottom:12px; flex-wrap:wrap;}
+  .toolbar{display:flex; justify-content:flex-start; align-items:flex-start; gap:12px; margin-bottom:12px; flex-wrap:wrap;}
   .search-wrap{position:relative; flex:1; min-width:220px; max-width:420px;}
   .toolbar-actions{display:flex; gap:10px;}
   .btn-secundario{
@@ -81,21 +81,62 @@
   th{background:var(--gold-soft); font-weight:700; position:sticky; top:0;}
   tr:last-child td{border-bottom:none;}
   tr.fila-borrando{opacity:.4;}
-  th:nth-child(1){width:6%;}
+  th:nth-child(1){width:5%;}
   th:nth-child(2){width:7%;}
   th:nth-child(3){width:7%;}
-  th:nth-child(4){width:6%;}
+  th:nth-child(4){width:8%;}
   th:nth-child(5){width:6%;}
-  th:nth-child(6){width:7%;}
-  th:nth-child(7){width:7%;}
-  th:nth-child(8){width:7%;}
-  th:nth-child(9){width:6%;}
-  th:nth-child(10){width:7%;}
-  th:nth-child(11){width:7%;}
-  th:nth-child(12){width:10%;}
-  th:nth-child(13){width:6%;}
-  th:nth-child(14){width:6%;}
-  th:nth-child(15){width:12%;}
+  th:nth-child(6){width:5%;}
+  th:nth-child(7){width:5%;}
+  th:nth-child(8){width:6%;}
+  th:nth-child(9){width:7%;}
+  th:nth-child(10){width:6%;}
+  th:nth-child(11){width:6%;}
+  th:nth-child(12){width:6%;}
+  th:nth-child(13){width:9%;}
+  th:nth-child(14){width:5%;}
+  th:nth-child(15){width:5%;}
+  th:nth-child(16){width:11%;}
+  .categoria-grupo{display:block; color:#8A8275; font-size:12px; margin-top:2px;}
+  .sin-asignar{color:#B9B2A8;}
+
+  /* Desplegable con buscador (ficha) */
+  .combo{position:relative;}
+  .combo-lista{
+    display:none; position:absolute; left:0; right:0; top:calc(100% + 4px); z-index:20;
+    list-style:none; margin:0; padding:4px; background:#fff; border:1.5px solid var(--line);
+    border-radius:var(--radius-sm); box-shadow:var(--shadow-card); max-height:220px; overflow-y:auto;
+  }
+  .combo.abierto .combo-lista{display:block;}
+  .combo-lista li{padding:8px 10px; border-radius:8px; cursor:pointer; font-size:14px;}
+  .combo-lista li.activo, .combo-lista li:hover{background:var(--gold-soft);}
+  .combo-lista li.vacio{color:#8A8275; cursor:default; background:none;}
+
+  /* Filtros de selección múltiple */
+  .filtro-multi{position:relative;}
+  .filtro-multi > summary{
+    list-style:none; padding:11px 13px; border:1.5px solid var(--line); border-radius:var(--radius-sm);
+    font-size:14px; background:#fff; cursor:pointer; white-space:nowrap; user-select:none;
+  }
+  .filtro-multi > summary::-webkit-details-marker{display:none;}
+  .filtro-multi > summary::after{content:' ▾'; color:#8A8275;}
+  .filtro-multi.activo > summary{border-color:var(--sage); color:var(--gold); font-weight:600;}
+  .filtro-panel{
+    position:absolute; z-index:30; top:calc(100% + 6px); left:0; width:280px; max-width:85vw;
+    background:#fff; border:1.5px solid var(--line); border-radius:var(--radius-md);
+    box-shadow:var(--shadow-card); padding:10px;
+  }
+  .filtro-panel input[type=text]{
+    width:100%; padding:8px 10px; border:1.5px solid var(--line); border-radius:8px;
+    font-size:14px; font-family:inherit; margin-bottom:8px;
+  }
+  .filtro-opciones{max-height:280px; overflow-y:auto;}
+  .filtro-opciones label{display:flex; align-items:center; gap:8px; padding:6px 4px; font-size:14px; cursor:pointer; border-radius:6px;}
+  .filtro-opciones label:hover{background:var(--gold-soft);}
+  .filtro-limpiar{
+    margin-top:8px; width:100%; background:#EDEAE5; color:var(--ink); box-shadow:none; padding:8px; font-size:13px;
+  }
+  .filtro-limpiar:hover{background:#E2DDD5; transform:none;}
   .si{color:var(--sage); font-weight:600;}
   .no{color:#B05A4A; font-weight:600;}
   .table-wrap{overflow-x:auto; border-radius:var(--radius-md); box-shadow:var(--shadow-card);}
@@ -150,6 +191,8 @@
     .toolbar-actions button{flex:1 1 calc(50% - 5px); width:auto;}
     .search-wrap{max-width:none; width:100%;}
     .filtro-asiste{width:100%;}
+    .filtro-multi{width:100%;}
+    .filtro-panel{width:100%; max-width:none;}
 
     .table-wrap{overflow-x:visible; border-radius:0; box-shadow:none; background:none;}
     table{table-layout:auto;}
@@ -206,6 +249,21 @@
       <option value="no">No asiste</option>
       <option value="pendiente">Pendiente de contestar</option>
     </select>
+    <details class="filtro-multi" id="filtroInvitadoPor">
+      <summary>Invitado por</summary>
+      <div class="filtro-panel">
+        <div class="filtro-opciones"></div>
+        <button type="button" class="filtro-limpiar">Quitar filtro</button>
+      </div>
+    </details>
+    <details class="filtro-multi" id="filtroGrupo">
+      <summary>Grupo</summary>
+      <div class="filtro-panel">
+        <input type="text" class="filtro-buscar" placeholder="Buscar grupo..." autocomplete="off">
+        <div class="filtro-opciones"></div>
+        <button type="button" class="filtro-limpiar">Quitar filtro</button>
+      </div>
+    </details>
     <div class="toolbar-actions">
       <button id="actualizar" class="btn-secundario">Actualizar</button>
       <button id="anadir" class="btn-secundario">Añadir invitado</button>
@@ -221,7 +279,7 @@
     <table>
       <thead>
         <tr>
-          <th>Fecha</th><th>Nombre</th><th>Apellidos</th><th>Asiste</th>
+          <th>Fecha</th><th>Nombre</th><th>Apellidos</th><th>Categoría</th><th>Asiste</th>
           <th>Acompañante</th><th>Trat. acomp.</th><th>Nombre acomp.</th><th>Apellidos acomp.</th><th>Transporte</th>
           <th>Alergias</th><th>Alergias acomp.</th><th>Dirección</th><th>Lista ECI</th><th>IBAN</th><th>Acciones</th>
         </tr>
@@ -236,6 +294,14 @@
     <h2 id="modalTitulo">Editar respuesta</h2>
     <form id="editForm">
       <div class="modal-grid">
+        <div>
+          <label for="editInvitadoPor">Invitado por</label>
+          <div class="combo"><input type="text" id="editInvitadoPor" autocomplete="off" placeholder="Escribe o elige..."><ul class="combo-lista"></ul></div>
+        </div>
+        <div>
+          <label for="editGrupo">Grupo</label>
+          <div class="combo"><input type="text" id="editGrupo" autocomplete="off" placeholder="Escribe o elige..."><ul class="combo-lista"></ul></div>
+        </div>
         <div>
           <label for="editTratamiento">Tratamiento</label>
           <select id="editTratamiento">
@@ -333,6 +399,7 @@
 
 <div class="toast" id="toast"></div>
 
+<script src="/categorias.js"></script>
 <script>
   let currentData = [];
   let adminToken = '';
@@ -437,7 +504,8 @@
     const campos = [
       r.tratamiento, r.nombre, r.apellidos,
       r.acompanante_tratamiento, r.acompanante_nombre, r.acompanante_apellidos,
-      r.calle, r.cp, r.ciudad, r.provincia, r.alergias, r.acompanante_alergias
+      r.calle, r.cp, r.ciudad, r.provincia, r.alergias, r.acompanante_alergias,
+      r.invitado_por, r.grupo
     ];
     const texto = normalizar(campos.join(' '));
     return termino.split(/\s+/).filter(Boolean).every(palabra => texto.includes(palabra));
@@ -475,21 +543,86 @@
     return r.asiste === filtro;
   }
 
+  // Filtros de selección múltiple. '' representa "Sin asignar".
+  const SIN_ASIGNAR = '';
+  const filtrosMulti = {
+    invitadoPor: crearFiltroMulti('filtroInvitadoPor', 'Invitado por', CATEGORIAS.invitadoPor),
+    grupo: crearFiltroMulti('filtroGrupo', 'Grupo', CATEGORIAS.grupos)
+  };
+
+  function crearFiltroMulti(id, titulo, opciones) {
+    const el = document.getElementById(id);
+    const seleccion = new Set();
+    const contenedor = el.querySelector('.filtro-opciones');
+    const buscar = el.querySelector('.filtro-buscar');
+    const todas = [SIN_ASIGNAR, ...opciones];
+
+    function pintarOpciones() {
+      const termino = buscar ? normalizar(buscar.value.trim()) : '';
+      contenedor.innerHTML = todas
+        .filter(o => !termino || normalizar(o || 'Sin asignar').includes(termino))
+        .map(o => `<label><input type="checkbox" value="${escapeHtml(o)}"${seleccion.has(o) ? ' checked' : ''}>` +
+          `${o ? escapeHtml(o) : '<em class="sin-asignar">Sin asignar</em>'}</label>`)
+        .join('') || '<div class="search-count">Ningún grupo coincide.</div>';
+    }
+
+    function actualizarResumen() {
+      el.querySelector('summary').textContent = seleccion.size ? `${titulo} (${seleccion.size})` : titulo;
+      el.classList.toggle('activo', seleccion.size > 0);
+    }
+
+    contenedor.addEventListener('change', (e) => {
+      if (e.target.type !== 'checkbox') return;
+      if (e.target.checked) seleccion.add(e.target.value);
+      else seleccion.delete(e.target.value);
+      actualizarResumen();
+      renderFiltrado();
+    });
+    if (buscar) buscar.addEventListener('input', pintarOpciones);
+    el.querySelector('.filtro-limpiar').addEventListener('click', () => {
+      seleccion.clear();
+      if (buscar) buscar.value = '';
+      pintarOpciones();
+      actualizarResumen();
+      renderFiltrado();
+    });
+    el.addEventListener('toggle', () => {
+      if (el.open && buscar) buscar.focus();
+    });
+
+    pintarOpciones();
+    return { seleccion, coincide: (valor) => seleccion.size === 0 || seleccion.has(valor || SIN_ASIGNAR) };
+  }
+
+  // Cerrar los filtros al pulsar fuera de ellos.
+  document.addEventListener('click', (e) => {
+    document.querySelectorAll('.filtro-multi[open]').forEach(d => {
+      if (!d.contains(e.target)) d.open = false;
+    });
+  });
+
   function renderFiltrado() {
     const termino = normalizar(document.getElementById('buscador').value.trim());
     const filtroAsiste = document.getElementById('filtroAsiste').value;
-    const data = currentData.filter(r => coincideBusqueda(r, termino) && coincideAsiste(r, filtroAsiste));
+    const data = currentData.filter(r =>
+      coincideBusqueda(r, termino) && coincideAsiste(r, filtroAsiste) &&
+      filtrosMulti.invitadoPor.coincide(r.invitado_por) && filtrosMulti.grupo.coincide(r.grupo));
+    const hayFiltro = Boolean(termino || filtroAsiste ||
+      filtrosMulti.invitadoPor.seleccion.size || filtrosMulti.grupo.seleccion.size);
 
     const countEl = document.getElementById('buscadorCount');
-    countEl.textContent = (termino || filtroAsiste) ? `${data.length} de ${currentData.length} respuestas` : '';
+    countEl.textContent = hayFiltro ? `${data.length} de ${currentData.length} respuestas` : '';
 
-    document.getElementById('noResults').style.display = (data.length === 0 && (termino || filtroAsiste)) ? 'block' : 'none';
+    document.getElementById('noResults').style.display = (data.length === 0 && hayFiltro) ? 'block' : 'none';
 
     document.getElementById('rows').innerHTML = data.map(r => `
       <tr data-id="${r.id}">
         <td data-label="Fecha">${new Date(r.created_at).toLocaleDateString('es-ES')}</td>
         <td data-label="Nombre">${escapeHtml(r.tratamiento)} ${escapeHtml(r.nombre)}</td>
         <td data-label="Apellidos">${escapeHtml(r.apellidos)}</td>
+        <td data-label="Categoría">${r.invitado_por || r.grupo
+          ? `${escapeHtml(r.invitado_por) || '<span class="sin-asignar">—</span>'}<span class="categoria-grupo">${escapeHtml(r.grupo)}</span>`
+          : '<span class="sin-asignar">Sin asignar</span>'}</td>
         <td data-label="Asiste" class="${r.asiste === 'no' ? 'no' : (r.asiste === 'pendiente' ? '' : 'si')}">${asisteLabel(r.asiste)}</td>
         <td data-label="Acompañante">${r.con_acompanante === 'si' ? (estanCasados(r) ? 'Sí (casados)' : 'Sí') : 'No'}</td>
         <td data-label="Trat. acomp.">${escapeHtml(r.acompanante_tratamiento)}</td>
@@ -542,8 +675,94 @@
     else if (btn.dataset.accion === 'eliminar') eliminarFila(fila);
   });
 
+  // Devuelve la opción de la lista que coincide con lo escrito (sin tener en
+  // cuenta mayúsculas ni tildes), '' si está vacío o null si no existe.
+  function opcionExacta(texto, opciones) {
+    const t = normalizar(texto.trim());
+    if (!t) return '';
+    const encontrada = opciones.find(o => normalizar(o) === t);
+    return encontrada === undefined ? null : encontrada;
+  }
+
+  // Desplegable en el que se puede escribir para filtrar las opciones.
+  function crearCombo(input, opciones) {
+    const combo = input.closest('.combo');
+    const lista = combo.querySelector('.combo-lista');
+    let visibles = [];
+    let activo = -1;
+
+    function pintar() {
+      const t = normalizar(input.value.trim());
+      // Si lo escrito ya es una opción exacta, se muestran todas para poder cambiarla.
+      const exacta = opcionExacta(input.value, opciones);
+      visibles = (!t || exacta) ? opciones.slice() : opciones.filter(o => normalizar(o).includes(t));
+      activo = visibles.length ? Math.max(0, visibles.indexOf(exacta)) : -1;
+      lista.innerHTML = visibles.length
+        ? visibles.map((o, i) => `<li data-i="${i}" class="${i === activo ? 'activo' : ''}">${escapeHtml(o)}</li>`).join('')
+        : '<li class="vacio">Ninguna opción coincide</li>';
+      const li = lista.querySelector('li.activo');
+      if (li) li.scrollIntoView({ block: 'nearest' });
+    }
+    function abrir() { pintar(); combo.classList.add('abierto'); }
+    function cerrar() { combo.classList.remove('abierto'); }
+    function elegir(i) {
+      if (i < 0 || i >= visibles.length) return;
+      input.value = visibles[i];
+      cerrar();
+    }
+
+    input.addEventListener('focus', abrir);
+    input.addEventListener('click', abrir);
+    input.addEventListener('input', () => {
+      combo.classList.add('abierto');
+      const t = normalizar(input.value.trim());
+      visibles = t ? opciones.filter(o => normalizar(o).includes(t)) : opciones.slice();
+      activo = visibles.length ? 0 : -1;
+      lista.innerHTML = visibles.length
+        ? visibles.map((o, i) => `<li data-i="${i}" class="${i === activo ? 'activo' : ''}">${escapeHtml(o)}</li>`).join('')
+        : '<li class="vacio">Ninguna opción coincide</li>';
+    });
+    input.addEventListener('keydown', (e) => {
+      if (!combo.classList.contains('abierto')) {
+        if (e.key === 'ArrowDown') { abrir(); e.preventDefault(); }
+        return;
+      }
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (!visibles.length) return;
+        activo = (activo + (e.key === 'ArrowDown' ? 1 : -1) + visibles.length) % visibles.length;
+        lista.querySelectorAll('li').forEach((li, i) => li.classList.toggle('activo', i === activo));
+        lista.querySelector('li.activo').scrollIntoView({ block: 'nearest' });
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        elegir(activo);
+      } else if (e.key === 'Escape') {
+        cerrar();
+      } else if (e.key === 'Tab') {
+        if (input.value.trim() && activo >= 0) elegir(activo);
+        cerrar();
+      }
+    });
+    // mousedown (y no click) para elegir antes de que el input pierda el foco
+    lista.addEventListener('mousedown', (e) => {
+      const li = e.target.closest('li[data-i]');
+      e.preventDefault();
+      if (li) elegir(Number(li.dataset.i));
+    });
+    input.addEventListener('blur', () => {
+      cerrar();
+      const exacta = opcionExacta(input.value, opciones);
+      if (exacta) input.value = exacta;
+    });
+  }
+
+  crearCombo(document.getElementById('editInvitadoPor'), CATEGORIAS.invitadoPor);
+  crearCombo(document.getElementById('editGrupo'), CATEGORIAS.grupos);
+
   function abrirModal(r) {
     editandoId = r.id;
+    document.getElementById('editInvitadoPor').value = r.invitado_por || '';
+    document.getElementById('editGrupo').value = r.grupo || '';
     document.getElementById('editTratamiento').value = r.tratamiento || '';
     document.getElementById('editAsiste').value = (r.asiste === 'si' ? 'completa' : r.asiste) || 'completa';
     document.getElementById('editNombre').value = r.nombre || '';
@@ -567,6 +786,8 @@
 
   function abrirModalNuevo() {
     editandoId = null;
+    document.getElementById('editInvitadoPor').value = '';
+    document.getElementById('editGrupo').value = '';
     document.getElementById('editTratamiento').value = '';
     document.getElementById('editAsiste').value = 'pendiente';
     document.getElementById('editNombre').value = '';
@@ -623,8 +844,19 @@
       acompananteApellidos: document.getElementById('editAcompananteApellidos').value.trim(),
       acompananteAlergias: document.getElementById('editAcompananteAlergias').value.trim(),
       transporte: document.getElementById('editTransporte').value,
-      alergias: document.getElementById('editAlergias').value.trim()
+      alergias: document.getElementById('editAlergias').value.trim(),
+      invitadoPor: opcionExacta(document.getElementById('editInvitadoPor').value, CATEGORIAS.invitadoPor),
+      grupo: opcionExacta(document.getElementById('editGrupo').value, CATEGORIAS.grupos)
     };
+
+    if (payload.invitadoPor === null) {
+      errorEl.textContent = '"Invitado por" tiene que ser una de las opciones de la lista.';
+      return;
+    }
+    if (payload.grupo === null) {
+      errorEl.textContent = 'El grupo tiene que ser uno de los de la lista.';
+      return;
+    }
 
     if (!payload.nombre || !payload.apellidos) {
       errorEl.textContent = 'Nombre y apellidos son obligatorios.';
@@ -742,6 +974,8 @@
       { header: 'Asiste', valor: r => asisteLabel(r.asiste) },
       { header: 'Fecha', valor: r => new Date(r.created_at).toLocaleDateString('es-ES') },
       { header: 'Tratamiento', valor: r => r.tratamiento || '' },
+      { header: 'Invitado por', valor: r => r.invitado_por || '' },
+      { header: 'Grupo', valor: r => r.grupo || '' },
       { header: 'Nombre', valor: r => r.nombre || '' },
       { header: 'Apellidos', valor: r => r.apellidos || '' },
       { header: 'Alergias', valor: r => r.alergias || '' },
