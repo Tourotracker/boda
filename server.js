@@ -375,7 +375,7 @@ app.get('/api/export/direcciones', requireAdmin, async (req, res) => {
     res.send(xlsx);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Error al generar el Excel.' });
+    res.status(500).json({ error: 'Error al generar el Excel: ' + err.message });
   }
 });
 
