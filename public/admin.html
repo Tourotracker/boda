@@ -294,7 +294,6 @@
     <div class="toolbar-actions">
       <button id="actualizar" class="btn-secundario">Actualizar</button>
       <button id="anadir" class="btn-secundario">Añadir invitado</button>
-      <button id="verQr" class="btn-secundario">Ver código QR</button>
       <button id="exportarDirecciones" class="btn-secundario">Excel direcciones (sobres)</button>
       <button id="exportar">Descargar CSV</button>
     </div>
@@ -499,10 +498,6 @@
       // No es crítico si falla; se mantiene el último valor conocido.
     }
   }
-
-  document.getElementById('verQr').addEventListener('click', () => {
-    window.open('/images/qr-boda.png', '_blank');
-  });
 
   // 'propio'/'autobus'/'otro' son valores heredados de antes de tener
   // las opciones ida/vuelta/ida y vuelta/no necesito
