@@ -218,7 +218,72 @@
   }
   .toast.visible{opacity:1;}
 
+  /* Vista árbol */
+  #arbol{display:none;}
+  #panel.modo-arbol #arbol{display:block;}
+  #panel.modo-arbol .table-wrap, #panel.modo-arbol .barra-seleccion{display:none !important;}
+  .arbol-leyenda{display:flex; gap:16px; flex-wrap:wrap; font-size:12px; color:#6B6259; margin:4px 0 18px;}
+  .arbol-leyenda span{display:inline-flex; align-items:center; gap:6px;}
+  .punto{width:9px; height:9px; border-radius:50%; display:inline-block; flex-shrink:0;}
+  .punto.completa{background:#3E8E5E;} .punto.copas{background:#4A7FB5;}
+  .punto.pendiente{background:#C9C2B8;} .punto.no{background:#B05A4A;}
+  .arbol-raiz{display:flex; justify-content:center;}
+  .nodo-raiz{
+    background:var(--gold); color:#fff; border-radius:var(--radius-md); padding:12px 22px; text-align:center;
+    box-shadow:var(--shadow-card); position:relative;
+  }
+  .nodo-raiz .titulo{font-family:'Cormorant Garamond',serif; font-size:22px; font-weight:700;}
+  .nodo-raiz .cuenta{font-size:12px; opacity:.9;}
+  .nodo-raiz::after{content:''; position:absolute; left:50%; bottom:-22px; height:22px; border-left:2px solid var(--line);}
+  /* Ramas en horizontal con conectores (técnica clásica de organigrama) */
+  .arbol-ramas{display:flex; align-items:flex-start; margin-top:22px; overflow-x:auto; padding-bottom:8px;}
+  .rama{flex:1 1 0; min-width:250px; position:relative; padding:22px 8px 0;}
+  .rama::before, .rama::after{content:''; position:absolute; top:0; width:50%; border-top:2px solid var(--line);}
+  .rama::before{left:0;} .rama::after{right:0;}
+  .rama:first-child::before, .rama:last-child::after{border:none;}
+  .rama:only-child::before, .rama:only-child::after{border:none;}
+  .rama-cabecera{position:relative; text-align:center; margin-bottom:14px;}
+  .rama-cabecera::before{content:''; position:absolute; left:50%; top:-22px; height:22px; border-left:2px solid var(--line);}
+  .rama-cabecera .caja{
+    display:inline-block; background:var(--gold-soft); color:var(--gold); border-radius:var(--radius-md);
+    padding:10px 18px; box-shadow:var(--shadow-card);
+  }
+  .rama-cabecera .titulo{font-weight:800; font-size:16px;}
+  .rama-cabecera .cuenta, .grupo-cabecera .cuenta{font-size:12px; color:#8A8275; font-weight:500;}
+  .rama.rama-sin .rama-cabecera .caja{background:#F2F0EC; color:#8A8275;}
+  .grupo{position:relative; margin-left:12px; padding:0 0 12px 18px; border-left:2px solid var(--line);}
+  .grupo:last-child{border-left-color:transparent;}
+  .grupo::before{
+    content:''; position:absolute; left:-2px; top:0; width:16px; height:20px;
+    border-left:2px solid var(--line); border-bottom:2px solid var(--line); border-bottom-left-radius:8px;
+  }
+  .grupo > details{background:#fff; border-radius:var(--radius-md); box-shadow:var(--shadow-card);}
+  .grupo-cabecera{
+    list-style:none; cursor:pointer; padding:10px 12px; display:flex; justify-content:space-between;
+    align-items:baseline; gap:10px; font-weight:700; font-size:14px;
+  }
+  .grupo-cabecera::-webkit-details-marker{display:none;}
+  .grupo-cabecera::before{content:'▸'; color:#8A8275; margin-right:6px; transition:transform .15s;}
+  .grupo > details[open] > .grupo-cabecera::before{transform:rotate(90deg); display:inline-block;}
+  .grupo-cabecera .nombre-grupo{flex:1;}
+  .grupo-sin{color:#8A8275; font-style:italic;}
+  .invitados{list-style:none; margin:0; padding:0 8px 8px;}
+  .invitado{
+    display:flex; align-items:flex-start; gap:8px; padding:7px 8px; border-radius:8px; cursor:pointer; font-size:13px;
+  }
+  .invitado:hover{background:var(--gold-soft);}
+  .invitado .punto{margin-top:5px;}
+  .invitado .acomp{color:#8A8275;}
+  .invitado.no-asiste .quien{text-decoration:line-through; color:#8A8275;}
+  .invitado .etiqueta-nuevo{font-size:9px; padding:1px 5px;}
+  .arbol-vacio{text-align:center; color:#8A8275; padding:30px;}
+
   @media (max-width:760px){
+    /* En el móvil, las ramas una debajo de otra */
+    .arbol-ramas{flex-direction:column; overflow-x:visible; margin-top:0;}
+    .nodo-raiz::after, .rama::before, .rama::after, .rama-cabecera::before{display:none;}
+    .rama{min-width:0; width:100%; padding:18px 0 0;}
+    .rama-cabecera{text-align:left;}
     body{padding:20px 14px;}
     h1{font-size:24px;}
     .stats{gap:10px;}
@@ -307,6 +372,7 @@
     </details>
     <button type="button" class="btn-secundario btn-solo-nuevos" id="soloNuevos"></button>
     <div class="toolbar-actions">
+      <button id="verArbol" class="btn-secundario">Vista árbol</button>
       <button id="actualizar" class="btn-secundario">Actualizar</button>
       <button id="anadir" class="btn-secundario">Añadir invitado</button>
       <button id="exportarDirecciones" class="btn-secundario">Excel direcciones (sobres)</button>
@@ -329,6 +395,8 @@
   </div>
 
   <div class="no-results" id="noResults" style="display:none;">No hay respuestas que coincidan con la búsqueda.</div>
+
+  <div id="arbol"></div>
 
   <div class="table-wrap">
     <table>
@@ -829,7 +897,102 @@
       </tr>
     `).join('');
     actualizarSeleccion();
+    if (modoArbol) renderArbol(data);
   }
+
+  // --- Vista árbol: Invitado por > Grupo > invitados ---
+  let modoArbol = false;
+
+  document.getElementById('verArbol').addEventListener('click', () => {
+    modoArbol = !modoArbol;
+    document.getElementById('panel').classList.toggle('modo-arbol', modoArbol);
+    document.getElementById('verArbol').textContent = modoArbol ? 'Vista tabla' : 'Vista árbol';
+    renderFiltrado();
+  });
+
+  function claseAsiste(v) {
+    if (v === 'completa' || v === 'si') return 'completa';
+    return v === 'copas' || v === 'no' || v === 'pendiente' ? v : 'pendiente';
+  }
+
+  // Personas que vendrían (o podrían venir): 0 si no asiste.
+  function personasFila(r) {
+    if (r.asiste === 'no') return 0;
+    return 1 + (r.con_acompanante === 'si' && (r.acompanante_nombre || r.acompanante_apellidos) ? 1 : 0);
+  }
+
+  function cuenta(filas) {
+    const personas = filas.reduce((n, r) => n + personasFila(r), 0);
+    return `${filas.length} invitaci${filas.length === 1 ? 'ón' : 'ones'} · ${personas} persona${personas === 1 ? '' : 's'}`;
+  }
+
+  function renderArbol(data) {
+    const cont = document.getElementById('arbol');
+    if (!data.length) {
+      cont.innerHTML = '<div class="arbol-vacio">No hay invitados que coincidan con los filtros.</div>';
+      return;
+    }
+    const ordenNombre = (a, b) =>
+      `${a.apellidos} ${a.nombre}`.localeCompare(`${b.apellidos} ${b.nombre}`, 'es', { sensitivity: 'base' });
+
+    const ramas = [...CATEGORIAS.invitadoPor, '']
+      .map(por => ({ por, filas: data.filter(r => (r.invitado_por || '') === por) }))
+      .filter(rama => rama.filas.length);
+
+    const htmlRamas = ramas.map(({ por, filas }) => {
+      const grupos = [...CATEGORIAS.grupos, '']
+        .map(g => ({ g, filas: filas.filter(r => (r.grupo || '') === g).sort(ordenNombre) }))
+        .filter(x => x.filas.length);
+      const htmlGrupos = grupos.map(({ g, filas: fg }) => `
+        <div class="grupo">
+          <details open>
+            <summary class="grupo-cabecera">
+              <span class="nombre-grupo ${g ? '' : 'grupo-sin'}">${g ? escapeHtml(g) : 'Sin grupo'}</span>
+              <span class="cuenta">${cuenta(fg)}</span>
+            </summary>
+            <ul class="invitados">
+              ${fg.map(r => {
+                const acomp = r.con_acompanante === 'si' && (r.acompanante_nombre || r.acompanante_apellidos)
+                  ? ` <span class="acomp">+ ${escapeHtml(r.acompanante_nombre)}</span>` : '';
+                return `<li class="invitado ${r.asiste === 'no' ? 'no-asiste' : ''}" data-id="${r.id}" title="${escapeHtml(asisteLabel(r.asiste))} · pulsa para abrir la ficha">
+                  <span class="punto ${claseAsiste(r.asiste)}"></span>
+                  <span>${r.nuevo ? '<span class="etiqueta-nuevo">NUEVO</span>' : ''}<span class="quien">${escapeHtml(r.nombre)} ${escapeHtml(r.apellidos)}</span>${acomp}</span>
+                </li>`;
+              }).join('')}
+            </ul>
+          </details>
+        </div>`).join('');
+      return `
+        <div class="rama ${por ? '' : 'rama-sin'}">
+          <div class="rama-cabecera"><div class="caja">
+            <div class="titulo">${por ? escapeHtml(por) : 'Sin asignar'}</div>
+            <div class="cuenta">${cuenta(filas)}</div>
+          </div></div>
+          ${htmlGrupos}
+        </div>`;
+    }).join('');
+
+    cont.innerHTML = `
+      <div class="arbol-leyenda">
+        <span><i class="punto completa"></i>Toda la boda</span>
+        <span><i class="punto copas"></i>Solo copas</span>
+        <span><i class="punto pendiente"></i>Pendiente</span>
+        <span><i class="punto no"></i>No asiste</span>
+        <span>Pulsa un invitado para abrir su ficha · pulsa un grupo para plegarlo</span>
+      </div>
+      <div class="arbol-raiz"><div class="nodo-raiz">
+        <div class="titulo">Ignacio &amp; Ines</div>
+        <div class="cuenta">${cuenta(data)}</div>
+      </div></div>
+      <div class="arbol-ramas">${htmlRamas}</div>`;
+  }
+
+  document.getElementById('arbol').addEventListener('click', (e) => {
+    const li = e.target.closest('.invitado');
+    if (!li) return;
+    const fila = currentData.find(r => r.id === Number(li.dataset.id));
+    if (fila) abrirModal(fila);
+  });
 
   document.getElementById('buscador').addEventListener('input', renderFiltrado);
   document.getElementById('filtroAsiste').addEventListener('change', renderFiltrado);

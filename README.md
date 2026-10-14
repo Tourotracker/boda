@@ -30,6 +30,9 @@ y expone un panel de administración para consultarlas.
   la lista (mismo nombre y primer apellido), con un aviso de posible duplicado.
   La marca se quita con *Visto* o al editar y guardar la ficha. El botón
   *Ver nuevos* filtra solo esas respuestas.
+- **Vista árbol**: el botón cambia la tabla por un árbol Invitado por → Grupo →
+  invitados, con invitaciones y personas en cada rama y un punto de color según
+  la asistencia. Respeta los filtros; pulsar un invitado abre su ficha.
 - **Descargar CSV** respeta los filtros activos; el **Excel de direcciones** sale
   siempre con todos los invitados.
 - **Casados**: se deduce del tratamiento. Si en la pareja hay una *Sra.*, se
