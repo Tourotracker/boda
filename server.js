@@ -353,6 +353,7 @@ app.get('/api/export/direcciones', requireAdmin, async (req, res) => {
     const sobres = sobresParaEnviar(rows);
     const columnas = [
       { titulo: 'Destinatario (sobre)', ancho: 48 },
+      { titulo: 'Invitados', ancho: 28 },
       { titulo: 'Dirección', ancho: 40 },
       { titulo: 'Código postal', ancho: 13 },
       { titulo: 'Ciudad', ancho: 20 },
@@ -363,7 +364,7 @@ app.get('/api/export/direcciones', requireAdmin, async (req, res) => {
       { titulo: 'Avisos', ancho: 60 }
     ];
     const filas = sobres.map(s => [
-      s.destinatario, s.calle, s.cp, s.ciudad, s.provincia,
+      s.destinatario, s.nombres, s.calle, s.cp, s.ciudad, s.provincia,
       s.tipo, s.personas, asisteTexto(s.asiste), s.avisos.join(' · ')
     ]);
     const xlsx = generarXlsx('Direcciones', columnas, filas);

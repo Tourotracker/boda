@@ -27,6 +27,9 @@ y expone un panel de administración para consultarlas.
   - Pareja → `Dña. Eva Ríos y D. Leo Mora`.
   - Sin acompañante → `D. Tomás Vela`.
 
+  La columna *Invitados* lleva solo los nombres de pila ("Javier y Elena", o
+  "Javier" si va solo), para distinguir familiares con los mismos apellidos.
+
   La columna *Avisos* señala direcciones incompletas o casos que revisar.
 
 ## Antes de enviarlo a los invitados
