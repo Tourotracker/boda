@@ -940,15 +940,19 @@
       cont.innerHTML = '<div class="arbol-vacio">No hay invitados que coincidan con los filtros.</div>';
       return;
     }
+    // Orden alfabético tal como se lee en el árbol: nombre y luego apellidos.
+    const comparar = (a, b) => a.localeCompare(b, 'es', { sensitivity: 'base', numeric: true });
     const ordenNombre = (a, b) =>
-      `${a.apellidos} ${a.nombre}`.localeCompare(`${b.apellidos} ${b.nombre}`, 'es', { sensitivity: 'base' });
+      comparar(`${a.nombre} ${a.apellidos}`.trim(), `${b.nombre} ${b.apellidos}`.trim());
+    // Grupos por orden alfabético; "Sin grupo" siempre al final.
+    const gruposOrdenados = [...CATEGORIAS.grupos].sort(comparar);
 
     const ramas = [...CATEGORIAS.invitadoPor, '']
       .map(por => ({ por, filas: data.filter(r => (r.invitado_por || '') === por) }))
       .filter(rama => rama.filas.length);
 
     const htmlRamas = ramas.map(({ por, filas }) => {
-      const grupos = [...CATEGORIAS.grupos, '']
+      const grupos = [...gruposOrdenados, '']
         .map(g => ({ g, filas: filas.filter(r => (r.grupo || '') === g).sort(ordenNombre) }))
         .filter(x => x.filas.length);
       const htmlGrupos = grupos.map(({ g, filas: fg }) => `
