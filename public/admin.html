@@ -49,6 +49,7 @@
   .stat.highlight .n, .stat.highlight .l{color:#fff;}
   .stat .n{font-family:'Cormorant Garamond',serif; font-size:28px; color:var(--gold);}
   .stat .l{font-size:12px; color:#8A8275; text-transform:uppercase; letter-spacing:.05em;}
+  .stat .l-sub{font-size:11px; color:#A39B90; margin-top:2px;}
   .toolbar{display:flex; justify-content:flex-start; align-items:flex-start; gap:12px; margin-bottom:12px; flex-wrap:wrap;}
   .search-wrap{position:relative; flex:1; min-width:220px; max-width:420px;}
   .toolbar-actions{display:flex; gap:10px;}
@@ -637,6 +638,10 @@
     const asistenCount = completaCount + copasCount;
     const acompanantes = data.filter(r => r.asiste !== 'no' && r.asiste !== 'pendiente' && r.con_acompanante === 'si').length;
     const totalInvitados = asistenCount + acompanantes;
+    // Todas las personas de la lista (cada invitado más su acompañante), sea
+    // cual sea su respuesta.
+    const acompanantesTodos = data.filter(r => r.con_acompanante === 'si').length;
+    const totalLista = data.length + acompanantesTodos;
     const pctAsistencia = total ? Math.round((asistenCount / total) * 100) : 0;
 
     document.getElementById('stats').innerHTML = `
@@ -647,6 +652,7 @@
       <div class="stat"><div class="n">${copasCount}</div><div class="l">Solo copas</div></div>
       <div class="stat"><div class="n">${acompanantes}</div><div class="l">Acompañantes</div></div>
       <div class="stat"><div class="n">${pctAsistencia}%</div><div class="l">% asistencia</div></div>
+      <div class="stat" title="${data.length} invitados + ${acompanantesTodos} acompañantes, contando pendientes y los que no asisten"><div class="n">${totalLista}</div><div class="l">Total invitados</div><div class="l-sub">con acompañantes</div></div>
       <div class="stat highlight"><div class="n">${totalInvitados}</div><div class="l">Total asistentes</div></div>
       <div class="stat" title="${qrScansUltimo ? 'Último escaneo: ' + fechaHora(qrScansUltimo) : 'Todavía no se ha escaneado'}"><div class="n">${qrScansTotal}</div><div class="l">Escaneos QR</div></div>
     `;
