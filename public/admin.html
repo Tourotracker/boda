@@ -640,8 +640,8 @@
     const totalInvitados = asistenCount + acompanantes;
     // Todas las personas de la lista (cada invitado más su acompañante), sea
     // cual sea su respuesta.
-    const acompanantesTodos = data.filter(r => r.con_acompanante === 'si').length;
-    const totalLista = data.length + acompanantesTodos;
+    const totalLista = data.reduce((n, r) => n + personasFila(r), 0);
+    const acompanantesTodos = totalLista - data.length;
     const pctAsistencia = total ? Math.round((asistenCount / total) * 100) : 0;
 
     document.getElementById('stats').innerHTML = `
@@ -923,15 +923,15 @@
     return v === 'copas' || v === 'no' || v === 'pendiente' ? v : 'pendiente';
   }
 
-  // Personas que vendrían (o podrían venir): 0 si no asiste.
+  // Personas de una ficha: el invitado más su acompañante. Es el mismo
+  // criterio que la tarjeta "Total invitados" del panel, para que cuadren.
   function personasFila(r) {
-    if (r.asiste === 'no') return 0;
-    return 1 + (r.con_acompanante === 'si' && (r.acompanante_nombre || r.acompanante_apellidos) ? 1 : 0);
+    return 1 + (r.con_acompanante === 'si' ? 1 : 0);
   }
 
   function cuenta(filas) {
     const personas = filas.reduce((n, r) => n + personasFila(r), 0);
-    return `${filas.length} invitaci${filas.length === 1 ? 'ón' : 'ones'} · ${personas} persona${personas === 1 ? '' : 's'}`;
+    return `${filas.length} ficha${filas.length === 1 ? '' : 's'} · ${personas} persona${personas === 1 ? '' : 's'}`;
   }
 
   function renderArbol(data) {
@@ -990,6 +990,7 @@
         <span><i class="punto copas"></i>Solo copas</span>
         <span><i class="punto pendiente"></i>Pendiente</span>
         <span><i class="punto no"></i>No asiste</span>
+        <span>Fichas = invitados de la lista · Personas = invitados + acompañantes (incluye a los que no vienen, tachados)</span>
         <span>Pulsa un invitado para abrir su ficha · pulsa un grupo para plegarlo</span>
       </div>
       <div class="arbol-raiz"><div class="nodo-raiz">
