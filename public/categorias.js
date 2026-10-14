@@ -14,6 +14,7 @@
       'Primos Abaurre',
       'Primos Montes',
       'Primos 2º',
+      'Tios 2º',
       'Tios Abaurre',
       'Tios Montes',
       'Trabajo',
