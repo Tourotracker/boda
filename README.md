@@ -18,8 +18,9 @@ y expone un panel de administración para consultarlas.
   de alta a mano. Pueden quedar como *Pendiente de contestar* (no exige dirección).
   Si luego esa persona rellena el formulario, aparecerá como una respuesta nueva:
   elimina la entrada manual.
-- **¿Están casados?**: campo solo del panel (el formulario no lo pregunta ni lo
-  modifica). Decide cómo se rotula el sobre.
+- **Casados**: se deduce del tratamiento. Si en la pareja hay una *Sra.*, se
+  consideran casados; con *Srta.*, pareja. Para cambiarlo, edita el tratamiento
+  desde el panel.
 - **Excel direcciones (sobres)**: una fila por invitación (todos salvo los que no
   asisten), con el destinatario ya rotulado:
   - Casados → `Sres. de <apellidos del marido>` (el que tenga tratamiento *Sr.*).

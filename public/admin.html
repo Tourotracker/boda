@@ -300,13 +300,6 @@
           </select>
         </div>
         <div>
-          <label for="editCasados">¿Están casados?</label>
-          <select id="editCasados">
-            <option value="no">No (pareja: los dos nombres en el sobre)</option>
-            <option value="si">Sí (sobre a "Sres. de …")</option>
-          </select>
-        </div>
-        <div>
           <label for="editAcompananteTratamiento">Tratamiento acomp.</label>
           <select id="editAcompananteTratamiento">
             <option value="">—</option>
@@ -421,6 +414,13 @@
     return 'No asiste';
   }
 
+  // Misma regla que lib/sobres.js: "Sra." indica casada, "Srta." no.
+  function estanCasados(r) {
+    return r.con_acompanante === 'si' &&
+      Boolean((r.acompanante_nombre || '').trim() || (r.acompanante_apellidos || '').trim()) &&
+      (r.tratamiento === 'Sra.' || r.acompanante_tratamiento === 'Sra.');
+  }
+
   function fechaHora(v) {
     if (!v) return '—';
     return new Date(v).toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
@@ -491,7 +491,7 @@
         <td data-label="Nombre">${escapeHtml(r.tratamiento)} ${escapeHtml(r.nombre)}</td>
         <td data-label="Apellidos">${escapeHtml(r.apellidos)}</td>
         <td data-label="Asiste" class="${r.asiste === 'no' ? 'no' : (r.asiste === 'pendiente' ? '' : 'si')}">${asisteLabel(r.asiste)}</td>
-        <td data-label="Acompañante">${r.con_acompanante === 'si' ? (r.casados ? 'Sí (casados)' : 'Sí') : 'No'}</td>
+        <td data-label="Acompañante">${r.con_acompanante === 'si' ? (estanCasados(r) ? 'Sí (casados)' : 'Sí') : 'No'}</td>
         <td data-label="Trat. acomp.">${escapeHtml(r.acompanante_tratamiento)}</td>
         <td data-label="Nombre acomp.">${escapeHtml(r.acompanante_nombre)}</td>
         <td data-label="Apellidos acomp.">${escapeHtml(r.acompanante_apellidos)}</td>
@@ -555,7 +555,6 @@
     document.getElementById('editTransporte').value = r.transporte || 'no';
     document.getElementById('editAlergias').value = r.alergias || '';
     document.getElementById('editConAcompanante').value = r.con_acompanante || 'no';
-    document.getElementById('editCasados').value = r.casados ? 'si' : 'no';
     document.getElementById('editAcompananteTratamiento').value = r.acompanante_tratamiento || '';
     document.getElementById('editAcompananteNombre').value = r.acompanante_nombre || '';
     document.getElementById('editAcompananteApellidos').value = r.acompanante_apellidos || '';
@@ -579,7 +578,6 @@
     document.getElementById('editTransporte').value = 'no';
     document.getElementById('editAlergias').value = '';
     document.getElementById('editConAcompanante').value = 'no';
-    document.getElementById('editCasados').value = 'no';
     document.getElementById('editAcompananteTratamiento').value = '';
     document.getElementById('editAcompananteNombre').value = '';
     document.getElementById('editAcompananteApellidos').value = '';
@@ -620,7 +618,6 @@
       provincia: document.getElementById('editProvincia').value.trim(),
       asiste: asiste,
       conAcompanante: document.getElementById('editConAcompanante').value,
-      casados: document.getElementById('editCasados').value === 'si',
       acompananteTratamiento: document.getElementById('editAcompananteTratamiento').value,
       acompananteNombre: document.getElementById('editAcompananteNombre').value.trim(),
       acompananteApellidos: document.getElementById('editAcompananteApellidos').value.trim(),
@@ -745,7 +742,7 @@
       { header: 'Apellidos', valor: r => r.apellidos || '' },
       { header: 'Alergias', valor: r => r.alergias || '' },
       { header: 'Acompañante', valor: r => r.con_acompanante === 'si' ? 'Sí' : 'No' },
-      { header: 'Casados', valor: r => r.casados ? 'Sí' : 'No' },
+      { header: 'Casados', valor: r => estanCasados(r) ? 'Sí' : 'No' },
       { header: 'Tratamiento acompañante', valor: r => r.acompanante_tratamiento || '' },
       { header: 'Nombre acompañante', valor: r => r.acompanante_nombre || '' },
       { header: 'Apellidos acompañante', valor: r => r.acompanante_apellidos || '' },

@@ -51,7 +51,6 @@ async function initDB() {
   await pool.query(`ALTER TABLE rsvp ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ`);
   await pool.query(`ALTER TABLE rsvp ADD COLUMN IF NOT EXISTS iban_copiado_at TIMESTAMPTZ`);
   await pool.query(`ALTER TABLE rsvp ADD COLUMN IF NOT EXISTS lista_click_at TIMESTAMPTZ`);
-  await pool.query(`ALTER TABLE rsvp ADD COLUMN IF NOT EXISTS casados BOOLEAN NOT NULL DEFAULT FALSE`);
   await pool.query(`
     CREATE UNIQUE INDEX IF NOT EXISTS rsvp_guest_token_idx
     ON rsvp(guest_token) WHERE guest_token IS NOT NULL
@@ -264,7 +263,7 @@ app.post('/api/respuestas', requireAdmin, async (req, res) => {
     tratamiento, nombre, apellidos,
     calle, cp, ciudad, provincia,
     asiste, conAcompanante, acompananteTratamiento, acompananteNombre, acompananteApellidos, acompananteAlergias,
-    transporte, alergias, casados
+    transporte, alergias
   } = req.body;
 
   const errorValidacion = validarAdmin(req.body);
@@ -276,14 +275,14 @@ app.post('/api/respuestas', requireAdmin, async (req, res) => {
     const { rows } = await pool.query(
       `INSERT INTO rsvp
         (tratamiento, nombre, apellidos, calle, cp, ciudad, provincia,
-         asiste, con_acompanante, acompanante_tratamiento, acompanante_nombre, acompanante_apellidos, acompanante_alergias, transporte, alergias, casados)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
+         asiste, con_acompanante, acompanante_tratamiento, acompanante_nombre, acompanante_apellidos, acompanante_alergias, transporte, alergias)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
        RETURNING *`,
       [
         tratamiento || '', nombre, apellidos,
         calle || '', cp || '', ciudad || '', provincia || '',
         asiste, conAcompanante || 'no', acompananteTratamiento || '', acompananteNombre || '', acompananteApellidos || '', acompananteAlergias || '',
-        transporte || '', alergias || '', casados === true
+        transporte || '', alergias || ''
       ]
     );
     await registrarHistorial(rows[0].id, 'crear', rows[0]);
@@ -304,7 +303,7 @@ app.put('/api/respuestas/:id', requireAdmin, async (req, res) => {
     tratamiento, nombre, apellidos,
     calle, cp, ciudad, provincia,
     asiste, conAcompanante, acompananteTratamiento, acompananteNombre, acompananteApellidos, acompananteAlergias,
-    transporte, alergias, casados
+    transporte, alergias
   } = req.body;
 
   const errorValidacion = validarAdmin(req.body);
@@ -323,14 +322,14 @@ app.put('/api/respuestas/:id', requireAdmin, async (req, res) => {
       `UPDATE rsvp SET
          tratamiento=$1, nombre=$2, apellidos=$3, calle=$4, cp=$5, ciudad=$6, provincia=$7,
          asiste=$8, con_acompanante=$9, acompanante_tratamiento=$10, acompanante_nombre=$11,
-         acompanante_apellidos=$12, acompanante_alergias=$13, transporte=$14, alergias=$15, casados=$16, updated_at=NOW()
-       WHERE id=$17
+         acompanante_apellidos=$12, acompanante_alergias=$13, transporte=$14, alergias=$15, updated_at=NOW()
+       WHERE id=$16
        RETURNING *`,
       [
         tratamiento || '', nombre, apellidos,
         calle || '', cp || '', ciudad || '', provincia || '',
         asiste, conAcompanante || 'no', acompananteTratamiento || '', acompananteNombre || '', acompananteApellidos || '', acompananteAlergias || '',
-        transporte || '', alergias || '', casados === true,
+        transporte || '', alergias || '',
         id
       ]
     );
