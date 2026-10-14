@@ -207,6 +207,7 @@
   }
   .modal textarea{resize:vertical; min-height:50px;}
   .modal-actions{display:flex; justify-content:flex-end; gap:10px; margin-top:22px;}
+  .modal-actions .btn-eliminar{margin-right:auto;}
   .btn-cancelar{background:#EDEAE5; color:var(--ink); box-shadow:none;}
   .btn-cancelar:hover{background:#E2DDD5; transform:none;}
   .modal-error{color:#B05A4A; font-size:13px; margin-top:10px; min-height:16px;}
@@ -516,6 +517,7 @@
       </div>
       <div class="modal-error" id="modalError"></div>
       <div class="modal-actions">
+        <button type="button" class="btn-eliminar" id="btnEliminarFicha">Eliminar invitado</button>
         <button type="button" class="btn-cancelar" id="btnCancelar">Cancelar</button>
         <button type="submit" id="btnGuardar">Guardar cambios</button>
       </div>
@@ -1133,6 +1135,7 @@
     document.getElementById('modalError').textContent = '';
     document.getElementById('modalTitulo').textContent = 'Editar respuesta';
     document.getElementById('btnGuardar').textContent = 'Guardar cambios';
+    document.getElementById('btnEliminarFicha').style.display = '';
     document.getElementById('modalOverlay').classList.add('visible');
   }
 
@@ -1158,6 +1161,7 @@
     document.getElementById('modalError').textContent = '';
     document.getElementById('modalTitulo').textContent = 'Añadir invitado';
     document.getElementById('btnGuardar').textContent = 'Añadir';
+    document.getElementById('btnEliminarFicha').style.display = 'none';
     document.getElementById('modalOverlay').classList.add('visible');
   }
 
@@ -1266,19 +1270,28 @@
       '(si lo hace, sus nuevos datos ocuparán este mismo registro). Los datos no se destruyen de forma irreversible, ' +
       'pero esta acción no tiene un botón de deshacer en esta pantalla.'
     );
-    if (!ok) return;
+    if (!ok) return false;
     try {
       const res = await fetch('/api/respuestas/' + r.id, {
         method: 'DELETE',
         headers: { 'x-admin-token': adminToken }
       });
-      if (!res.ok) { mostrarToast('No se ha podido eliminar.'); return; }
+      if (!res.ok) { mostrarToast('No se ha podido eliminar.'); return false; }
       mostrarToast('Respuesta eliminada.');
       await recargar();
+      return true;
     } catch (err) {
       mostrarToast('Error al conectar con el servidor.');
+      return false;
     }
   }
+
+  // Eliminar desde la propia ficha (útil desde la vista árbol, que no tiene botones)
+  document.getElementById('btnEliminarFicha').addEventListener('click', async () => {
+    const fila = currentData.find(r => r.id === editandoId);
+    if (!fila) return;
+    if (await eliminarFila(fila)) cerrarModal();
+  });
 
   document.getElementById('actualizar').addEventListener('click', async () => {
     const btn = document.getElementById('actualizar');
