@@ -41,6 +41,12 @@ y expone un panel de administración para consultarlas.
 
   La columna *Avisos* señala direcciones incompletas o casos que revisar.
 
+  Nombres y direcciones salen con mayúscula inicial al estilo español aunque se
+  escribieran en mayúsculas o minúsculas: "José María de la Fuente",
+  "Avda. de la Constitución 25, 4ºB", "El Puerto de Santa María", y los códigos
+  postales de 4 cifras se completan con el 0 inicial. Solo cambia el Excel: los
+  datos guardados no se modifican.
+
 ## Antes de enviarlo a los invitados
 
 Edita `public/index.html`: busca el comentario `<!-- EDITA AQUÍ -->` cerca del
