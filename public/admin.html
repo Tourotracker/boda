@@ -159,7 +159,13 @@
     background:#fff; border-radius:var(--radius-lg); box-shadow:var(--shadow-card);
     padding:28px; max-width:640px; width:100%; max-height:90vh; overflow-y:auto;
   }
-  .modal h2{font-family:'Cormorant Garamond',serif; font-size:24px; margin-bottom:18px;}
+  .modal h2{font-family:'Cormorant Garamond',serif; font-size:24px; margin:0;}
+  .modal-cabecera{display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:18px;}
+  .modal-cerrar{
+    flex-shrink:0; width:36px; height:36px; padding:0; border-radius:50%;
+    background:#EDEAE5; color:var(--ink); box-shadow:none; font-size:22px; line-height:1;
+  }
+  .modal-cerrar:hover{background:#E2DDD5; transform:none;}
   .modal-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
   .modal-grid .span-2{grid-column:1 / -1;}
   .modal label{display:block; font-size:12px; font-weight:600; margin-bottom:6px; color:#6B6259;}
@@ -291,7 +297,10 @@
 
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal">
-    <h2 id="modalTitulo">Editar respuesta</h2>
+    <div class="modal-cabecera">
+      <h2 id="modalTitulo">Editar respuesta</h2>
+      <button type="button" class="modal-cerrar" id="btnCerrarModal" aria-label="Cerrar sin guardar" title="Cerrar sin guardar">&times;</button>
+    </div>
     <form id="editForm">
       <div class="modal-grid">
         <div>
@@ -819,9 +828,9 @@
   }
 
   document.getElementById('btnCancelar').addEventListener('click', cerrarModal);
-  document.getElementById('modalOverlay').addEventListener('click', (e) => {
-    if (e.target.id === 'modalOverlay') cerrarModal();
-  });
+  // Pulsar fuera de la ficha no la cierra (se perderían los cambios): solo
+  // se cierra con la X o con "Cancelar".
+  document.getElementById('btnCerrarModal').addEventListener('click', cerrarModal);
 
   document.getElementById('editForm').addEventListener('submit', async (e) => {
     e.preventDefault();
