@@ -9,6 +9,24 @@ y expone un panel de administración para consultarlas.
 - `server.js` — servidor Express: sirve `public/` y expone la API.
 - `public/index.html` — formulario que ven los invitados.
 - `public/admin.html` — panel para ver y exportar las respuestas (protegido por token).
+- `lib/sobres.js` — cómo se rotula el sobre de cada invitación.
+- `lib/xlsx.js` — generador de Excel (.xlsx) sin dependencias.
+
+## Gestión de invitados desde el panel
+
+- **Añadir invitado**: además de los que llegan por el formulario, se pueden dar
+  de alta a mano. Pueden quedar como *Pendiente de contestar* (no exige dirección).
+  Si luego esa persona rellena el formulario, aparecerá como una respuesta nueva:
+  elimina la entrada manual.
+- **¿Están casados?**: campo solo del panel (el formulario no lo pregunta ni lo
+  modifica). Decide cómo se rotula el sobre.
+- **Excel direcciones (sobres)**: una fila por invitación (todos salvo los que no
+  asisten), con el destinatario ya rotulado:
+  - Casados → `Sres. de <apellidos del marido>` (el que tenga tratamiento *Sr.*).
+  - Pareja → `Dña. Eva Ríos y D. Leo Mora`.
+  - Sin acompañante → `D. Tomás Vela`.
+
+  La columna *Avisos* señala direcciones incompletas o casos que revisar.
 
 ## Antes de enviarlo a los invitados
 
@@ -88,3 +106,4 @@ npm start
 | `GET` | `/health` | Health check |
 | `POST` | `/api/rsvp` | Guardar una confirmación |
 | `GET` | `/api/respuestas` | Listado de respuestas (requiere cabecera `x-admin-token`) |
+| `GET` | `/api/export/direcciones` | Excel de direcciones para los sobres (requiere `x-admin-token`) |

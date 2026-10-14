@@ -1,6 +1,8 @@
 const path = require('path');
 const express = require('express');
 const { Pool } = require('pg');
+const { generarXlsx } = require('./lib/xlsx');
+const { sobresParaEnviar } = require('./lib/sobres');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -49,6 +51,7 @@ async function initDB() {
   await pool.query(`ALTER TABLE rsvp ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ`);
   await pool.query(`ALTER TABLE rsvp ADD COLUMN IF NOT EXISTS iban_copiado_at TIMESTAMPTZ`);
   await pool.query(`ALTER TABLE rsvp ADD COLUMN IF NOT EXISTS lista_click_at TIMESTAMPTZ`);
+  await pool.query(`ALTER TABLE rsvp ADD COLUMN IF NOT EXISTS casados BOOLEAN NOT NULL DEFAULT FALSE`);
   await pool.query(`
     CREATE UNIQUE INDEX IF NOT EXISTS rsvp_guest_token_idx
     ON rsvp(guest_token) WHERE guest_token IS NOT NULL
@@ -76,6 +79,20 @@ async function registrarHistorial(rsvpId, accion, datosAnteriores) {
     'INSERT INTO rsvp_history (rsvp_id, accion, datos) VALUES ($1,$2,$3)',
     [rsvpId, accion, JSON.stringify(datosAnteriores)]
   );
+}
+
+// Desde el panel también se pueden dar de alta invitados que aún no han
+// contestado ('pendiente'); a esos no se les exige todavía la dirección.
+const ASISTE_ADMIN = ['completa', 'copas', 'no', 'pendiente'];
+
+function validarAdmin(body) {
+  const { tratamiento, nombre, apellidos, calle, cp, ciudad, provincia, asiste } = body;
+  if (!nombre || !apellidos || !asiste) return 'Faltan campos obligatorios.';
+  if (!ASISTE_ADMIN.includes(asiste)) return 'Valor de asistencia no válido.';
+  if ((asiste === 'completa' || asiste === 'copas') && (!tratamiento || !calle || !cp || !ciudad || !provincia)) {
+    return 'Faltan campos obligatorios.';
+  }
+  return null;
 }
 
 const intentosFallidos = new Map();
@@ -247,28 +264,26 @@ app.post('/api/respuestas', requireAdmin, async (req, res) => {
     tratamiento, nombre, apellidos,
     calle, cp, ciudad, provincia,
     asiste, conAcompanante, acompananteTratamiento, acompananteNombre, acompananteApellidos, acompananteAlergias,
-    transporte, alergias
+    transporte, alergias, casados
   } = req.body;
 
-  if (!nombre || !apellidos || !asiste) {
-    return res.status(400).json({ error: 'Faltan campos obligatorios.' });
-  }
-  if (asiste !== 'no' && (!tratamiento || !calle || !cp || !ciudad || !provincia)) {
-    return res.status(400).json({ error: 'Faltan campos obligatorios.' });
+  const errorValidacion = validarAdmin(req.body);
+  if (errorValidacion) {
+    return res.status(400).json({ error: errorValidacion });
   }
 
   try {
     const { rows } = await pool.query(
       `INSERT INTO rsvp
         (tratamiento, nombre, apellidos, calle, cp, ciudad, provincia,
-         asiste, con_acompanante, acompanante_tratamiento, acompanante_nombre, acompanante_apellidos, acompanante_alergias, transporte, alergias)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
+         asiste, con_acompanante, acompanante_tratamiento, acompanante_nombre, acompanante_apellidos, acompanante_alergias, transporte, alergias, casados)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
        RETURNING *`,
       [
         tratamiento || '', nombre, apellidos,
         calle || '', cp || '', ciudad || '', provincia || '',
         asiste, conAcompanante || 'no', acompananteTratamiento || '', acompananteNombre || '', acompananteApellidos || '', acompananteAlergias || '',
-        transporte || '', alergias || ''
+        transporte || '', alergias || '', casados === true
       ]
     );
     await registrarHistorial(rows[0].id, 'crear', rows[0]);
@@ -289,14 +304,12 @@ app.put('/api/respuestas/:id', requireAdmin, async (req, res) => {
     tratamiento, nombre, apellidos,
     calle, cp, ciudad, provincia,
     asiste, conAcompanante, acompananteTratamiento, acompananteNombre, acompananteApellidos, acompananteAlergias,
-    transporte, alergias
+    transporte, alergias, casados
   } = req.body;
 
-  if (!nombre || !apellidos || !asiste) {
-    return res.status(400).json({ error: 'Faltan campos obligatorios.' });
-  }
-  if (asiste !== 'no' && (!tratamiento || !calle || !cp || !ciudad || !provincia)) {
-    return res.status(400).json({ error: 'Faltan campos obligatorios.' });
+  const errorValidacion = validarAdmin(req.body);
+  if (errorValidacion) {
+    return res.status(400).json({ error: errorValidacion });
   }
 
   try {
@@ -310,14 +323,14 @@ app.put('/api/respuestas/:id', requireAdmin, async (req, res) => {
       `UPDATE rsvp SET
          tratamiento=$1, nombre=$2, apellidos=$3, calle=$4, cp=$5, ciudad=$6, provincia=$7,
          asiste=$8, con_acompanante=$9, acompanante_tratamiento=$10, acompanante_nombre=$11,
-         acompanante_apellidos=$12, acompanante_alergias=$13, transporte=$14, alergias=$15, updated_at=NOW()
-       WHERE id=$16
+         acompanante_apellidos=$12, acompanante_alergias=$13, transporte=$14, alergias=$15, casados=$16, updated_at=NOW()
+       WHERE id=$17
        RETURNING *`,
       [
         tratamiento || '', nombre, apellidos,
         calle || '', cp || '', ciudad || '', provincia || '',
         asiste, conAcompanante || 'no', acompananteTratamiento || '', acompananteNombre || '', acompananteApellidos || '', acompananteAlergias || '',
-        transporte || '', alergias || '',
+        transporte || '', alergias || '', casados === true,
         id
       ]
     );
@@ -325,6 +338,45 @@ app.put('/api/respuestas/:id', requireAdmin, async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error al actualizar.' });
+  }
+});
+
+function asisteTexto(v) {
+  if (v === 'completa' || v === 'si') return 'Toda la boda';
+  if (v === 'copas') return 'Solo copas';
+  if (v === 'pendiente') return 'Pendiente de contestar';
+  return v || '';
+}
+
+app.get('/api/export/direcciones', requireAdmin, async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT * FROM rsvp WHERE deleted_at IS NULL');
+    const sobres = sobresParaEnviar(rows);
+    const columnas = [
+      { titulo: 'Destinatario (sobre)', ancho: 48 },
+      { titulo: 'Dirección', ancho: 40 },
+      { titulo: 'Código postal', ancho: 13 },
+      { titulo: 'Ciudad', ancho: 20 },
+      { titulo: 'Provincia', ancho: 18 },
+      { titulo: 'Tipo', ancho: 12 },
+      { titulo: 'Personas', ancho: 10 },
+      { titulo: 'Asistencia', ancho: 22 },
+      { titulo: 'Avisos', ancho: 60 }
+    ];
+    const filas = sobres.map(s => [
+      s.destinatario, s.calle, s.cp, s.ciudad, s.provincia,
+      s.tipo, s.personas, asisteTexto(s.asiste), s.avisos.join(' · ')
+    ]);
+    const xlsx = generarXlsx('Direcciones', columnas, filas);
+    res.set({
+      'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'Content-Disposition': 'attachment; filename="direcciones-invitaciones.xlsx"',
+      'Cache-Control': 'no-store'
+    });
+    res.send(xlsx);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al generar el Excel.' });
   }
 });
 

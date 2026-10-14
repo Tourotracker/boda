@@ -204,11 +204,13 @@
       <option value="completa">Toda la boda</option>
       <option value="copas">Solo copas</option>
       <option value="no">No asiste</option>
+      <option value="pendiente">Pendiente de contestar</option>
     </select>
     <div class="toolbar-actions">
       <button id="actualizar" class="btn-secundario">Actualizar</button>
       <button id="anadir" class="btn-secundario">Añadir invitado</button>
       <button id="verQr" class="btn-secundario">Ver código QR</button>
+      <button id="exportarDirecciones" class="btn-secundario">Excel direcciones (sobres)</button>
       <button id="exportar">Descargar CSV</button>
     </div>
   </div>
@@ -250,6 +252,7 @@
             <option value="completa">Toda la boda</option>
             <option value="copas">Solo copas</option>
             <option value="no">No asiste</option>
+            <option value="pendiente">Pendiente de contestar</option>
           </select>
         </div>
         <div>
@@ -294,6 +297,13 @@
           <select id="editConAcompanante">
             <option value="no">No</option>
             <option value="si">Sí</option>
+          </select>
+        </div>
+        <div>
+          <label for="editCasados">¿Están casados?</label>
+          <select id="editCasados">
+            <option value="no">No (pareja: los dos nombres en el sobre)</option>
+            <option value="si">Sí (sobre a "Sres. de …")</option>
           </select>
         </div>
         <div>
@@ -407,6 +417,7 @@
   function asisteLabel(v) {
     if (v === 'completa' || v === 'si') return 'Toda la boda';
     if (v === 'copas') return 'Solo copas';
+    if (v === 'pendiente') return 'Pendiente';
     return 'No asiste';
   }
 
@@ -433,17 +444,19 @@
   }
 
   function render(data) {
-    const total = data.length;
+    const pendientesCount = data.filter(r => r.asiste === 'pendiente').length;
+    const total = data.length - pendientesCount;
     const completaCount = data.filter(r => r.asiste === 'completa' || r.asiste === 'si').length;
     const copasCount = data.filter(r => r.asiste === 'copas').length;
     const noCount = data.filter(r => r.asiste === 'no').length;
     const asistenCount = completaCount + copasCount;
-    const acompanantes = data.filter(r => r.asiste !== 'no' && r.con_acompanante === 'si').length;
+    const acompanantes = data.filter(r => r.asiste !== 'no' && r.asiste !== 'pendiente' && r.con_acompanante === 'si').length;
     const totalInvitados = asistenCount + acompanantes;
     const pctAsistencia = total ? Math.round((asistenCount / total) * 100) : 0;
 
     document.getElementById('stats').innerHTML = `
       <div class="stat"><div class="n">${total}</div><div class="l">Respuestas</div></div>
+      <div class="stat"><div class="n">${pendientesCount}</div><div class="l">Pendientes</div></div>
       <div class="stat"><div class="n">${noCount}</div><div class="l">No asisten</div></div>
       <div class="stat"><div class="n">${completaCount}</div><div class="l">Toda la boda</div></div>
       <div class="stat"><div class="n">${copasCount}</div><div class="l">Solo copas</div></div>
@@ -477,15 +490,15 @@
         <td data-label="Fecha">${new Date(r.created_at).toLocaleDateString('es-ES')}</td>
         <td data-label="Nombre">${escapeHtml(r.tratamiento)} ${escapeHtml(r.nombre)}</td>
         <td data-label="Apellidos">${escapeHtml(r.apellidos)}</td>
-        <td data-label="Asiste" class="${r.asiste === 'no' ? 'no' : 'si'}">${asisteLabel(r.asiste)}</td>
-        <td data-label="Acompañante">${r.con_acompanante === 'si' ? 'Sí' : 'No'}</td>
+        <td data-label="Asiste" class="${r.asiste === 'no' ? 'no' : (r.asiste === 'pendiente' ? '' : 'si')}">${asisteLabel(r.asiste)}</td>
+        <td data-label="Acompañante">${r.con_acompanante === 'si' ? (r.casados ? 'Sí (casados)' : 'Sí') : 'No'}</td>
         <td data-label="Trat. acomp.">${escapeHtml(r.acompanante_tratamiento)}</td>
         <td data-label="Nombre acomp.">${escapeHtml(r.acompanante_nombre)}</td>
         <td data-label="Apellidos acomp.">${escapeHtml(r.acompanante_apellidos)}</td>
         <td data-label="Transporte">${escapeHtml(transporteLabel(r.transporte))}</td>
         <td data-label="Alergias">${escapeHtml(r.alergias)}</td>
         <td data-label="Alergias acomp.">${escapeHtml(r.acompanante_alergias)}</td>
-        <td data-label="Dirección">${escapeHtml(r.calle)}, ${escapeHtml(r.cp)} ${escapeHtml(r.ciudad)} (${escapeHtml(r.provincia)})</td>
+        <td data-label="Dirección">${r.calle || r.cp || r.ciudad ? `${escapeHtml(r.calle)}, ${escapeHtml(r.cp)} ${escapeHtml(r.ciudad)} (${escapeHtml(r.provincia)})` : '—'}</td>
         <td data-label="Lista ECI" class="${r.lista_click_at ? 'si' : ''}">${fechaHora(r.lista_click_at)}</td>
         <td data-label="IBAN" class="${r.iban_copiado_at ? 'si' : ''}">${fechaHora(r.iban_copiado_at)}</td>
         <td data-label="Acciones" class="td-acciones">
@@ -542,6 +555,7 @@
     document.getElementById('editTransporte').value = r.transporte || 'no';
     document.getElementById('editAlergias').value = r.alergias || '';
     document.getElementById('editConAcompanante').value = r.con_acompanante || 'no';
+    document.getElementById('editCasados').value = r.casados ? 'si' : 'no';
     document.getElementById('editAcompananteTratamiento').value = r.acompanante_tratamiento || '';
     document.getElementById('editAcompananteNombre').value = r.acompanante_nombre || '';
     document.getElementById('editAcompananteApellidos').value = r.acompanante_apellidos || '';
@@ -555,7 +569,7 @@
   function abrirModalNuevo() {
     editandoId = null;
     document.getElementById('editTratamiento').value = '';
-    document.getElementById('editAsiste').value = 'completa';
+    document.getElementById('editAsiste').value = 'pendiente';
     document.getElementById('editNombre').value = '';
     document.getElementById('editApellidos').value = '';
     document.getElementById('editCalle').value = '';
@@ -565,6 +579,7 @@
     document.getElementById('editTransporte').value = 'no';
     document.getElementById('editAlergias').value = '';
     document.getElementById('editConAcompanante').value = 'no';
+    document.getElementById('editCasados').value = 'no';
     document.getElementById('editAcompananteTratamiento').value = '';
     document.getElementById('editAcompananteNombre').value = '';
     document.getElementById('editAcompananteApellidos').value = '';
@@ -605,6 +620,7 @@
       provincia: document.getElementById('editProvincia').value.trim(),
       asiste: asiste,
       conAcompanante: document.getElementById('editConAcompanante').value,
+      casados: document.getElementById('editCasados').value === 'si',
       acompananteTratamiento: document.getElementById('editAcompananteTratamiento').value,
       acompananteNombre: document.getElementById('editAcompananteNombre').value.trim(),
       acompananteApellidos: document.getElementById('editAcompananteApellidos').value.trim(),
@@ -617,7 +633,7 @@
       errorEl.textContent = 'Nombre y apellidos son obligatorios.';
       return;
     }
-    if (asiste !== 'no' && (!payload.tratamiento || !payload.calle || !payload.cp || !payload.ciudad || !payload.provincia)) {
+    if ((asiste === 'completa' || asiste === 'copas') && (!payload.tratamiento || !payload.calle || !payload.cp || !payload.ciudad || !payload.provincia)) {
       errorEl.textContent = 'Faltan campos obligatorios (tratamiento y dirección) para quien asiste.';
       return;
     }
@@ -699,6 +715,26 @@
     }
   });
 
+  document.getElementById('exportarDirecciones').addEventListener('click', async () => {
+    const btn = document.getElementById('exportarDirecciones');
+    btn.classList.add('girando');
+    try {
+      const res = await fetch('/api/export/direcciones', { headers: { 'x-admin-token': adminToken } });
+      if (!res.ok) { mostrarToast('No se ha podido generar el Excel.'); return; }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'direcciones-invitaciones.xlsx';
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      mostrarToast('Error al conectar con el servidor.');
+    } finally {
+      btn.classList.remove('girando');
+    }
+  });
+
   document.getElementById('exportar').addEventListener('click', () => {
     if (!currentData.length) return;
     const columnas = [
@@ -709,6 +745,7 @@
       { header: 'Apellidos', valor: r => r.apellidos || '' },
       { header: 'Alergias', valor: r => r.alergias || '' },
       { header: 'Acompañante', valor: r => r.con_acompanante === 'si' ? 'Sí' : 'No' },
+      { header: 'Casados', valor: r => r.casados ? 'Sí' : 'No' },
       { header: 'Tratamiento acompañante', valor: r => r.acompanante_tratamiento || '' },
       { header: 'Nombre acompañante', valor: r => r.acompanante_nombre || '' },
       { header: 'Apellidos acompañante', valor: r => r.acompanante_apellidos || '' },
