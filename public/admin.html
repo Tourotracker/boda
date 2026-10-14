@@ -728,7 +728,7 @@
       a.href = url;
       a.download = 'direcciones-invitaciones.xlsx';
       a.click();
-      URL.revokeObjectURL(url);
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
     } catch (err) {
       mostrarToast('Error al conectar con el servidor.');
     } finally {
@@ -776,7 +776,7 @@
     a.href = url;
     a.download = 'respuestas-rsvp.csv';
     a.click();
-    URL.revokeObjectURL(url);
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
   });
 </script>
 </body>
