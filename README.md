@@ -52,9 +52,10 @@ y expone un panel de administración para consultarlas.
   Los que no asisten no salen, salvo que en su ficha se marque *Enviar
   invitación por correo aunque no venga* (se ve con un ✉ en la tabla y el árbol).
 
-  Matrimonios con la casilla *Sobre con el primer apellido de los dos* (en la
-  ficha, o en bloque con "Sobre (matrimonios)"): "Sres. de Pérez López", con el
-  primer apellido del marido y el de la mujer.
+  Matrimonios: por defecto "Sres. de Pérez García" (los dos apellidos del
+  hombre). Con la casilla de la ficha (o en bloque con "Sobre (matrimonios)"):
+  "Sres. Pérez López", sin "de", con el primer apellido del hombre y el de la
+  mujer.
 
   Nombres y direcciones salen con mayúscula inicial al estilo español aunque se
   escribieran en mayúsculas o minúsculas: "José María de la Fuente",

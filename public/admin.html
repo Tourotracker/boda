@@ -407,8 +407,8 @@
       <label for="bloqueSobre">Sobre (matrimonios)</label>
       <select id="bloqueSobre">
         <option value="">Sin cambios</option>
-        <option value="dos">Sres. de 1er apellido de los dos</option>
-        <option value="marido">Sres. de apellidos del marido</option>
+        <option value="dos">Sres. Pérez López (1er apellido de cada uno)</option>
+        <option value="marido">Sres. de Pérez García (apellidos del hombre)</option>
       </select>
     </div>
     <button type="button" id="bloqueAplicar">Asignar a los seleccionados</button>
@@ -538,8 +538,8 @@
           <textarea id="editAcompananteAlergias"></textarea>
         </div>
         <div class="span-2 opcion-sobre">
-          <label class="casilla"><input type="checkbox" id="editSobreDosApellidos"> Sobre con el primer apellido de los dos: "Sres. de Pérez López"</label>
-          <div class="ayuda">Solo para matrimonios. Si no se marca: "Sres. de" + apellidos del marido.</div>
+          <label class="casilla"><input type="checkbox" id="editSobreDosApellidos"> Sobre "Sres. Pérez López" (1er apellido del hombre + 1er apellido de la mujer)</label>
+          <div class="ayuda">Solo para matrimonios. Si no se marca: "Sres. de Pérez García" (los dos apellidos del hombre).</div>
         </div>
       </div>
       <div class="modal-error" id="modalError"></div>
@@ -804,8 +804,8 @@
     const cambios = [
       invitadoPor && `"Invitado por: ${invitadoPor}"`,
       grupo && `"Grupo: ${grupo}"`,
-      sobreDosApellidos === true && '"Sobre: primer apellido de los dos"',
-      sobreDosApellidos === false && '"Sobre: apellidos del marido"'
+      sobreDosApellidos === true && '"Sobre: Sres. + 1er apellido de cada uno"',
+      sobreDosApellidos === false && '"Sobre: Sres. de + apellidos del hombre"'
     ].filter(Boolean).join(', ');
     if (!confirm(`Vas a asignar ${cambios} a ${ids.length} invitado${ids.length === 1 ? '' : 's'}.`)) return;
 
