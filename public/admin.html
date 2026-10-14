@@ -209,6 +209,11 @@
   .modal textarea{resize:vertical; min-height:50px;}
   .modal-actions{display:flex; justify-content:flex-end; gap:10px; margin-top:22px;}
   .modal-actions .btn-eliminar{margin-right:auto;}
+  .enviar-invitacion{display:none; background:#FBF3F0; border-radius:var(--radius-sm); padding:10px 12px;}
+  .enviar-invitacion.visible{display:block;}
+  .modal label.casilla{display:flex; align-items:center; gap:8px; margin:0; font-size:14px; color:var(--ink); cursor:pointer;}
+  .modal label.casilla input{width:17px; height:17px; accent-color:var(--gold); flex-shrink:0;}
+  .icono-sobre{font-size:12px; margin-left:4px;}
   .btn-cancelar{background:#EDEAE5; color:var(--ink); box-shadow:none;}
   .btn-cancelar:hover{background:#E2DDD5; transform:none;}
   .modal-error{color:#B05A4A; font-size:13px; margin-top:10px; min-height:16px;}
@@ -448,6 +453,9 @@
             <option value="no">No asiste</option>
             <option value="pendiente">Pendiente de contestar</option>
           </select>
+        </div>
+        <div class="span-2 enviar-invitacion" id="enviarInvitacionWrap">
+          <label class="casilla"><input type="checkbox" id="editEnviarInvitacion"> Enviar invitación por correo aunque no venga</label>
         </div>
         <div>
           <label for="editNombre">Nombre</label>
@@ -883,7 +891,7 @@
         <td data-label="Categoría">${r.invitado_por || r.grupo
           ? `${escapeHtml(r.invitado_por) || '<span class="sin-asignar">—</span>'}<span class="categoria-grupo">${escapeHtml(r.grupo)}</span>`
           : '<span class="sin-asignar">Sin asignar</span>'}</td>
-        <td data-label="Asiste" class="${r.asiste === 'no' ? 'no' : (r.asiste === 'pendiente' ? '' : 'si')}">${asisteLabel(r.asiste)}</td>
+        <td data-label="Asiste" class="${r.asiste === 'no' ? 'no' : (r.asiste === 'pendiente' ? '' : 'si')}">${asisteLabel(r.asiste)}${r.asiste === 'no' && r.enviar_invitacion ? '<span class="icono-sobre" title="Se le envía la invitación por correo igualmente">✉</span>' : ''}</td>
         <td data-label="Acompañante">${r.con_acompanante === 'si' ? 'Sí' : 'No'}</td>
         <td data-label="Trat. acomp.">${escapeHtml(r.acompanante_tratamiento)}</td>
         <td data-label="Nombre acomp.">${escapeHtml(r.acompanante_nombre)}</td>
@@ -968,7 +976,7 @@
                   ? ` <span class="acomp">+ ${escapeHtml(r.acompanante_nombre)}</span>` : '';
                 return `<li class="invitado ${r.asiste === 'no' ? 'no-asiste' : ''}" data-id="${r.id}" title="${escapeHtml(asisteLabel(r.asiste))} · pulsa para abrir la ficha">
                   <span class="punto ${claseAsiste(r.asiste)}"></span>
-                  <span>${r.nuevo ? '<span class="etiqueta-nuevo">NUEVO</span>' : ''}<span class="quien">${escapeHtml(r.nombre)} ${escapeHtml(r.apellidos)}</span>${acomp}</span>
+                  <span>${r.nuevo ? '<span class="etiqueta-nuevo">NUEVO</span>' : ''}<span class="quien">${escapeHtml(r.nombre)} ${escapeHtml(r.apellidos)}</span>${acomp}${r.asiste === 'no' && r.enviar_invitacion ? '<span class="icono-sobre" title="Se le envía la invitación por correo igualmente">✉</span>' : ''}</span>
                 </li>`;
               }).join('')}
             </ul>
@@ -1124,12 +1132,21 @@
   crearCombo(document.getElementById('bloqueInvitadoPor'), CATEGORIAS.invitadoPor);
   crearCombo(document.getElementById('bloqueGrupo'), CATEGORIAS.grupos);
 
+  // La casilla solo tiene sentido para quien no viene: los demás ya reciben invitación.
+  function actualizarEnviarInvitacion() {
+    const noViene = document.getElementById('editAsiste').value === 'no';
+    document.getElementById('enviarInvitacionWrap').classList.toggle('visible', noViene);
+  }
+  document.getElementById('editAsiste').addEventListener('change', actualizarEnviarInvitacion);
+
   function abrirModal(r) {
     editandoId = r.id;
     document.getElementById('editInvitadoPor').value = r.invitado_por || '';
     document.getElementById('editGrupo').value = r.grupo || '';
     document.getElementById('editTratamiento').value = r.tratamiento || '';
     document.getElementById('editAsiste').value = (r.asiste === 'si' ? 'completa' : r.asiste) || 'completa';
+    document.getElementById('editEnviarInvitacion').checked = Boolean(r.enviar_invitacion);
+    actualizarEnviarInvitacion();
     document.getElementById('editNombre').value = r.nombre || '';
     document.getElementById('editApellidos').value = r.apellidos || '';
     document.getElementById('editCalle').value = r.calle || '';
@@ -1156,6 +1173,8 @@
     document.getElementById('editGrupo').value = '';
     document.getElementById('editTratamiento').value = '';
     document.getElementById('editAsiste').value = 'pendiente';
+    document.getElementById('editEnviarInvitacion').checked = false;
+    actualizarEnviarInvitacion();
     document.getElementById('editNombre').value = '';
     document.getElementById('editApellidos').value = '';
     document.getElementById('editCalle').value = '';
@@ -1213,7 +1232,8 @@
       transporte: document.getElementById('editTransporte').value,
       alergias: document.getElementById('editAlergias').value.trim(),
       invitadoPor: opcionExacta(document.getElementById('editInvitadoPor').value, CATEGORIAS.invitadoPor),
-      grupo: opcionExacta(document.getElementById('editGrupo').value, CATEGORIAS.grupos)
+      grupo: opcionExacta(document.getElementById('editGrupo').value, CATEGORIAS.grupos),
+      enviarInvitacion: asiste === 'no' && document.getElementById('editEnviarInvitacion').checked
     };
 
     if (payload.invitadoPor === null) {

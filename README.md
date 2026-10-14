@@ -49,6 +49,9 @@ y expone un panel de administración para consultarlas.
 
   La columna *Avisos* señala direcciones incompletas o casos que revisar.
 
+  Los que no asisten no salen, salvo que en su ficha se marque *Enviar
+  invitación por correo aunque no venga* (se ve con un ✉ en la tabla y el árbol).
+
   Nombres y direcciones salen con mayúscula inicial al estilo español aunque se
   escribieran en mayúsculas o minúsculas: "José María de la Fuente",
   "Avda. de la Constitución 25, 4ºB", "El Puerto de Santa María", y los códigos

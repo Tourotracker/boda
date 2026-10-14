@@ -56,6 +56,8 @@ async function initDB() {
   await pool.query(`ALTER TABLE rsvp ADD COLUMN IF NOT EXISTS grupo VARCHAR(100) NOT NULL DEFAULT ''`);
   // Respuesta llegada por el formulario que aún no se ha revisado en el panel.
   await pool.query(`ALTER TABLE rsvp ADD COLUMN IF NOT EXISTS nuevo BOOLEAN NOT NULL DEFAULT FALSE`);
+  // Mandarle la invitación por correo aunque haya dicho que no viene.
+  await pool.query(`ALTER TABLE rsvp ADD COLUMN IF NOT EXISTS enviar_invitacion BOOLEAN NOT NULL DEFAULT FALSE`);
   await pool.query(`
     CREATE UNIQUE INDEX IF NOT EXISTS rsvp_guest_token_idx
     ON rsvp(guest_token) WHERE guest_token IS NOT NULL
@@ -270,7 +272,7 @@ app.post('/api/respuestas', requireAdmin, async (req, res) => {
     tratamiento, nombre, apellidos,
     calle, cp, ciudad, provincia,
     asiste, conAcompanante, acompananteTratamiento, acompananteNombre, acompananteApellidos, acompananteAlergias,
-    transporte, alergias, invitadoPor, grupo
+    transporte, alergias, invitadoPor, grupo, enviarInvitacion
   } = req.body;
 
   const errorValidacion = validarAdmin(req.body);
@@ -282,14 +284,14 @@ app.post('/api/respuestas', requireAdmin, async (req, res) => {
     const { rows } = await pool.query(
       `INSERT INTO rsvp
         (tratamiento, nombre, apellidos, calle, cp, ciudad, provincia,
-         asiste, con_acompanante, acompanante_tratamiento, acompanante_nombre, acompanante_apellidos, acompanante_alergias, transporte, alergias, invitado_por, grupo)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
+         asiste, con_acompanante, acompanante_tratamiento, acompanante_nombre, acompanante_apellidos, acompanante_alergias, transporte, alergias, invitado_por, grupo, enviar_invitacion)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18)
        RETURNING *`,
       [
         tratamiento || '', nombre, apellidos,
         calle || '', cp || '', ciudad || '', provincia || '',
         asiste, conAcompanante || 'no', acompananteTratamiento || '', acompananteNombre || '', acompananteApellidos || '', acompananteAlergias || '',
-        transporte || '', alergias || '', invitadoPor || '', grupo || ''
+        transporte || '', alergias || '', invitadoPor || '', grupo || '', enviarInvitacion === true
       ]
     );
     await registrarHistorial(rows[0].id, 'crear', rows[0]);
@@ -310,7 +312,7 @@ app.put('/api/respuestas/:id', requireAdmin, async (req, res) => {
     tratamiento, nombre, apellidos,
     calle, cp, ciudad, provincia,
     asiste, conAcompanante, acompananteTratamiento, acompananteNombre, acompananteApellidos, acompananteAlergias,
-    transporte, alergias, invitadoPor, grupo
+    transporte, alergias, invitadoPor, grupo, enviarInvitacion
   } = req.body;
 
   const errorValidacion = validarAdmin(req.body);
@@ -330,14 +332,14 @@ app.put('/api/respuestas/:id', requireAdmin, async (req, res) => {
          tratamiento=$1, nombre=$2, apellidos=$3, calle=$4, cp=$5, ciudad=$6, provincia=$7,
          asiste=$8, con_acompanante=$9, acompanante_tratamiento=$10, acompanante_nombre=$11,
          acompanante_apellidos=$12, acompanante_alergias=$13, transporte=$14, alergias=$15,
-         invitado_por=$16, grupo=$17, nuevo=FALSE, updated_at=NOW()
-       WHERE id=$18
+         invitado_por=$16, grupo=$17, enviar_invitacion=$18, nuevo=FALSE, updated_at=NOW()
+       WHERE id=$19
        RETURNING *`,
       [
         tratamiento || '', nombre, apellidos,
         calle || '', cp || '', ciudad || '', provincia || '',
         asiste, conAcompanante || 'no', acompananteTratamiento || '', acompananteNombre || '', acompananteApellidos || '', acompananteAlergias || '',
-        transporte || '', alergias || '', invitadoPor || '', grupo || '',
+        transporte || '', alergias || '', invitadoPor || '', grupo || '', enviarInvitacion === true,
         id
       ]
     );
@@ -352,6 +354,7 @@ function asisteTexto(v) {
   if (v === 'completa' || v === 'si') return 'Toda la boda';
   if (v === 'copas') return 'Solo copas';
   if (v === 'pendiente') return 'Pendiente de contestar';
+  if (v === 'no') return 'No asiste (se le envía igualmente)';
   return v || '';
 }
 
