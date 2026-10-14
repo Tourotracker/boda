@@ -214,6 +214,12 @@
   .modal label.casilla{display:flex; align-items:center; gap:8px; margin:0; font-size:14px; color:var(--ink); cursor:pointer;}
   .modal label.casilla input{width:17px; height:17px; accent-color:var(--gold); flex-shrink:0;}
   .icono-sobre{font-size:12px; margin-left:4px;}
+  .opcion-sobre{background:#F7F5F2; border-radius:var(--radius-sm); padding:10px 12px;}
+  .opcion-sobre .ayuda{font-size:12px; color:#8A8275; margin:4px 0 0 25px;}
+  .barra-seleccion select{
+    width:100%; padding:9px 11px; border:1.5px solid var(--line); border-radius:var(--radius-sm);
+    font-size:14px; font-family:inherit; background:#fff;
+  }
   .btn-cancelar{background:#EDEAE5; color:var(--ink); box-shadow:none;}
   .btn-cancelar:hover{background:#E2DDD5; transform:none;}
   .modal-error{color:#B05A4A; font-size:13px; margin-top:10px; min-height:16px;}
@@ -397,6 +403,14 @@
       <label for="bloqueGrupo">Grupo</label>
       <div class="combo"><input type="text" id="bloqueGrupo" autocomplete="off" placeholder="Sin cambios"><ul class="combo-lista"></ul></div>
     </div>
+    <div class="barra-campo">
+      <label for="bloqueSobre">Sobre (matrimonios)</label>
+      <select id="bloqueSobre">
+        <option value="">Sin cambios</option>
+        <option value="dos">Sres. de 1er apellido de los dos</option>
+        <option value="marido">Sres. de apellidos del marido</option>
+      </select>
+    </div>
     <button type="button" id="bloqueAplicar">Asignar a los seleccionados</button>
     <button type="button" class="btn-cancelar" id="bloqueQuitar">Quitar selección</button>
   </div>
@@ -522,6 +536,10 @@
         <div class="span-2">
           <label for="editAcompananteAlergias">Alergias acomp.</label>
           <textarea id="editAcompananteAlergias"></textarea>
+        </div>
+        <div class="span-2 opcion-sobre">
+          <label class="casilla"><input type="checkbox" id="editSobreDosApellidos"> Sobre con el primer apellido de los dos: "Sres. de Pérez López"</label>
+          <div class="ayuda">Solo para matrimonios. Si no se marca: "Sres. de" + apellidos del marido.</div>
         </div>
       </div>
       <div class="modal-error" id="modalError"></div>
@@ -775,10 +793,20 @@
     const grupo = opcionExacta(document.getElementById('bloqueGrupo').value, CATEGORIAS.grupos);
     if (invitadoPor === null) { mostrarToast('"Invitado por" tiene que ser una de las opciones de la lista.'); return; }
     if (grupo === null) { mostrarToast('El grupo tiene que ser uno de los de la lista.'); return; }
-    if (!invitadoPor && !grupo) { mostrarToast('Elige "Invitado por", un grupo o ambos.'); return; }
+    const sobreValor = document.getElementById('bloqueSobre').value;
+    const sobreDosApellidos = sobreValor === 'dos' ? true : sobreValor === 'marido' ? false : undefined;
+    if (!invitadoPor && !grupo && sobreDosApellidos === undefined) {
+      mostrarToast('Elige "Invitado por", un grupo o el formato del sobre.');
+      return;
+    }
 
     const ids = [...seleccionados];
-    const cambios = [invitadoPor && `"Invitado por: ${invitadoPor}"`, grupo && `"Grupo: ${grupo}"`].filter(Boolean).join(' y ');
+    const cambios = [
+      invitadoPor && `"Invitado por: ${invitadoPor}"`,
+      grupo && `"Grupo: ${grupo}"`,
+      sobreDosApellidos === true && '"Sobre: primer apellido de los dos"',
+      sobreDosApellidos === false && '"Sobre: apellidos del marido"'
+    ].filter(Boolean).join(', ');
     if (!confirm(`Vas a asignar ${cambios} a ${ids.length} invitado${ids.length === 1 ? '' : 's'}.`)) return;
 
     const btn = document.getElementById('bloqueAplicar');
@@ -787,15 +815,16 @@
       const res = await fetch('/api/respuestas/categorias', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-admin-token': adminToken },
-        body: JSON.stringify({ ids, invitadoPor, grupo })
+        body: JSON.stringify({ ids, invitadoPor, grupo, sobreDosApellidos })
       });
       const data = await res.json().catch(() => null);
       if (!res.ok) { mostrarToast((data && data.error) || 'No se ha podido asignar.'); return; }
       seleccionados.clear();
       document.getElementById('bloqueInvitadoPor').value = '';
       document.getElementById('bloqueGrupo').value = '';
+      document.getElementById('bloqueSobre').value = '';
       await recargar();
-      mostrarToast(`Categoría asignada a ${data.actualizados} invitado${data.actualizados === 1 ? '' : 's'}.`);
+      mostrarToast(`Cambios aplicados a ${data.actualizados} invitado${data.actualizados === 1 ? '' : 's'}.`);
     } catch (err) {
       mostrarToast('Error al conectar con el servidor.');
     } finally {
@@ -1146,6 +1175,7 @@
     document.getElementById('editTratamiento').value = r.tratamiento || '';
     document.getElementById('editAsiste').value = (r.asiste === 'si' ? 'completa' : r.asiste) || 'completa';
     document.getElementById('editEnviarInvitacion').checked = Boolean(r.enviar_invitacion);
+    document.getElementById('editSobreDosApellidos').checked = Boolean(r.sobre_dos_apellidos);
     actualizarEnviarInvitacion();
     document.getElementById('editNombre').value = r.nombre || '';
     document.getElementById('editApellidos').value = r.apellidos || '';
@@ -1174,6 +1204,7 @@
     document.getElementById('editTratamiento').value = '';
     document.getElementById('editAsiste').value = 'pendiente';
     document.getElementById('editEnviarInvitacion').checked = false;
+    document.getElementById('editSobreDosApellidos').checked = false;
     actualizarEnviarInvitacion();
     document.getElementById('editNombre').value = '';
     document.getElementById('editApellidos').value = '';
@@ -1233,7 +1264,8 @@
       alergias: document.getElementById('editAlergias').value.trim(),
       invitadoPor: opcionExacta(document.getElementById('editInvitadoPor').value, CATEGORIAS.invitadoPor),
       grupo: opcionExacta(document.getElementById('editGrupo').value, CATEGORIAS.grupos),
-      enviarInvitacion: asiste === 'no' && document.getElementById('editEnviarInvitacion').checked
+      enviarInvitacion: asiste === 'no' && document.getElementById('editEnviarInvitacion').checked,
+      sobreDosApellidos: document.getElementById('editSobreDosApellidos').checked
     };
 
     if (payload.invitadoPor === null) {

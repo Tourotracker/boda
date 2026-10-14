@@ -58,6 +58,8 @@ async function initDB() {
   await pool.query(`ALTER TABLE rsvp ADD COLUMN IF NOT EXISTS nuevo BOOLEAN NOT NULL DEFAULT FALSE`);
   // Mandarle la invitación por correo aunque haya dicho que no viene.
   await pool.query(`ALTER TABLE rsvp ADD COLUMN IF NOT EXISTS enviar_invitacion BOOLEAN NOT NULL DEFAULT FALSE`);
+  // Sobre de matrimonio como "Sres. de <1er apellido marido> <1er apellido mujer>".
+  await pool.query(`ALTER TABLE rsvp ADD COLUMN IF NOT EXISTS sobre_dos_apellidos BOOLEAN NOT NULL DEFAULT FALSE`);
   await pool.query(`
     CREATE UNIQUE INDEX IF NOT EXISTS rsvp_guest_token_idx
     ON rsvp(guest_token) WHERE guest_token IS NOT NULL
@@ -272,7 +274,7 @@ app.post('/api/respuestas', requireAdmin, async (req, res) => {
     tratamiento, nombre, apellidos,
     calle, cp, ciudad, provincia,
     asiste, conAcompanante, acompananteTratamiento, acompananteNombre, acompananteApellidos, acompananteAlergias,
-    transporte, alergias, invitadoPor, grupo, enviarInvitacion
+    transporte, alergias, invitadoPor, grupo, enviarInvitacion, sobreDosApellidos
   } = req.body;
 
   const errorValidacion = validarAdmin(req.body);
@@ -284,14 +286,14 @@ app.post('/api/respuestas', requireAdmin, async (req, res) => {
     const { rows } = await pool.query(
       `INSERT INTO rsvp
         (tratamiento, nombre, apellidos, calle, cp, ciudad, provincia,
-         asiste, con_acompanante, acompanante_tratamiento, acompanante_nombre, acompanante_apellidos, acompanante_alergias, transporte, alergias, invitado_por, grupo, enviar_invitacion)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18)
+         asiste, con_acompanante, acompanante_tratamiento, acompanante_nombre, acompanante_apellidos, acompanante_alergias, transporte, alergias, invitado_por, grupo, enviar_invitacion, sobre_dos_apellidos)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19)
        RETURNING *`,
       [
         tratamiento || '', nombre, apellidos,
         calle || '', cp || '', ciudad || '', provincia || '',
         asiste, conAcompanante || 'no', acompananteTratamiento || '', acompananteNombre || '', acompananteApellidos || '', acompananteAlergias || '',
-        transporte || '', alergias || '', invitadoPor || '', grupo || '', enviarInvitacion === true
+        transporte || '', alergias || '', invitadoPor || '', grupo || '', enviarInvitacion === true, sobreDosApellidos === true
       ]
     );
     await registrarHistorial(rows[0].id, 'crear', rows[0]);
@@ -312,7 +314,7 @@ app.put('/api/respuestas/:id', requireAdmin, async (req, res) => {
     tratamiento, nombre, apellidos,
     calle, cp, ciudad, provincia,
     asiste, conAcompanante, acompananteTratamiento, acompananteNombre, acompananteApellidos, acompananteAlergias,
-    transporte, alergias, invitadoPor, grupo, enviarInvitacion
+    transporte, alergias, invitadoPor, grupo, enviarInvitacion, sobreDosApellidos
   } = req.body;
 
   const errorValidacion = validarAdmin(req.body);
@@ -332,14 +334,14 @@ app.put('/api/respuestas/:id', requireAdmin, async (req, res) => {
          tratamiento=$1, nombre=$2, apellidos=$3, calle=$4, cp=$5, ciudad=$6, provincia=$7,
          asiste=$8, con_acompanante=$9, acompanante_tratamiento=$10, acompanante_nombre=$11,
          acompanante_apellidos=$12, acompanante_alergias=$13, transporte=$14, alergias=$15,
-         invitado_por=$16, grupo=$17, enviar_invitacion=$18, nuevo=FALSE, updated_at=NOW()
-       WHERE id=$19
+         invitado_por=$16, grupo=$17, enviar_invitacion=$18, sobre_dos_apellidos=$19, nuevo=FALSE, updated_at=NOW()
+       WHERE id=$20
        RETURNING *`,
       [
         tratamiento || '', nombre, apellidos,
         calle || '', cp || '', ciudad || '', provincia || '',
         asiste, conAcompanante || 'no', acompananteTratamiento || '', acompananteNombre || '', acompananteApellidos || '', acompananteAlergias || '',
-        transporte || '', alergias || '', invitadoPor || '', grupo || '', enviarInvitacion === true,
+        transporte || '', alergias || '', invitadoPor || '', grupo || '', enviarInvitacion === true, sobreDosApellidos === true,
         id
       ]
     );
@@ -400,11 +402,14 @@ app.get('/api/export/direcciones', requireAdmin, async (req, res) => {
 // Asignar categoría a varios invitados a la vez. Un campo vacío o ausente
 // no se modifica.
 app.post('/api/respuestas/categorias', requireAdmin, async (req, res) => {
-  const { ids, invitadoPor, grupo } = req.body;
+  const { ids, invitadoPor, grupo, sobreDosApellidos } = req.body;
   if (!idsValidos(ids)) return res.status(400).json({ error: 'No hay invitados seleccionados.' });
   const nuevoInvitadoPor = typeof invitadoPor === 'string' && invitadoPor ? invitadoPor : null;
   const nuevoGrupo = typeof grupo === 'string' && grupo ? grupo : null;
-  if (!nuevoInvitadoPor && !nuevoGrupo) return res.status(400).json({ error: 'Elige "Invitado por" o un grupo.' });
+  const nuevoDosApellidos = typeof sobreDosApellidos === 'boolean' ? sobreDosApellidos : null;
+  if (!nuevoInvitadoPor && !nuevoGrupo && nuevoDosApellidos === null) {
+    return res.status(400).json({ error: 'Elige "Invitado por", un grupo o el formato del sobre.' });
+  }
   if (nuevoInvitadoPor && !CATEGORIAS.invitadoPor.includes(nuevoInvitadoPor)) return res.status(400).json({ error: '"Invitado por" no válido.' });
   if (nuevoGrupo && !CATEGORIAS.grupos.includes(nuevoGrupo)) return res.status(400).json({ error: 'Grupo no válido.' });
 
@@ -421,9 +426,10 @@ app.post('/api/respuestas/categorias', requireAdmin, async (req, res) => {
       `UPDATE rsvp SET
          invitado_por = COALESCE($2, invitado_por),
          grupo = COALESCE($3, grupo),
+         sobre_dos_apellidos = COALESCE($4, sobre_dos_apellidos),
          updated_at = NOW()
        WHERE id = ANY($1::int[]) AND deleted_at IS NULL`,
-      [ids, nuevoInvitadoPor, nuevoGrupo]
+      [ids, nuevoInvitadoPor, nuevoGrupo, nuevoDosApellidos]
     );
     await client.query('COMMIT');
     res.json({ ok: true, actualizados: rowCount });
