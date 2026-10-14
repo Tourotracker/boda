@@ -22,6 +22,11 @@ y expone un panel de administración para consultarlas.
   *Grupo*. En la ficha se puede escribir para buscar la opción, y en el listado
   se filtra por varias a la vez (incluido "Sin asignar"). Las listas están en
   `public/categorias.js`: para añadir o renombrar un grupo, se cambia ahí.
+- **Asignar en bloque**: marca varias filas (o todas las filtradas con la casilla
+  de la cabecera) y asígnales "Invitado por" y/o grupo de una vez. Lo que se deje
+  vacío no cambia. Cada cambio queda en `rsvp_history` con la acción `categorizar`.
+- **Descargar CSV** respeta los filtros activos; el **Excel de direcciones** sale
+  siempre con todos los invitados.
 - **Casados**: se deduce del tratamiento. Si en la pareja hay una *Sra.*, se
   consideran casados; con *Srta.*, pareja. Para cambiarlo, edita el tratamiento
   desde el panel.

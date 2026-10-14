@@ -81,22 +81,40 @@
   th{background:var(--gold-soft); font-weight:700; position:sticky; top:0;}
   tr:last-child td{border-bottom:none;}
   tr.fila-borrando{opacity:.4;}
-  th:nth-child(1){width:5%;}
-  th:nth-child(2){width:7%;}
+  th:nth-child(1){width:3%;}
+  th:nth-child(2){width:5%;}
   th:nth-child(3){width:7%;}
-  th:nth-child(4){width:8%;}
-  th:nth-child(5){width:6%;}
-  th:nth-child(6){width:5%;}
+  th:nth-child(4){width:7%;}
+  th:nth-child(5){width:8%;}
+  th:nth-child(6){width:6%;}
   th:nth-child(7){width:5%;}
-  th:nth-child(8){width:6%;}
-  th:nth-child(9){width:7%;}
-  th:nth-child(10){width:6%;}
+  th:nth-child(8){width:5%;}
+  th:nth-child(9){width:6%;}
+  th:nth-child(10){width:7%;}
   th:nth-child(11){width:6%;}
-  th:nth-child(12){width:6%;}
-  th:nth-child(13){width:9%;}
-  th:nth-child(14){width:5%;}
+  th:nth-child(12){width:5%;}
+  th:nth-child(13){width:5%;}
+  th:nth-child(14){width:9%;}
   th:nth-child(15){width:5%;}
-  th:nth-child(16){width:11%;}
+  th:nth-child(16){width:5%;}
+  th:nth-child(17){width:10%;}
+  .td-check input, .th-check input{width:17px; height:17px; cursor:pointer; accent-color:var(--gold);}
+  tr.seleccionada td{background:#FBF3F0;}
+
+  /* Barra de asignación en bloque */
+  .barra-seleccion{
+    display:none; position:sticky; top:0; z-index:15; align-items:flex-end; gap:12px; flex-wrap:wrap;
+    background:#fff; border:1.5px solid var(--sage); border-radius:var(--radius-md);
+    box-shadow:var(--shadow-card); padding:12px 14px; margin-bottom:12px;
+  }
+  .barra-seleccion.visible{display:flex;}
+  .barra-seleccion .barra-total{font-weight:700; color:var(--gold); align-self:center; margin-right:4px;}
+  .barra-seleccion .barra-campo{min-width:200px; flex:1; max-width:280px;}
+  .barra-seleccion label{display:block; font-size:12px; font-weight:600; margin-bottom:6px; color:#6B6259;}
+  .barra-seleccion input{
+    width:100%; padding:9px 11px; border:1.5px solid var(--line); border-radius:var(--radius-sm);
+    font-size:14px; font-family:inherit; background:#fff;
+  }
   .categoria-grupo{display:block; color:#8A8275; font-size:12px; margin-top:2px;}
   .sin-asignar{color:#B9B2A8;}
 
@@ -217,6 +235,9 @@
       font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.03em;
       color:#8A8275; padding-top:2px;
     }
+    td.td-check{justify-content:flex-start; align-items:center;}
+    .barra-seleccion .barra-campo{max-width:none; min-width:100%;}
+    .barra-seleccion button{flex:1;}
     td.td-acciones{display:block; border-bottom:none; padding:12px 14px;}
     td.td-acciones:before{display:block; margin-bottom:8px;}
     td.td-acciones .row-actions button{flex:1; min-width:0;}
@@ -279,13 +300,27 @@
     </div>
   </div>
 
+  <div class="barra-seleccion" id="barraSeleccion">
+    <span class="barra-total" id="barraTotal"></span>
+    <div class="barra-campo">
+      <label for="bloqueInvitadoPor">Invitado por</label>
+      <div class="combo"><input type="text" id="bloqueInvitadoPor" autocomplete="off" placeholder="Sin cambios"><ul class="combo-lista"></ul></div>
+    </div>
+    <div class="barra-campo">
+      <label for="bloqueGrupo">Grupo</label>
+      <div class="combo"><input type="text" id="bloqueGrupo" autocomplete="off" placeholder="Sin cambios"><ul class="combo-lista"></ul></div>
+    </div>
+    <button type="button" id="bloqueAplicar">Asignar a los seleccionados</button>
+    <button type="button" class="btn-cancelar" id="bloqueQuitar">Quitar selección</button>
+  </div>
+
   <div class="no-results" id="noResults" style="display:none;">No hay respuestas que coincidan con la búsqueda.</div>
 
   <div class="table-wrap">
     <table>
       <thead>
         <tr>
-          <th>Fecha</th><th>Nombre</th><th>Apellidos</th><th>Categoría</th><th>Asiste</th>
+          <th class="th-check"><input type="checkbox" id="seleccionarTodos" title="Seleccionar todos los que se ven"></th><th>Fecha</th><th>Nombre</th><th>Apellidos</th><th>Categoría</th><th>Asiste</th>
           <th>Acompañante</th><th>Trat. acomp.</th><th>Nombre acomp.</th><th>Apellidos acomp.</th><th>Transporte</th>
           <th>Alergias</th><th>Alergias acomp.</th><th>Dirección</th><th>Lista ECI</th><th>IBAN</th><th>Acciones</th>
         </tr>
@@ -610,6 +645,85 @@
     });
   });
 
+  // --- Selección de filas y asignación en bloque ---
+  const seleccionados = new Set();
+  let visibles = [];
+
+  function actualizarSeleccion() {
+    // Solo cuentan los que siguen existiendo (p. ej. tras eliminar uno)
+    const existentes = new Set(currentData.map(r => r.id));
+    for (const id of seleccionados) if (!existentes.has(id)) seleccionados.delete(id);
+
+    const n = seleccionados.size;
+    document.getElementById('barraSeleccion').classList.toggle('visible', n > 0);
+    document.getElementById('barraTotal').textContent = n === 1 ? '1 seleccionado' : `${n} seleccionados`;
+
+    const todos = document.getElementById('seleccionarTodos');
+    const marcadosVisibles = visibles.filter(r => seleccionados.has(r.id)).length;
+    todos.checked = visibles.length > 0 && marcadosVisibles === visibles.length;
+    todos.indeterminate = marcadosVisibles > 0 && marcadosVisibles < visibles.length;
+  }
+
+  document.getElementById('rows').addEventListener('change', (e) => {
+    if (!e.target.classList.contains('check-fila')) return;
+    const id = Number(e.target.dataset.id);
+    if (e.target.checked) seleccionados.add(id);
+    else seleccionados.delete(id);
+    e.target.closest('tr').classList.toggle('seleccionada', e.target.checked);
+    actualizarSeleccion();
+  });
+
+  document.getElementById('seleccionarTodos').addEventListener('change', (e) => {
+    visibles.forEach(r => e.target.checked ? seleccionados.add(r.id) : seleccionados.delete(r.id));
+    renderFiltrado();
+  });
+
+  document.getElementById('bloqueQuitar').addEventListener('click', () => {
+    seleccionados.clear();
+    renderFiltrado();
+  });
+
+  document.getElementById('bloqueAplicar').addEventListener('click', async () => {
+    const invitadoPor = opcionExacta(document.getElementById('bloqueInvitadoPor').value, CATEGORIAS.invitadoPor);
+    const grupo = opcionExacta(document.getElementById('bloqueGrupo').value, CATEGORIAS.grupos);
+    if (invitadoPor === null) { mostrarToast('"Invitado por" tiene que ser una de las opciones de la lista.'); return; }
+    if (grupo === null) { mostrarToast('El grupo tiene que ser uno de los de la lista.'); return; }
+    if (!invitadoPor && !grupo) { mostrarToast('Elige "Invitado por", un grupo o ambos.'); return; }
+
+    const ids = [...seleccionados];
+    const cambios = [invitadoPor && `"Invitado por: ${invitadoPor}"`, grupo && `"Grupo: ${grupo}"`].filter(Boolean).join(' y ');
+    if (!confirm(`Vas a asignar ${cambios} a ${ids.length} invitado${ids.length === 1 ? '' : 's'}.`)) return;
+
+    const btn = document.getElementById('bloqueAplicar');
+    btn.classList.add('girando');
+    try {
+      const res = await fetch('/api/respuestas/categorias', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-token': adminToken },
+        body: JSON.stringify({ ids, invitadoPor, grupo })
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) { mostrarToast((data && data.error) || 'No se ha podido asignar.'); return; }
+      seleccionados.clear();
+      document.getElementById('bloqueInvitadoPor').value = '';
+      document.getElementById('bloqueGrupo').value = '';
+      await recargar();
+      mostrarToast(`Categoría asignada a ${data.actualizados} invitado${data.actualizados === 1 ? '' : 's'}.`);
+    } catch (err) {
+      mostrarToast('Error al conectar con el servidor.');
+    } finally {
+      btn.classList.remove('girando');
+    }
+  });
+
+  // El CSV sale con lo que se ve: si hay filtros, solo los filtrados. El Excel
+  // de sobres sale siempre completo.
+  function actualizarBotonCsv(hayFiltro) {
+    document.getElementById('exportar').textContent = hayFiltro
+      ? `Descargar CSV (${visibles.length} filtrado${visibles.length === 1 ? '' : 's'})`
+      : 'Descargar CSV';
+  }
+
   function renderFiltrado() {
     const termino = normalizar(document.getElementById('buscador').value.trim());
     const filtroAsiste = document.getElementById('filtroAsiste').value;
@@ -624,8 +738,12 @@
 
     document.getElementById('noResults').style.display = (data.length === 0 && hayFiltro) ? 'block' : 'none';
 
+    visibles = data;
+    actualizarBotonCsv(hayFiltro);
+
     document.getElementById('rows').innerHTML = data.map(r => `
-      <tr data-id="${r.id}">
+      <tr data-id="${r.id}" class="${seleccionados.has(r.id) ? 'seleccionada' : ''}">
+        <td data-label="Seleccionar" class="td-check"><input type="checkbox" class="check-fila" data-id="${r.id}"${seleccionados.has(r.id) ? ' checked' : ''}></td>
         <td data-label="Fecha">${new Date(r.created_at).toLocaleDateString('es-ES')}</td>
         <td data-label="Nombre">${escapeHtml(r.tratamiento)} ${escapeHtml(r.nombre)}</td>
         <td data-label="Apellidos">${escapeHtml(r.apellidos)}</td>
@@ -652,6 +770,7 @@
         </td>
       </tr>
     `).join('');
+    actualizarSeleccion();
   }
 
   document.getElementById('buscador').addEventListener('input', renderFiltrado);
@@ -767,6 +886,8 @@
 
   crearCombo(document.getElementById('editInvitadoPor'), CATEGORIAS.invitadoPor);
   crearCombo(document.getElementById('editGrupo'), CATEGORIAS.grupos);
+  crearCombo(document.getElementById('bloqueInvitadoPor'), CATEGORIAS.invitadoPor);
+  crearCombo(document.getElementById('bloqueGrupo'), CATEGORIAS.grupos);
 
   function abrirModal(r) {
     editandoId = r.id;
@@ -978,7 +1099,7 @@
   });
 
   document.getElementById('exportar').addEventListener('click', () => {
-    if (!currentData.length) return;
+    if (!visibles.length) { mostrarToast('No hay invitados que descargar.'); return; }
     const columnas = [
       { header: 'Asiste', valor: r => asisteLabel(r.asiste) },
       { header: 'Fecha', valor: r => new Date(r.created_at).toLocaleDateString('es-ES') },
@@ -1008,7 +1129,7 @@
       return `"${str.replace(/"/g, '""')}"`;
     }
     const csvRows = [columnas.map(c => c.header).join(',')];
-    currentData.forEach(r => {
+    visibles.forEach(r => {
       csvRows.push(columnas.map(c => celdaSegura(c.valor(r))).join(','));
     });
     // El BOM (﻿) es necesario para que Excel detecte UTF-8 y no

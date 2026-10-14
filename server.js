@@ -353,6 +353,10 @@ function asisteTexto(v) {
   return v || '';
 }
 
+function idsValidos(ids) {
+  return Array.isArray(ids) && ids.length > 0 && ids.length <= 5000 && ids.every(Number.isInteger);
+}
+
 app.get('/api/export/direcciones', requireAdmin, async (req, res) => {
   try {
     const { rows } = await pool.query('SELECT * FROM rsvp WHERE deleted_at IS NULL');
@@ -385,6 +389,45 @@ app.get('/api/export/direcciones', requireAdmin, async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error al generar el Excel: ' + err.message });
+  }
+});
+
+// Asignar categoría a varios invitados a la vez. Un campo vacío o ausente
+// no se modifica.
+app.post('/api/respuestas/categorias', requireAdmin, async (req, res) => {
+  const { ids, invitadoPor, grupo } = req.body;
+  if (!idsValidos(ids)) return res.status(400).json({ error: 'No hay invitados seleccionados.' });
+  const nuevoInvitadoPor = typeof invitadoPor === 'string' && invitadoPor ? invitadoPor : null;
+  const nuevoGrupo = typeof grupo === 'string' && grupo ? grupo : null;
+  if (!nuevoInvitadoPor && !nuevoGrupo) return res.status(400).json({ error: 'Elige "Invitado por" o un grupo.' });
+  if (nuevoInvitadoPor && !CATEGORIAS.invitadoPor.includes(nuevoInvitadoPor)) return res.status(400).json({ error: '"Invitado por" no válido.' });
+  if (nuevoGrupo && !CATEGORIAS.grupos.includes(nuevoGrupo)) return res.status(400).json({ error: 'Grupo no válido.' });
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    await client.query(
+      `INSERT INTO rsvp_history (rsvp_id, accion, datos)
+       SELECT id, 'categorizar', to_jsonb(rsvp) FROM rsvp
+       WHERE id = ANY($1::int[]) AND deleted_at IS NULL`,
+      [ids]
+    );
+    const { rowCount } = await client.query(
+      `UPDATE rsvp SET
+         invitado_por = COALESCE($2, invitado_por),
+         grupo = COALESCE($3, grupo),
+         updated_at = NOW()
+       WHERE id = ANY($1::int[]) AND deleted_at IS NULL`,
+      [ids, nuevoInvitadoPor, nuevoGrupo]
+    );
+    await client.query('COMMIT');
+    res.json({ ok: true, actualizados: rowCount });
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    console.error(err);
+    res.status(500).json({ error: 'Error al asignar la categoría.' });
+  } finally {
+    client.release();
   }
 });
 
