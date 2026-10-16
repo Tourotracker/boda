@@ -139,7 +139,7 @@
 <div id="panel">
   <a class="volver" href="/admin.html">← Volver a respuestas RSVP</a>
   <h1>Plano de mesas</h1>
-  <div class="sub">Arrastra a cada invitado a su mesa. Solo se muestran quienes vienen a toda la boda.</div>
+  <div class="sub">Arrastra a cada invitado a su mesa. Solo se muestran quienes vienen a toda la boda. · <a href="#" id="cerrarSesion" style="color:#8A8275;">Cerrar sesión</a></div>
 
   <div class="stats" id="stats"></div>
 
@@ -166,13 +166,15 @@
   let respuestas = [];
   let mesas = [];
 
-  document.getElementById('entrar').addEventListener('click', entrar);
+  const CLAVE_TOKEN = 'bodaAdminToken';
+
+  document.getElementById('entrar').addEventListener('click', () => entrar());
   document.getElementById('token').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') entrar();
   });
 
-  async function entrar() {
-    const token = document.getElementById('token').value.trim();
+  async function entrar(tokenPrevio) {
+    const token = tokenPrevio || document.getElementById('token').value.trim();
     const errorEl = document.getElementById('gateError');
     errorEl.textContent = '';
     if (!token) return;
@@ -180,9 +182,11 @@
       const res = await fetch('/api/mesas', { headers: { 'x-admin-token': token } });
       if (!res.ok) {
         errorEl.textContent = 'Contraseña incorrecta.';
+        try { localStorage.removeItem(CLAVE_TOKEN); } catch (err) {}
         return;
       }
       adminToken = token;
+      try { localStorage.setItem(CLAVE_TOKEN, token); } catch (err) {}
       document.getElementById('gate').style.display = 'none';
       document.getElementById('panel').style.display = 'block';
       await cargarTodo();
@@ -190,6 +194,18 @@
       errorEl.textContent = 'Error al conectar con el servidor.';
     }
   }
+
+  (function intentarEntradaAutomatica() {
+    let guardado = '';
+    try { guardado = localStorage.getItem(CLAVE_TOKEN) || ''; } catch (err) {}
+    if (guardado) entrar(guardado);
+  })();
+
+  document.getElementById('cerrarSesion').addEventListener('click', (e) => {
+    e.preventDefault();
+    try { localStorage.removeItem(CLAVE_TOKEN); } catch (err) {}
+    location.reload();
+  });
 
   async function cargarTodo() {
     const [resRespuestas, resMesas] = await Promise.all([
@@ -262,7 +278,7 @@
       .filter(b => b.filas.length);
 
     cont.innerHTML = bloques.map(({ g, filas }) => `
-      <details class="grupo-sidebar" open>
+      <details class="grupo-sidebar">
         <summary>${g ? escapeHtml(g) : 'Sin grupo'} (${filas.reduce((n, r) => n + personasFila(r), 0)})</summary>
         ${filas.map(r => `
           <div class="chip" draggable="true" data-id="${r.id}">

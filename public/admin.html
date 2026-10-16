@@ -352,7 +352,7 @@
 
 <div id="panel">
   <h1>Respuestas RSVP</h1>
-  <div class="sub">Listado de confirmaciones recibidas</div>
+  <div class="sub">Listado de confirmaciones recibidas · <a href="#" id="cerrarSesion" style="color:#8A8275;">Cerrar sesión</a></div>
 
   <div class="stats" id="stats"></div>
 
@@ -563,13 +563,15 @@
   let qrScansTotal = 0;
   let qrScansUltimo = null;
 
-  document.getElementById('entrar').addEventListener('click', cargar);
+  const CLAVE_TOKEN = 'bodaAdminToken';
+
+  document.getElementById('entrar').addEventListener('click', () => cargar());
   document.getElementById('token').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') cargar();
   });
 
-  async function cargar() {
-    const token = document.getElementById('token').value.trim();
+  async function cargar(tokenPrevio) {
+    const token = tokenPrevio || document.getElementById('token').value.trim();
     const errorEl = document.getElementById('gateError');
     errorEl.textContent = '';
     if (!token) return;
@@ -580,9 +582,11 @@
       });
       if (!res.ok) {
         errorEl.textContent = 'Contraseña incorrecta.';
+        try { localStorage.removeItem(CLAVE_TOKEN); } catch (err) {}
         return;
       }
       adminToken = token;
+      try { localStorage.setItem(CLAVE_TOKEN, token); } catch (err) {}
       currentData = await res.json();
       await cargarQrScans();
       render(currentData);
@@ -592,6 +596,21 @@
       errorEl.textContent = 'Error al conectar con el servidor.';
     }
   }
+
+  function cerrarSesion() {
+    try { localStorage.removeItem(CLAVE_TOKEN); } catch (err) {}
+    location.reload();
+  }
+  document.getElementById('cerrarSesion').addEventListener('click', (e) => {
+    e.preventDefault();
+    cerrarSesion();
+  });
+
+  (function intentarEntradaAutomatica() {
+    let guardado = '';
+    try { guardado = localStorage.getItem(CLAVE_TOKEN) || ''; } catch (err) {}
+    if (guardado) cargar(guardado);
+  })();
 
   async function recargar() {
     const res = await fetch('/api/respuestas', { headers: { 'x-admin-token': adminToken } });
