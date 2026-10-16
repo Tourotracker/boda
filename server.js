@@ -79,6 +79,18 @@ async function initDB() {
       scanned_at TIMESTAMPTZ DEFAULT NOW()
     )
   `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS mesas (
+      id SERIAL PRIMARY KEY,
+      nombre VARCHAR(100) NOT NULL,
+      capacidad INTEGER NOT NULL DEFAULT 10,
+      pos_x INTEGER NOT NULL DEFAULT 40,
+      pos_y INTEGER NOT NULL DEFAULT 40,
+      created_at TIMESTAMPTZ DEFAULT NOW(),
+      updated_at TIMESTAMPTZ DEFAULT NOW()
+    )
+  `);
+  await pool.query(`ALTER TABLE rsvp ADD COLUMN IF NOT EXISTS mesa_id INTEGER REFERENCES mesas(id) ON DELETE SET NULL`);
   console.log('Base de datos lista.');
 }
 
@@ -493,6 +505,103 @@ app.delete('/api/respuestas/:id', requireAdmin, async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error al eliminar.' });
+  }
+});
+
+app.get('/api/mesas', requireAdmin, async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT * FROM mesas ORDER BY id');
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al obtener datos.' });
+  }
+});
+
+app.post('/api/mesas', requireAdmin, async (req, res) => {
+  const { nombre, capacidad, posX, posY } = req.body;
+  if (!nombre || !String(nombre).trim()) {
+    return res.status(400).json({ error: 'Falta el nombre de la mesa.' });
+  }
+  const cap = Number(capacidad);
+  if (!Number.isInteger(cap) || cap < 1) {
+    return res.status(400).json({ error: 'Capacidad no válida.' });
+  }
+  try {
+    const { rows } = await pool.query(
+      'INSERT INTO mesas (nombre, capacidad, pos_x, pos_y) VALUES ($1,$2,$3,$4) RETURNING *',
+      [String(nombre).trim(), cap, Number.isInteger(posX) ? posX : 40, Number.isInteger(posY) ? posY : 40]
+    );
+    res.json(rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al crear la mesa.' });
+  }
+});
+
+app.put('/api/mesas/:id', requireAdmin, async (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) return res.status(400).json({ error: 'Id inválido.' });
+  const { nombre, capacidad, posX, posY } = req.body;
+  if (capacidad !== undefined && (!Number.isInteger(Number(capacidad)) || Number(capacidad) < 1)) {
+    return res.status(400).json({ error: 'Capacidad no válida.' });
+  }
+  try {
+    const { rows } = await pool.query(
+      `UPDATE mesas SET
+         nombre = COALESCE($1, nombre),
+         capacidad = COALESCE($2, capacidad),
+         pos_x = COALESCE($3, pos_x),
+         pos_y = COALESCE($4, pos_y),
+         updated_at = NOW()
+       WHERE id = $5
+       RETURNING *`,
+      [
+        nombre !== undefined ? String(nombre).trim() : null,
+        capacidad !== undefined ? Number(capacidad) : null,
+        Number.isInteger(posX) ? posX : null,
+        Number.isInteger(posY) ? posY : null,
+        id
+      ]
+    );
+    if (!rows.length) return res.status(404).json({ error: 'No encontrada.' });
+    res.json(rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al actualizar la mesa.' });
+  }
+});
+
+app.delete('/api/mesas/:id', requireAdmin, async (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) return res.status(400).json({ error: 'Id inválido.' });
+  try {
+    const { rowCount } = await pool.query('DELETE FROM mesas WHERE id = $1', [id]);
+    if (!rowCount) return res.status(404).json({ error: 'No encontrada.' });
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al eliminar la mesa.' });
+  }
+});
+
+app.put('/api/respuestas/:id/mesa', requireAdmin, async (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) return res.status(400).json({ error: 'Id inválido.' });
+  const { mesaId } = req.body;
+  if (mesaId !== null && !Number.isInteger(mesaId)) {
+    return res.status(400).json({ error: 'Mesa no válida.' });
+  }
+  try {
+    const { rows } = await pool.query(
+      'UPDATE rsvp SET mesa_id = $1, updated_at = NOW() WHERE id = $2 AND deleted_at IS NULL RETURNING *',
+      [mesaId, id]
+    );
+    if (!rows.length) return res.status(404).json({ error: 'No encontrado.' });
+    res.json({ ok: true, respuesta: rows[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al asignar mesa.' });
   }
 });
 

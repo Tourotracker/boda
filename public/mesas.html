@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plano de mesas</title>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="icon" href="/favicon-16.png" type="image/png" sizes="16x16">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<style>
+  :root{
+    --cream:#FFFFFF; --gold:#7A2432; --gold-soft:#F1DCD3;
+    --sage:#9C4A50; --ink:#2E2621; --line:#E3E1DE;
+    --radius-lg:20px; --radius-md:12px; --radius-sm:10px;
+    --shadow-card:0 1px 2px rgba(46,38,33,0.04), 0 16px 32px -12px rgba(46,38,33,0.12);
+  }
+  *{box-sizing:border-box;}
+  body{
+    font-family:-apple-system,'Karla',sans-serif;
+    background:var(--cream); color:var(--ink);
+    margin:0; padding:32px 24px;
+  }
+  h1{font-family:'Cormorant Garamond',serif; font-size:30px; margin-bottom:4px;}
+  .sub{color:#8A8275; font-size:14px; margin-bottom:24px;}
+  .volver{color:var(--gold); font-size:13px; text-decoration:underline; display:inline-block; margin-bottom:14px;}
+  .gate{
+    max-width:360px; margin:80px auto; background:#fff;
+    border-radius:var(--radius-lg); box-shadow:var(--shadow-card); padding:32px;
+  }
+  .gate label{display:block; font-size:13px; font-weight:600; margin-bottom:8px;}
+  .gate input{
+    width:100%; padding:11px 13px; border:1.5px solid var(--line); border-radius:var(--radius-sm);
+    font-size:15px; margin-bottom:14px; background:#fff;
+  }
+  button{
+    background:var(--gold); color:#fff; border:none; border-radius:var(--radius-sm);
+    padding:11px 18px; font-weight:700; cursor:pointer; font-size:14px;
+    box-shadow:0 3px 10px rgba(122,36,50,0.28); transition:background .15s, transform .15s;
+  }
+  button:hover{background:#5E1B26; transform:translateY(-1px);}
+  .error{color:#B05A4A; font-size:13px; margin-top:4px;}
+  #panel{display:none; max-width:1600px; margin:0 auto;}
+  .stats{display:flex; gap:16px; margin-bottom:20px; flex-wrap:wrap;}
+  .stat{
+    background:#fff; border-radius:var(--radius-md); box-shadow:var(--shadow-card);
+    padding:14px 20px; min-width:120px; flex:1;
+  }
+  .stat .n{font-family:'Cormorant Garamond',serif; font-size:28px; color:var(--gold);}
+  .stat .l{font-size:12px; color:#8A8275; text-transform:uppercase; letter-spacing:.05em;}
+  .toolbar{display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap;}
+  .btn-secundario{
+    background:#fff; color:var(--gold); border:1.5px solid var(--gold);
+    box-shadow:none;
+  }
+  .btn-secundario:hover{background:var(--gold-soft); transform:none;}
+
+  .layout{display:flex; gap:18px; align-items:flex-start;}
+  .sidebar{
+    width:280px; flex-shrink:0; background:#fff; border-radius:var(--radius-md);
+    box-shadow:var(--shadow-card); padding:16px; max-height:76vh; overflow-y:auto;
+  }
+  .sidebar h2{font-size:15px; margin:0 0 4px;}
+  .sidebar .ayuda{font-size:12px; color:#8A8275; margin-bottom:12px;}
+  .sidebar.zona-drop{outline:2px dashed var(--sage); outline-offset:-4px;}
+  .grupo-sidebar{margin-bottom:10px;}
+  .grupo-sidebar summary{
+    font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.04em;
+    color:var(--sage); cursor:pointer; padding:6px 0; list-style:none;
+  }
+  .grupo-sidebar summary::-webkit-details-marker{display:none;}
+  .grupo-sidebar summary::before{content:'▸ '; }
+  .grupo-sidebar[open] summary::before{content:'▾ '; }
+  .chip{
+    background:var(--gold-soft); border-radius:var(--radius-sm); padding:8px 10px;
+    margin-bottom:6px; font-size:13px; cursor:grab; user-select:none;
+    border:1px solid transparent;
+  }
+  .chip:active{cursor:grabbing;}
+  .chip .n-personas{color:#8A6A5E; font-size:11px;}
+  .chip.arrastrando{opacity:.4;}
+  .sidebar-vacio{font-size:13px; color:#8A8275; padding:8px 0;}
+
+  .lienzo{
+    flex:1; position:relative; min-height:76vh; background:#FBF8F5;
+    border-radius:var(--radius-md); box-shadow:var(--shadow-card);
+    overflow:auto; background-image:radial-gradient(circle, #E9E4DF 1px, transparent 1px);
+    background-size:18px 18px;
+  }
+  .mesa{
+    position:absolute; width:230px; background:#fff; border-radius:var(--radius-md);
+    box-shadow:var(--shadow-card); border:2px solid transparent;
+  }
+  .mesa.sobre-capacidad{border-color:#C46A4A;}
+  .mesa-cabecera{
+    display:flex; align-items:center; gap:8px; padding:10px 12px;
+    background:var(--gold-soft); border-radius:var(--radius-md) var(--radius-md) 0 0;
+    cursor:grab;
+  }
+  .mesa-cabecera:active{cursor:grabbing;}
+  .mesa-nombre{font-weight:700; font-size:14px; flex:1; cursor:text;}
+  .mesa-capacidad{font-size:12px; color:#8A6A5E; font-weight:600; white-space:nowrap;}
+  .mesa.sobre-capacidad .mesa-capacidad{color:#C46A4A;}
+  .mesa-borrar{
+    background:none; box-shadow:none; color:#B05A4A; font-size:16px; line-height:1;
+    padding:2px 6px; font-weight:700;
+  }
+  .mesa-borrar:hover{background:#FBEAE4; transform:none;}
+  .mesa-cuerpo{min-height:70px; padding:10px 12px;}
+  .mesa-cuerpo.zona-drop{background:var(--gold-soft);}
+  .mesa-vacia{font-size:12px; color:#B5AEA6; text-align:center; padding:14px 0;}
+  .chip-mesa{
+    background:#F5F1EC; border-radius:8px; padding:6px 9px; margin-bottom:5px;
+    font-size:12.5px; display:flex; align-items:center; gap:6px; cursor:grab;
+  }
+  .chip-mesa:active{cursor:grabbing;}
+  .chip-quitar{
+    margin-left:auto; background:none; box-shadow:none; color:#B5AEA6; font-size:13px;
+    padding:0 4px; font-weight:700;
+  }
+  .chip-quitar:hover{background:none; color:#B05A4A; transform:none;}
+
+  @media (max-width:760px){
+    .layout{flex-direction:column;}
+    .sidebar{width:100%; max-height:280px;}
+    .lienzo{width:100%; min-height:60vh;}
+  }
+</style>
+</head>
+<body>
+
+<div class="gate" id="gate">
+  <label for="token">Contraseña de administrador</label>
+  <input type="password" id="token" placeholder="Contraseña">
+  <button id="entrar">Entrar</button>
+  <div class="error" id="gateError"></div>
+</div>
+
+<div id="panel">
+  <a class="volver" href="/admin.html">← Volver a respuestas RSVP</a>
+  <h1>Plano de mesas</h1>
+  <div class="sub">Arrastra a cada invitado a su mesa. Solo se muestran quienes vienen a toda la boda.</div>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="toolbar">
+    <button id="nuevaMesa" class="btn-secundario">+ Nueva mesa</button>
+    <button id="actualizar" class="btn-secundario">Actualizar</button>
+  </div>
+
+  <div class="layout">
+    <div class="sidebar" id="sidebar">
+      <h2>Sin mesa asignada</h2>
+      <div class="ayuda">Arrastra cada tarjeta a la mesa que corresponda.</div>
+      <div id="sidebarContenido"></div>
+    </div>
+    <div class="lienzo" id="lienzo"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast" style="position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--ink); color:#fff; padding:10px 18px; border-radius:var(--radius-sm); font-size:13px; opacity:0; pointer-events:none; transition:opacity .2s;"></div>
+
+<script src="/categorias.js"></script>
+<script>
+  let adminToken = '';
+  let respuestas = [];
+  let mesas = [];
+
+  document.getElementById('entrar').addEventListener('click', entrar);
+  document.getElementById('token').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') entrar();
+  });
+
+  async function entrar() {
+    const token = document.getElementById('token').value.trim();
+    const errorEl = document.getElementById('gateError');
+    errorEl.textContent = '';
+    if (!token) return;
+    try {
+      const res = await fetch('/api/mesas', { headers: { 'x-admin-token': token } });
+      if (!res.ok) {
+        errorEl.textContent = 'Contraseña incorrecta.';
+        return;
+      }
+      adminToken = token;
+      document.getElementById('gate').style.display = 'none';
+      document.getElementById('panel').style.display = 'block';
+      await cargarTodo();
+    } catch (err) {
+      errorEl.textContent = 'Error al conectar con el servidor.';
+    }
+  }
+
+  async function cargarTodo() {
+    const [resRespuestas, resMesas] = await Promise.all([
+      fetch('/api/respuestas', { headers: { 'x-admin-token': adminToken } }),
+      fetch('/api/mesas', { headers: { 'x-admin-token': adminToken } })
+    ]);
+    respuestas = await resRespuestas.json();
+    mesas = await resMesas.json();
+    render();
+  }
+
+  document.getElementById('actualizar').addEventListener('click', cargarTodo);
+
+  function escapeHtml(s) {
+    return String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
+  function mostrarToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.style.opacity = '1';
+    clearTimeout(mostrarToast._t);
+    mostrarToast._t = setTimeout(() => { t.style.opacity = '0'; }, 2200);
+  }
+
+  // Solo quienes vienen a toda la boda necesitan mesa (quien solo va a las
+  // copas o aún no ha contestado, no se sienta a comer).
+  function necesitaMesa(r) {
+    return r.asiste === 'completa' || r.asiste === 'si';
+  }
+
+  function personasFila(r) {
+    return 1 + (r.con_acompanante === 'si' ? 1 : 0);
+  }
+
+  function nombreFicha(r) {
+    const acomp = r.con_acompanante === 'si' && (r.acompanante_nombre || r.acompanante_apellidos)
+      ? ` + ${escapeHtml(r.acompanante_nombre)}` : '';
+    return `${escapeHtml(r.nombre)} ${escapeHtml(r.apellidos)}${acomp}`;
+  }
+
+  function render() {
+    const sinMesa = respuestas.filter(r => necesitaMesa(r) && !r.mesa_id);
+    const totalPersonasSinMesa = sinMesa.reduce((n, r) => n + personasFila(r), 0);
+    const totalMesas = mesas.length;
+    const capacidadTotal = mesas.reduce((n, m) => n + m.capacidad, 0);
+    const ocupadasTotal = respuestas.filter(r => r.mesa_id).reduce((n, r) => n + personasFila(r), 0);
+
+    document.getElementById('stats').innerHTML = `
+      <div class="stat"><div class="n">${totalMesas}</div><div class="l">Mesas</div></div>
+      <div class="stat"><div class="n">${capacidadTotal}</div><div class="l">Capacidad total</div></div>
+      <div class="stat"><div class="n">${ocupadasTotal}</div><div class="l">Personas sentadas</div></div>
+      <div class="stat"><div class="n">${totalPersonasSinMesa}</div><div class="l">Personas sin mesa</div></div>
+    `;
+
+    renderSidebar(sinMesa);
+    renderLienzo();
+  }
+
+  function renderSidebar(sinMesa) {
+    const cont = document.getElementById('sidebarContenido');
+    if (!sinMesa.length) {
+      cont.innerHTML = '<div class="sidebar-vacio">Todos los que vienen a toda la boda ya tienen mesa.</div>';
+      return;
+    }
+    const comparar = (a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' });
+    const gruposOrdenados = [...CATEGORIAS.grupos].sort(comparar);
+    const bloques = [...gruposOrdenados, '']
+      .map(g => ({ g, filas: sinMesa.filter(r => (r.grupo || '') === g).sort((a, b) => comparar(a.nombre, b.nombre)) }))
+      .filter(b => b.filas.length);
+
+    cont.innerHTML = bloques.map(({ g, filas }) => `
+      <details class="grupo-sidebar" open>
+        <summary>${g ? escapeHtml(g) : 'Sin grupo'} (${filas.reduce((n, r) => n + personasFila(r), 0)})</summary>
+        ${filas.map(r => `
+          <div class="chip" draggable="true" data-id="${r.id}">
+            ${nombreFicha(r)} <span class="n-personas">(${personasFila(r)})</span>
+          </div>
+        `).join('')}
+      </details>
+    `).join('');
+
+    cont.querySelectorAll('.chip').forEach(chip => {
+      chip.addEventListener('dragstart', onDragStartChip);
+      chip.addEventListener('dragend', onDragEndChip);
+    });
+  }
+
+  function renderLienzo() {
+    const lienzo = document.getElementById('lienzo');
+    lienzo.innerHTML = mesas.map(m => {
+      const asignados = respuestas.filter(r => r.mesa_id === m.id);
+      const ocupadas = asignados.reduce((n, r) => n + personasFila(r), 0);
+      const sobreCapacidad = ocupadas > m.capacidad;
+      return `
+        <div class="mesa ${sobreCapacidad ? 'sobre-capacidad' : ''}" style="left:${m.pos_x}px; top:${m.pos_y}px;" data-id="${m.id}">
+          <div class="mesa-cabecera" data-arrastre-mesa="${m.id}">
+            <div class="mesa-nombre" data-renombrar="${m.id}" title="Pulsa para renombrar">${escapeHtml(m.nombre)}</div>
+            <div class="mesa-capacidad">${ocupadas}/${m.capacidad}</div>
+            <button class="mesa-borrar" data-borrar="${m.id}" title="Eliminar mesa">×</button>
+          </div>
+          <div class="mesa-cuerpo" data-mesa-drop="${m.id}">
+            ${asignados.length ? asignados.map(r => `
+              <div class="chip-mesa" draggable="true" data-id="${r.id}">
+                <span>${nombreFicha(r)} (${personasFila(r)})</span>
+                <button class="chip-quitar" data-quitar="${r.id}" title="Quitar de la mesa">×</button>
+              </div>
+            `).join('') : '<div class="mesa-vacia">Suelta aquí a los invitados</div>'}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Drag de invitados ya sentados (para moverlos de mesa)
+    lienzo.querySelectorAll('.chip-mesa').forEach(chip => {
+      chip.addEventListener('dragstart', onDragStartChip);
+      chip.addEventListener('dragend', onDragEndChip);
+    });
+
+    // Quitar de la mesa con el botón ×
+    lienzo.querySelectorAll('[data-quitar]').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        await asignarMesa(Number(btn.dataset.quitar), null);
+      });
+    });
+
+    // Zonas donde soltar invitados
+    lienzo.querySelectorAll('[data-mesa-drop]').forEach(zona => {
+      zona.addEventListener('dragover', (e) => { e.preventDefault(); zona.classList.add('zona-drop'); });
+      zona.addEventListener('dragleave', () => zona.classList.remove('zona-drop'));
+      zona.addEventListener('drop', async (e) => {
+        e.preventDefault();
+        zona.classList.remove('zona-drop');
+        const id = Number(e.dataTransfer.getData('text/plain'));
+        if (!id) return;
+        await asignarMesa(id, Number(zona.dataset.mesaDrop));
+      });
+    });
+
+    // Eliminar mesa
+    lienzo.querySelectorAll('[data-borrar]').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const id = Number(btn.dataset.borrar);
+        const mesa = mesas.find(m => m.id === id);
+        const asignados = respuestas.filter(r => r.mesa_id === id);
+        const aviso = asignados.length
+          ? `Vas a eliminar "${mesa.nombre}". Los ${asignados.length} invitado(s) sentados ahí volverán a la lista de "Sin mesa asignada".`
+          : `Vas a eliminar "${mesa.nombre}".`;
+        if (!confirm(aviso)) return;
+        try {
+          const res = await fetch('/api/mesas/' + id, { method: 'DELETE', headers: { 'x-admin-token': adminToken } });
+          if (!res.ok) { mostrarToast('No se ha podido eliminar la mesa.'); return; }
+          mostrarToast('Mesa eliminada.');
+          await cargarTodo();
+        } catch (err) {
+          mostrarToast('Error al conectar con el servidor.');
+        }
+      });
+    });
+
+    // Arrastre manual de la mesa dentro del lienzo (independiente del drag & drop de invitados)
+    lienzo.querySelectorAll('[data-arrastre-mesa]').forEach(cabecera => {
+      cabecera.addEventListener('mousedown', iniciarArrastreMesa);
+    });
+  }
+
+  let arrastreActivo = null;
+  // Por debajo de este desplazamiento en píxeles, se considera un clic (para
+  // renombrar) y no un arrastre (para mover la mesa).
+  const UMBRAL_ARRASTRE = 5;
+
+  function iniciarArrastreMesa(e) {
+    if (e.target.closest('[data-borrar]')) return; // el botón de borrar va por su cuenta
+    const mesaEl = e.target.closest('.mesa');
+    const lienzo = document.getElementById('lienzo');
+    const rectMesa = mesaEl.getBoundingClientRect();
+    arrastreActivo = {
+      id: Number(mesaEl.dataset.id),
+      el: mesaEl,
+      offsetX: e.clientX - rectMesa.left,
+      offsetY: e.clientY - rectMesa.top,
+      startX: e.clientX,
+      startY: e.clientY,
+      movido: false,
+      eraRenombrar: Boolean(e.target.closest('[data-renombrar]'))
+    };
+    document.addEventListener('mousemove', moverMesa);
+    document.addEventListener('mouseup', soltarMesa);
+    e.preventDefault();
+  }
+
+  function moverMesa(e) {
+    if (!arrastreActivo) return;
+    if (!arrastreActivo.movido) {
+      const dx = e.clientX - arrastreActivo.startX;
+      const dy = e.clientY - arrastreActivo.startY;
+      if (Math.abs(dx) < UMBRAL_ARRASTRE && Math.abs(dy) < UMBRAL_ARRASTRE) return;
+      arrastreActivo.movido = true;
+    }
+    const lienzo = document.getElementById('lienzo');
+    const rectLienzo = lienzo.getBoundingClientRect();
+    const x = Math.max(0, e.clientX - rectLienzo.left - arrastreActivo.offsetX + lienzo.scrollLeft);
+    const y = Math.max(0, e.clientY - rectLienzo.top - arrastreActivo.offsetY + lienzo.scrollTop);
+    arrastreActivo.el.style.left = x + 'px';
+    arrastreActivo.el.style.top = y + 'px';
+    arrastreActivo.nuevoX = Math.round(x);
+    arrastreActivo.nuevoY = Math.round(y);
+  }
+
+  async function soltarMesa() {
+    document.removeEventListener('mousemove', moverMesa);
+    document.removeEventListener('mouseup', soltarMesa);
+    if (!arrastreActivo) return;
+    const { id, nuevoX, nuevoY, movido, eraRenombrar } = arrastreActivo;
+    arrastreActivo = null;
+
+    if (!movido) {
+      if (eraRenombrar) {
+        const mesa = mesas.find(m => m.id === id);
+        const nuevo = prompt('Nombre de la mesa:', mesa.nombre);
+        if (nuevo !== null && nuevo.trim()) await actualizarMesa(id, { nombre: nuevo.trim() });
+      }
+      return;
+    }
+    if (nuevoX === undefined) return;
+    const mesa = mesas.find(m => m.id === id);
+    mesa.pos_x = nuevoX;
+    mesa.pos_y = nuevoY;
+    await actualizarMesa(id, { posX: nuevoX, posY: nuevoY }, false);
+  }
+
+  function onDragStartChip(e) {
+    e.dataTransfer.setData('text/plain', e.currentTarget.dataset.id);
+    e.currentTarget.classList.add('arrastrando');
+    document.getElementById('sidebar').classList.add('zona-drop-activa');
+  }
+  function onDragEndChip(e) {
+    e.currentTarget.classList.remove('arrastrando');
+  }
+
+  // Soltar en la barra lateral quita de cualquier mesa
+  const sidebar = document.getElementById('sidebar');
+  sidebar.addEventListener('dragover', (e) => { e.preventDefault(); sidebar.classList.add('zona-drop'); });
+  sidebar.addEventListener('dragleave', () => sidebar.classList.remove('zona-drop'));
+  sidebar.addEventListener('drop', async (e) => {
+    e.preventDefault();
+    sidebar.classList.remove('zona-drop');
+    const id = Number(e.dataTransfer.getData('text/plain'));
+    if (!id) return;
+    await asignarMesa(id, null);
+  });
+
+  async function asignarMesa(rsvpId, mesaId) {
+    try {
+      const res = await fetch('/api/respuestas/' + rsvpId + '/mesa', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'x-admin-token': adminToken },
+        body: JSON.stringify({ mesaId })
+      });
+      if (!res.ok) { mostrarToast('No se ha podido asignar.'); return; }
+      const data = await res.json();
+      const idx = respuestas.findIndex(r => r.id === rsvpId);
+      if (idx !== -1) respuestas[idx] = data.respuesta;
+      render();
+    } catch (err) {
+      mostrarToast('Error al conectar con el servidor.');
+    }
+  }
+
+  async function actualizarMesa(id, cambios, recargar = true) {
+    try {
+      const res = await fetch('/api/mesas/' + id, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'x-admin-token': adminToken },
+        body: JSON.stringify(cambios)
+      });
+      if (!res.ok) { mostrarToast('No se ha podido actualizar la mesa.'); return; }
+      const actualizada = await res.json();
+      const idx = mesas.findIndex(m => m.id === id);
+      if (idx !== -1) mesas[idx] = actualizada;
+      if (recargar) render();
+    } catch (err) {
+      mostrarToast('Error al conectar con el servidor.');
+    }
+  }
+
+  document.getElementById('nuevaMesa').addEventListener('click', async () => {
+    const nombre = prompt('Nombre de la mesa:', 'Mesa ' + (mesas.length + 1));
+    if (!nombre || !nombre.trim()) return;
+    const capacidadTexto = prompt('¿Cuántos asientos tiene?', '10');
+    const capacidad = Number(capacidadTexto);
+    if (!Number.isInteger(capacidad) || capacidad < 1) {
+      mostrarToast('Capacidad no válida.');
+      return;
+    }
+    try {
+      const res = await fetch('/api/mesas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-token': adminToken },
+        body: JSON.stringify({ nombre: nombre.trim(), capacidad, posX: 40 + (mesas.length % 4) * 250, posY: 40 + Math.floor(mesas.length / 4) * 220 })
+      });
+      if (!res.ok) { mostrarToast('No se ha podido crear la mesa.'); return; }
+      const nueva = await res.json();
+      mesas.push(nueva);
+      render();
+      mostrarToast('Mesa añadida.');
+    } catch (err) {
+      mostrarToast('Error al conectar con el servidor.');
+    }
+  });
+</script>
+</body>
+</html>
