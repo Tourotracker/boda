@@ -59,6 +59,16 @@
   }
   .btn-secundario:hover{background:var(--gold-soft); transform:none;}
   .btn-secundario.girando{pointer-events:none; opacity:.7;}
+  .btn-mesas{
+    background:linear-gradient(135deg, var(--sage), #7C3A40);
+    color:#fff; border:none; border-radius:var(--radius-sm);
+    padding:11px 18px; font-weight:700; font-size:14px; cursor:pointer;
+    box-shadow:0 3px 10px rgba(156,74,80,0.35); transition:transform .15s, box-shadow .15s;
+    text-decoration:none; display:inline-flex; align-items:center; gap:7px;
+    white-space:nowrap; box-sizing:border-box;
+  }
+  .btn-mesas:hover{transform:translateY(-1px); box-shadow:0 5px 14px rgba(156,74,80,0.45); background:linear-gradient(135deg, var(--sage), #7C3A40);}
+  .btn-mesas .icono-mesa{font-size:15px; line-height:1;}
   .search-wrap input{
     width:100%; padding:11px 13px; border:1.5px solid var(--line); border-radius:var(--radius-sm);
     font-size:14px; font-family:inherit; background:#fff;
@@ -304,7 +314,7 @@
     .stat .n{font-size:22px;}
     .toolbar{justify-content:stretch;}
     .toolbar-actions{width:100%; flex-wrap:wrap;}
-    .toolbar-actions button{flex:1 1 calc(50% - 5px); width:auto;}
+    .toolbar-actions button, .toolbar-actions .btn-mesas{flex:1 1 calc(50% - 5px); width:auto; justify-content:center;}
     .search-wrap{max-width:none; width:100%;}
     .filtro-asiste{width:100%;}
     .filtro-multi{width:100%;}
@@ -389,7 +399,7 @@
       <button id="actualizar" class="btn-secundario">Actualizar</button>
       <button id="anadir" class="btn-secundario">Añadir invitado</button>
       <button id="exportarDirecciones" class="btn-secundario">Excel direcciones (sobres)</button>
-      <a href="/mesas.html" class="btn-secundario" style="text-decoration:none; display:inline-flex; align-items:center; justify-content:center;">Plano de mesas</a>
+      <a href="/mesas.html" class="btn-mesas"><span class="icono-mesa">🪑</span>Plano de mesas</a>
       <button id="exportar">Descargar CSV</button>
     </div>
   </div>
