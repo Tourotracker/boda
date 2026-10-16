@@ -54,6 +54,7 @@
     box-shadow:none;
   }
   .btn-secundario:hover{background:var(--gold-soft); transform:none;}
+  .btn-secundario.girando{pointer-events:none; opacity:.7;}
 
   .layout{display:flex; gap:18px; align-items:flex-start;}
   .sidebar{
@@ -64,13 +65,14 @@
   .sidebar .ayuda{font-size:12px; color:#8A8275; margin-bottom:12px;}
   .sidebar.zona-drop{outline:2px dashed var(--sage); outline-offset:-4px;}
   .grupo-sidebar{margin-bottom:10px;}
-  .grupo-sidebar summary{
+  .grupo-cabecera{
     font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.04em;
-    color:var(--sage); cursor:pointer; padding:6px 0; list-style:none;
+    color:var(--sage); cursor:pointer; padding:6px 0; display:flex; align-items:center; gap:4px;
   }
-  .grupo-sidebar summary::-webkit-details-marker{display:none;}
-  .grupo-sidebar summary::before{content:'▸ '; }
-  .grupo-sidebar[open] summary::before{content:'▾ '; }
+  .grupo-cabecera .grupo-flecha{font-size:10px;}
+  .grupo-asa{cursor:grab;}
+  .grupo-asa:active{cursor:grabbing;}
+  .grupo-sidebar.arrastrando{opacity:.4;}
   .chip{
     background:var(--gold-soft); border-radius:var(--radius-sm); padding:8px 10px;
     margin-bottom:6px; font-size:13px; cursor:grab; user-select:none;
@@ -146,6 +148,8 @@
   <div class="toolbar">
     <button id="nuevaMesa" class="btn-secundario">+ Nueva mesa</button>
     <button id="actualizar" class="btn-secundario">Actualizar</button>
+    <button id="exportarPorMesa" class="btn-secundario">Excel por mesa</button>
+    <button id="exportarPorInvitado" class="btn-secundario">Excel por invitado</button>
   </div>
 
   <div class="layout">
@@ -219,6 +223,36 @@
 
   document.getElementById('actualizar').addEventListener('click', cargarTodo);
 
+  async function descargarExcel(boton, url, nombreArchivo) {
+    boton.classList.add('girando');
+    try {
+      const res = await fetch(url, { headers: { 'x-admin-token': adminToken } });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        mostrarToast('No se ha podido generar el Excel (' + ((data && data.error) || ('error ' + res.status)) + ').');
+        return;
+      }
+      const blob = await res.blob();
+      const objUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = objUrl;
+      a.download = nombreArchivo;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(objUrl), 60000);
+    } catch (err) {
+      mostrarToast('Error al conectar con el servidor.');
+    } finally {
+      boton.classList.remove('girando');
+    }
+  }
+
+  document.getElementById('exportarPorMesa').addEventListener('click', (e) => {
+    descargarExcel(e.currentTarget, '/api/export/mesas-por-mesa', 'mesas-por-mesa.xlsx');
+  });
+  document.getElementById('exportarPorInvitado').addEventListener('click', (e) => {
+    descargarExcel(e.currentTarget, '/api/export/mesas-por-invitado', 'mesas-por-invitado.xlsx');
+  });
+
   function escapeHtml(s) {
     return String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   }
@@ -265,6 +299,10 @@
     renderLienzo();
   }
 
+  // Qué grupos se han desplegado, para que sigan abiertos entre renders
+  // (p.ej. al asignar alguien a una mesa).
+  const gruposAbiertos = new Set();
+
   function renderSidebar(sinMesa) {
     const cont = document.getElementById('sidebarContenido');
     if (!sinMesa.length) {
@@ -277,20 +315,40 @@
       .map(g => ({ g, filas: sinMesa.filter(r => (r.grupo || '') === g).sort((a, b) => comparar(a.nombre, b.nombre)) }))
       .filter(b => b.filas.length);
 
-    cont.innerHTML = bloques.map(({ g, filas }) => `
-      <details class="grupo-sidebar">
-        <summary>${g ? escapeHtml(g) : 'Sin grupo'} (${filas.reduce((n, r) => n + personasFila(r), 0)})</summary>
-        ${filas.map(r => `
-          <div class="chip" draggable="true" data-id="${r.id}">
-            ${nombreFicha(r)} <span class="n-personas">(${personasFila(r)})</span>
-          </div>
-        `).join('')}
-      </details>
-    `).join('');
+    cont.innerHTML = bloques.map(({ g, filas }) => {
+      const abierto = gruposAbiertos.has(g);
+      return `
+      <div class="grupo-sidebar">
+        <div class="grupo-cabecera" data-toggle-grupo="${escapeHtml(g)}">
+          <span class="grupo-flecha">${abierto ? '▾' : '▸'}</span>
+          <span class="grupo-asa" draggable="true" data-grupo="${escapeHtml(g)}" title="Arrastra todo el grupo a una mesa">${g ? escapeHtml(g) : 'Sin grupo'} (${filas.reduce((n, r) => n + personasFila(r), 0)})</span>
+        </div>
+        <div class="grupo-contenido" style="display:${abierto ? 'block' : 'none'}">
+          ${filas.map(r => `
+            <div class="chip" draggable="true" data-id="${r.id}">
+              ${nombreFicha(r)} <span class="n-personas">(${personasFila(r)})</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+    }).join('');
 
     cont.querySelectorAll('.chip').forEach(chip => {
       chip.addEventListener('dragstart', onDragStartChip);
       chip.addEventListener('dragend', onDragEndChip);
+    });
+    cont.querySelectorAll('.grupo-asa').forEach(asa => {
+      asa.addEventListener('dragstart', onDragStartGrupo);
+      asa.addEventListener('dragend', onDragEndGrupo);
+    });
+    cont.querySelectorAll('[data-toggle-grupo]').forEach(cabecera => {
+      cabecera.addEventListener('click', () => {
+        const g = cabecera.dataset.toggleGrupo;
+        if (gruposAbiertos.has(g)) gruposAbiertos.delete(g);
+        else gruposAbiertos.add(g);
+        render();
+      });
     });
   }
 
@@ -340,9 +398,9 @@
       zona.addEventListener('drop', async (e) => {
         e.preventDefault();
         zona.classList.remove('zona-drop');
-        const id = Number(e.dataTransfer.getData('text/plain'));
-        if (!id) return;
-        await asignarMesa(id, Number(zona.dataset.mesaDrop));
+        const datos = e.dataTransfer.getData('text/plain');
+        if (!datos) return;
+        await procesarSoltado(datos, Number(zona.dataset.mesaDrop));
       });
     });
 
@@ -446,6 +504,53 @@
   }
   function onDragEndChip(e) {
     e.currentTarget.classList.remove('arrastrando');
+  }
+
+  // Arrastrar la cabecera de un grupo entero mueve a todos sus invitados
+  // (sin mesa todavía) de una vez.
+  function onDragStartGrupo(e) {
+    e.dataTransfer.setData('text/plain', 'grupo:' + e.currentTarget.dataset.grupo);
+    e.currentTarget.closest('.grupo-sidebar').classList.add('arrastrando');
+  }
+  function onDragEndGrupo(e) {
+    e.currentTarget.closest('.grupo-sidebar').classList.remove('arrastrando');
+  }
+
+  // Distingue si lo que se soltó es una ficha suelta ("42") o un grupo
+  // entero ("grupo:Amigos Gozadera") y asigna la mesa en consecuencia.
+  async function procesarSoltado(datos, mesaDestinoId) {
+    if (datos.startsWith('grupo:')) {
+      const grupo = datos.slice('grupo:'.length);
+      const idsDelGrupo = respuestas
+        .filter(r => necesitaMesa(r) && !r.mesa_id && (r.grupo || '') === grupo)
+        .map(r => r.id);
+      if (!idsDelGrupo.length) return;
+      await asignarGrupo(idsDelGrupo, mesaDestinoId);
+    } else {
+      const id = Number(datos);
+      if (!id) return;
+      await asignarMesa(id, mesaDestinoId);
+    }
+  }
+
+  async function asignarGrupo(ids, mesaId) {
+    try {
+      const res = await fetch('/api/respuestas/mesa-bloque', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'x-admin-token': adminToken },
+        body: JSON.stringify({ ids, mesaId })
+      });
+      if (!res.ok) { mostrarToast('No se ha podido asignar el grupo.'); return; }
+      const data = await res.json();
+      data.respuestas.forEach(actualizada => {
+        const idx = respuestas.findIndex(r => r.id === actualizada.id);
+        if (idx !== -1) respuestas[idx] = actualizada;
+      });
+      render();
+      mostrarToast('Grupo asignado (' + ids.length + (ids.length === 1 ? ' ficha' : ' fichas') + ').');
+    } catch (err) {
+      mostrarToast('Error al conectar con el servidor.');
+    }
   }
 
   // Soltar en la barra lateral quita de cualquier mesa

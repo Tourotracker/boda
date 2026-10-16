@@ -3,6 +3,7 @@ const express = require('express');
 const { Pool } = require('pg');
 const { generarXlsx } = require('./lib/xlsx');
 const { sobresParaEnviar } = require('./lib/sobres');
+const { filasPorMesa, filasPorInvitado } = require('./lib/mesas-export');
 const CATEGORIAS = require('./public/categorias');
 
 const app = express();
@@ -316,6 +317,24 @@ app.post('/api/respuestas', requireAdmin, async (req, res) => {
   }
 });
 
+app.put('/api/respuestas/mesa-bloque', requireAdmin, async (req, res) => {
+  const { ids, mesaId } = req.body;
+  if (!idsValidos(ids)) return res.status(400).json({ error: 'No hay invitados para asignar.' });
+  if (mesaId !== null && !Number.isInteger(mesaId)) {
+    return res.status(400).json({ error: 'Mesa no válida.' });
+  }
+  try {
+    const { rows } = await pool.query(
+      'UPDATE rsvp SET mesa_id = $1, updated_at = NOW() WHERE id = ANY($2::int[]) AND deleted_at IS NULL RETURNING *',
+      [mesaId, ids]
+    );
+    res.json({ ok: true, respuestas: rows });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al asignar mesa.' });
+  }
+});
+
 app.put('/api/respuestas/:id', requireAdmin, async (req, res) => {
   const id = Number(req.params.id);
   if (!Number.isInteger(id)) {
@@ -602,6 +621,46 @@ app.put('/api/respuestas/:id/mesa', requireAdmin, async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error al asignar mesa.' });
+  }
+});
+
+app.get('/api/export/mesas-por-mesa', requireAdmin, async (req, res) => {
+  try {
+    const [mesasRes, respuestasRes] = await Promise.all([
+      pool.query('SELECT * FROM mesas ORDER BY id'),
+      pool.query('SELECT * FROM rsvp WHERE deleted_at IS NULL')
+    ]);
+    const { columnas, filas } = filasPorMesa(mesasRes.rows, respuestasRes.rows);
+    const xlsx = generarXlsx('Por mesa', columnas, filas);
+    res.set({
+      'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'Content-Disposition': 'attachment; filename="mesas-por-mesa.xlsx"',
+      'Cache-Control': 'no-store'
+    });
+    res.send(xlsx);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al generar el Excel: ' + err.message });
+  }
+});
+
+app.get('/api/export/mesas-por-invitado', requireAdmin, async (req, res) => {
+  try {
+    const [mesasRes, respuestasRes] = await Promise.all([
+      pool.query('SELECT * FROM mesas ORDER BY id'),
+      pool.query('SELECT * FROM rsvp WHERE deleted_at IS NULL')
+    ]);
+    const { columnas, filas } = filasPorInvitado(mesasRes.rows, respuestasRes.rows);
+    const xlsx = generarXlsx('Por invitado', columnas, filas);
+    res.set({
+      'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'Content-Disposition': 'attachment; filename="mesas-por-invitado.xlsx"',
+      'Cache-Control': 'no-store'
+    });
+    res.send(xlsx);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al generar el Excel: ' + err.message });
   }
 });
 
