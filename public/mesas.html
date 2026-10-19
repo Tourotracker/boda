@@ -100,9 +100,14 @@
     cursor:grab;
   }
   .mesa-cabecera:active{cursor:grabbing;}
-  .mesa-nombre{font-weight:700; font-size:14px; flex:1; cursor:text;}
-  .mesa-capacidad{font-size:12px; color:#8A6A5E; font-weight:600; white-space:nowrap;}
+  .mesa-nombre{font-weight:700; font-size:13px; flex:1; cursor:text;}
+  .mesa-capacidad{font-size:11.5px; color:#8A6A5E; font-weight:600; white-space:nowrap;}
   .mesa.sobre-capacidad .mesa-capacidad{color:#C46A4A;}
+  .mesa-plegar{
+    background:none; box-shadow:none; color:#8A6A5E; font-size:11px; line-height:1;
+    padding:2px 5px; font-weight:700;
+  }
+  .mesa-plegar:hover{background:#E7C4B8; transform:none;}
   .mesa-borrar{
     background:none; box-shadow:none; color:#B05A4A; font-size:16px; line-height:1;
     padding:2px 6px; font-weight:700;
@@ -110,10 +115,11 @@
   .mesa-borrar:hover{background:#FBEAE4; transform:none;}
   .mesa-cuerpo{min-height:70px; padding:10px 12px;}
   .mesa-cuerpo.zona-drop{background:var(--gold-soft);}
+  .mesa.plegada .mesa-cuerpo{display:none;}
   .mesa-vacia{font-size:12px; color:#B5AEA6; text-align:center; padding:14px 0;}
   .chip-mesa{
-    background:#F5F1EC; border-radius:8px; padding:6px 9px; margin-bottom:5px;
-    font-size:12.5px; display:flex; align-items:center; gap:6px; cursor:grab;
+    background:#F5F1EC; border-radius:7px; padding:4px 7px; margin-bottom:4px;
+    font-size:11px; display:flex; align-items:center; gap:5px; cursor:grab; line-height:1.3;
   }
   .chip-mesa:active{cursor:grabbing;}
   .chip-quitar{
@@ -302,6 +308,9 @@
   // Qué grupos se han desplegado, para que sigan abiertos entre renders
   // (p.ej. al asignar alguien a una mesa).
   const gruposAbiertos = new Set();
+  // Mesas plegadas (solo la cabecera visible), para poder colocarlas sin
+  // que ocupen media pantalla cada una.
+  const mesasPlegadas = new Set();
 
   function renderSidebar(sinMesa) {
     const cont = document.getElementById('sidebarContenido');
@@ -358,9 +367,11 @@
       const asignados = respuestas.filter(r => r.mesa_id === m.id);
       const ocupadas = asignados.reduce((n, r) => n + personasFila(r), 0);
       const sobreCapacidad = ocupadas > m.capacidad;
+      const plegada = mesasPlegadas.has(m.id);
       return `
-        <div class="mesa ${sobreCapacidad ? 'sobre-capacidad' : ''}" style="left:${m.pos_x}px; top:${m.pos_y}px;" data-id="${m.id}">
+        <div class="mesa ${sobreCapacidad ? 'sobre-capacidad' : ''} ${plegada ? 'plegada' : ''}" style="left:${m.pos_x}px; top:${m.pos_y}px;" data-id="${m.id}">
           <div class="mesa-cabecera" data-arrastre-mesa="${m.id}">
+            <button class="mesa-plegar" data-plegar="${m.id}" title="${plegada ? 'Desplegar' : 'Plegar'} mesa">${plegada ? '▸' : '▾'}</button>
             <div class="mesa-nombre" data-renombrar="${m.id}" title="Pulsa para renombrar">${escapeHtml(m.nombre)}</div>
             <div class="mesa-capacidad">${ocupadas}/${m.capacidad}</div>
             <button class="mesa-borrar" data-borrar="${m.id}" title="Eliminar mesa">×</button>
@@ -404,6 +415,17 @@
       });
     });
 
+    // Plegar/desplegar mesa
+    lienzo.querySelectorAll('[data-plegar]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const id = Number(btn.dataset.plegar);
+        if (mesasPlegadas.has(id)) mesasPlegadas.delete(id);
+        else mesasPlegadas.add(id);
+        renderLienzo();
+      });
+    });
+
     // Eliminar mesa
     lienzo.querySelectorAll('[data-borrar]').forEach(btn => {
       btn.addEventListener('click', async (e) => {
@@ -438,7 +460,7 @@
   const UMBRAL_ARRASTRE = 5;
 
   function iniciarArrastreMesa(e) {
-    if (e.target.closest('[data-borrar]')) return; // el botón de borrar va por su cuenta
+    if (e.target.closest('[data-borrar]') || e.target.closest('[data-plegar]')) return; // tienen su propio clic
     const mesaEl = e.target.closest('.mesa');
     const lienzo = document.getElementById('lienzo');
     const rectMesa = mesaEl.getBoundingClientRect();
