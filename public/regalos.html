@@ -38,6 +38,7 @@
   .stat{background:#fff; border-radius:var(--radius-md); box-shadow:var(--shadow-card); padding:14px 18px; min-width:120px; flex:1;}
   .stat .n{font-family:'Cormorant Garamond',serif; font-size:28px; color:var(--gold);}
   .stat .l{font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.05em;}
+  .stat .l-sub{font-size:11px; color:#A39B90; margin-top:2px;}
   .stat.highlight{background:var(--sage);} .stat.highlight .n, .stat.highlight .l{color:#fff;}
   .toolbar{display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap;}
   .btn-secundario{background:#fff; color:var(--gold); border:1.5px solid var(--gold); box-shadow:none;}
@@ -495,11 +496,28 @@
     const indicios = fichas.filter(f => !conRegalo.has(f.id) && (f.iban_copiado_at || f.lista_click_at));
     const total = regalos.reduce((n, g) => n + (g.importe || 0), 0);
     const deGrupo = regalos.filter(g => g.invitados.length > 1).length;
+    // Media por persona: solo regalos con importe y de invitados de la lista;
+    // cada ficha cuenta como 1 persona más su acompañante (igual que en el
+    // panel), y un regalo de grupo se reparte entre todas sus personas.
+    let importeMedia = 0;
+    let personasMedia = 0;
+    for (const g of regalos) {
+      if (g.importe === null) continue;
+      const personas = g.invitados.reduce((n, i) => {
+        const f = porId.get(i.rsvp_id);
+        return f ? n + 1 + (f.con_acompanante === 'si' ? 1 : 0) : n;
+      }, 0);
+      if (!personas) continue;
+      importeMedia += g.importe;
+      personasMedia += personas;
+    }
+    const media = personasMedia ? importeMedia / personasMedia : 0;
 
     document.getElementById('stats').innerHTML = `
       <div class="stat"><div class="n">${regalos.length}</div><div class="l">Regalos</div></div>
       <div class="stat"><div class="n">${deGrupo}</div><div class="l">De grupo</div></div>
       <div class="stat"><div class="n">${euros(total)}</div><div class="l">Importe apuntado</div></div>
+      <div class="stat" title="${euros(importeMedia)} entre ${personasMedia} persona${personasMedia === 1 ? '' : 's'} (invitados + acompañantes). Solo regalos con importe y de invitados de la lista."><div class="n">${euros(media)}</div><div class="l">Media por persona</div><div class="l-sub">invitado + acompañante</div></div>
       <div class="stat highlight"><div class="n">${pendientes.length}</div><div class="l">Gracias pendientes</div></div>
       <div class="stat"><div class="n">${destinos.filter(d => d.estado === 'enviado').length}</div><div class="l">Gracias enviadas</div></div>
       <div class="stat"><div class="n">${sinRegalo.length}</div><div class="l">Fichas sin regalo</div></div>`;
