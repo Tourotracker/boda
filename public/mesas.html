@@ -115,6 +115,7 @@
   .mesa-borrar:hover{background:#FBEAE4; transform:none;}
   .mesa-cuerpo{min-height:70px; padding:10px 12px;}
   .mesa-cuerpo.zona-drop{background:var(--gold-soft);}
+  .mesa-cabecera.zona-drop{outline:2px dashed var(--sage); outline-offset:-2px;}
   .mesa.plegada .mesa-cuerpo{display:none;}
   .mesa-vacia{font-size:12px; color:#B5AEA6; text-align:center; padding:14px 0;}
   .chip-mesa{
@@ -308,9 +309,9 @@
   // Qué grupos se han desplegado, para que sigan abiertos entre renders
   // (p.ej. al asignar alguien a una mesa).
   const gruposAbiertos = new Set();
-  // Mesas plegadas (solo la cabecera visible), para poder colocarlas sin
-  // que ocupen media pantalla cada una.
-  const mesasPlegadas = new Set();
+  // Mesas desplegadas. Al entrar todas salen plegadas (solo la cabecera),
+  // para poder colocarlas sin que ocupen media pantalla cada una.
+  const mesasAbiertas = new Set();
 
   function renderSidebar(sinMesa) {
     const cont = document.getElementById('sidebarContenido');
@@ -367,10 +368,10 @@
       const asignados = respuestas.filter(r => r.mesa_id === m.id);
       const ocupadas = asignados.reduce((n, r) => n + personasFila(r), 0);
       const sobreCapacidad = ocupadas > m.capacidad;
-      const plegada = mesasPlegadas.has(m.id);
+      const plegada = !mesasAbiertas.has(m.id);
       return `
         <div class="mesa ${sobreCapacidad ? 'sobre-capacidad' : ''} ${plegada ? 'plegada' : ''}" style="left:${m.pos_x}px; top:${m.pos_y}px;" data-id="${m.id}">
-          <div class="mesa-cabecera" data-arrastre-mesa="${m.id}">
+          <div class="mesa-cabecera" data-arrastre-mesa="${m.id}"${plegada ? ` data-mesa-drop="${m.id}" title="Suelta aquí para sentar en esta mesa"` : ''}>
             <button class="mesa-plegar" data-plegar="${m.id}" title="${plegada ? 'Desplegar' : 'Plegar'} mesa">${plegada ? '▸' : '▾'}</button>
             <div class="mesa-nombre" data-renombrar="${m.id}" title="Pulsa para renombrar">${escapeHtml(m.nombre)}</div>
             <div class="mesa-capacidad">${ocupadas}/${m.capacidad}</div>
@@ -420,8 +421,8 @@
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         const id = Number(btn.dataset.plegar);
-        if (mesasPlegadas.has(id)) mesasPlegadas.delete(id);
-        else mesasPlegadas.add(id);
+        if (mesasAbiertas.has(id)) mesasAbiertas.delete(id);
+        else mesasAbiertas.add(id);
         renderLienzo();
       });
     });
