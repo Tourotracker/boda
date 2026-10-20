@@ -745,6 +745,9 @@
     const pendientesCount = data.filter(r => r.asiste === 'pendiente').length;
     const total = data.length - pendientesCount;
     const completaCount = data.filter(r => r.asiste === 'completa' || r.asiste === 'si').length;
+    // La tarjeta "Toda la boda" cuenta personas: cada ficha y su acompañante.
+    const completaAcomp = data.filter(r => (r.asiste === 'completa' || r.asiste === 'si') && r.con_acompanante === 'si').length;
+    const completaPersonas = completaCount + completaAcomp;
     const copasCount = data.filter(r => r.asiste === 'copas').length;
     const noCount = data.filter(r => r.asiste === 'no').length;
     const asistenCount = completaCount + copasCount;
@@ -760,7 +763,7 @@
       <div class="stat"><div class="n">${total}</div><div class="l">Respuestas</div></div>
       <div class="stat"><div class="n">${pendientesCount}</div><div class="l">Pendientes</div></div>
       <div class="stat"><div class="n">${noCount}</div><div class="l">No asisten</div></div>
-      <div class="stat"><div class="n">${completaCount}</div><div class="l">Toda la boda</div></div>
+      <div class="stat" title="${completaCount} invitados + ${completaAcomp} acompañantes"><div class="n">${completaPersonas}</div><div class="l">Toda la boda</div><div class="l-sub">con acompañantes</div></div>
       <div class="stat"><div class="n">${copasCount}</div><div class="l">Solo copas</div></div>
       <div class="stat"><div class="n">${acompanantes}</div><div class="l">Acompañantes</div></div>
       <div class="stat"><div class="n">${pctAsistencia}%</div><div class="l">% asistencia</div></div>
