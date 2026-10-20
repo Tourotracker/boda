@@ -741,34 +741,46 @@
     return termino.split(/\s+/).filter(Boolean).every(palabra => texto.includes(palabra));
   }
 
+  // Cada ficha cae en una sola de estas cuatro respuestas. 'si' es el valor
+  // antiguo de "toda la boda"; cualquier valor desconocido cuenta como pendiente.
+  function estadoAsistencia(r) {
+    if (r.asiste === 'completa' || r.asiste === 'si') return 'completa';
+    if (r.asiste === 'copas' || r.asiste === 'no') return r.asiste;
+    return 'pendiente';
+  }
+
+  // Las tarjetas cuentan PERSONAS (cada invitado y su acompañante), así que
+  // Toda la boda + Solo copas + Pendientes + No asisten = Total invitados y
+  // Toda la boda + Solo copas = Total asistentes. Solo "Respuestas" y el
+  // % de asistencia van por fichas.
   function render(data) {
-    const pendientesCount = data.filter(r => r.asiste === 'pendiente').length;
-    const total = data.length - pendientesCount;
-    const completaCount = data.filter(r => r.asiste === 'completa' || r.asiste === 'si').length;
-    // La tarjeta "Toda la boda" cuenta personas: cada ficha y su acompañante.
-    const completaAcomp = data.filter(r => (r.asiste === 'completa' || r.asiste === 'si') && r.con_acompanante === 'si').length;
-    const completaPersonas = completaCount + completaAcomp;
-    const copasCount = data.filter(r => r.asiste === 'copas').length;
-    const noCount = data.filter(r => r.asiste === 'no').length;
-    const asistenCount = completaCount + copasCount;
-    const acompanantes = data.filter(r => r.asiste !== 'no' && r.asiste !== 'pendiente' && r.con_acompanante === 'si').length;
-    const totalInvitados = asistenCount + acompanantes;
-    // Todas las personas de la lista (cada invitado más su acompañante), sea
-    // cual sea su respuesta.
-    const totalLista = data.reduce((n, r) => n + personasFila(r), 0);
-    const acompanantesTodos = totalLista - data.length;
-    const pctAsistencia = total ? Math.round((asistenCount / total) * 100) : 0;
+    const cuenta = { completa: { fichas: 0, acomp: 0 }, copas: { fichas: 0, acomp: 0 }, no: { fichas: 0, acomp: 0 }, pendiente: { fichas: 0, acomp: 0 } };
+    for (const r of data) {
+      const c = cuenta[estadoAsistencia(r)];
+      c.fichas += 1;
+      if (r.con_acompanante === 'si') c.acomp += 1;
+    }
+    const personas = e => cuenta[e].fichas + cuenta[e].acomp;
+    const desglose = e => `${cuenta[e].fichas} invitado${cuenta[e].fichas === 1 ? '' : 's'} + ${cuenta[e].acomp} acompañante${cuenta[e].acomp === 1 ? '' : 's'}`;
+    const respuestas = data.length - cuenta.pendiente.fichas;
+    const fichasVienen = cuenta.completa.fichas + cuenta.copas.fichas;
+    const acompVienen = cuenta.completa.acomp + cuenta.copas.acomp;
+    const totalAsistentes = personas('completa') + personas('copas');
+    const totalLista = totalAsistentes + personas('pendiente') + personas('no');
+    const pctAsistencia = respuestas ? Math.round((fichasVienen / respuestas) * 100) : 0;
+    const tarjeta = (n, etiqueta, sub, titulo, clase) =>
+      `<div class="stat${clase ? ' ' + clase : ''}"${titulo ? ` title="${titulo}"` : ''}><div class="n">${n}</div><div class="l">${etiqueta}</div>${sub ? `<div class="l-sub">${sub}</div>` : ''}</div>`;
 
     document.getElementById('stats').innerHTML = `
-      <div class="stat"><div class="n">${total}</div><div class="l">Respuestas</div></div>
-      <div class="stat"><div class="n">${pendientesCount}</div><div class="l">Pendientes</div></div>
-      <div class="stat"><div class="n">${noCount}</div><div class="l">No asisten</div></div>
-      <div class="stat" title="${completaCount} invitados + ${completaAcomp} acompañantes"><div class="n">${completaPersonas}</div><div class="l">Toda la boda</div><div class="l-sub">con acompañantes</div></div>
-      <div class="stat"><div class="n">${copasCount}</div><div class="l">Solo copas</div></div>
-      <div class="stat"><div class="n">${acompanantes}</div><div class="l">Acompañantes</div></div>
-      <div class="stat"><div class="n">${pctAsistencia}%</div><div class="l">% asistencia</div></div>
-      <div class="stat" title="${data.length} invitados + ${acompanantesTodos} acompañantes, contando pendientes y los que no asisten"><div class="n">${totalLista}</div><div class="l">Total invitados</div><div class="l-sub">con acompañantes</div></div>
-      <div class="stat highlight"><div class="n">${totalInvitados}</div><div class="l">Total asistentes</div></div>
+      ${tarjeta(respuestas, 'Respuestas', 'fichas que han contestado', `${respuestas} de ${data.length} fichas`)}
+      ${tarjeta(personas('pendiente'), 'Pendientes', 'con acompañantes', desglose('pendiente'))}
+      ${tarjeta(personas('no'), 'No asisten', 'con acompañantes', desglose('no'))}
+      ${tarjeta(personas('completa'), 'Toda la boda', 'con acompañantes', desglose('completa'))}
+      ${tarjeta(personas('copas'), 'Solo copas', 'con acompañantes', desglose('copas'))}
+      ${tarjeta(acompVienen, 'Acompañantes', 'de los que vienen', 'Acompañantes de quienes vienen a toda la boda o solo a las copas')}
+      ${tarjeta(pctAsistencia + '%', '% asistencia', 'de las fichas que han contestado', `${fichasVienen} de ${respuestas} fichas vienen`)}
+      ${tarjeta(totalLista, 'Total invitados', 'con acompañantes', `Toda la boda ${personas('completa')} + Solo copas ${personas('copas')} + Pendientes ${personas('pendiente')} + No asisten ${personas('no')}`)}
+      ${tarjeta(totalAsistentes, 'Total asistentes', 'toda la boda + copas', `Toda la boda ${personas('completa')} + Solo copas ${personas('copas')}`, 'highlight')}
       <div class="stat" title="${qrScansUltimo ? 'Último escaneo: ' + fechaHora(qrScansUltimo) : 'Todavía no se ha escaneado'}"><div class="n">${qrScansTotal}</div><div class="l">Escaneos QR</div></div>
     `;
 
@@ -776,9 +788,7 @@
   }
 
   function coincideAsiste(r, filtro) {
-    if (!filtro) return true;
-    if (filtro === 'completa') return r.asiste === 'completa' || r.asiste === 'si';
-    return r.asiste === filtro;
+    return !filtro || estadoAsistencia(r) === filtro;
   }
 
   // Filtros de selección múltiple. '' representa "Sin asignar".
