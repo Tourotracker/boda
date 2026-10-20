@@ -69,6 +69,12 @@
   }
   .btn-mesas:hover{transform:translateY(-1px); box-shadow:0 5px 14px rgba(29,74,70,0.45); background:linear-gradient(135deg, #2F6F6B, #1D4A46);}
   .btn-mesas .icono-mesa{font-size:15px; line-height:1;}
+  .btn-regalos{background:linear-gradient(135deg, #B5577A, #7A2432); box-shadow:0 3px 10px rgba(122,36,50,0.35);}
+  .btn-regalos:hover{background:linear-gradient(135deg, #B5577A, #7A2432); box-shadow:0 5px 14px rgba(122,36,50,0.45);}
+  .icono-regalo{font-size:12px; margin-left:4px; white-space:nowrap; cursor:help;}
+  .bloque-regalos{background:#FBF3F0; border-radius:var(--radius-sm); padding:10px 12px; font-size:13px;}
+  .bloque-regalos ul{margin:6px 0 8px; padding-left:18px;}
+  .bloque-regalos a{color:var(--gold); font-weight:700;}
   .search-wrap input{
     width:100%; padding:11px 13px; border:1.5px solid var(--line); border-radius:var(--radius-sm);
     font-size:14px; font-family:inherit; background:#fff;
@@ -314,7 +320,7 @@
     .stat .n{font-size:22px;}
     .toolbar{justify-content:stretch;}
     .toolbar-actions{width:100%; flex-wrap:wrap;}
-    .toolbar-actions button, .toolbar-actions .btn-mesas{flex:1 1 calc(50% - 5px); width:auto; justify-content:center;}
+    .toolbar-actions button, .toolbar-actions .btn-mesas, .toolbar-actions .btn-regalos{flex:1 1 calc(50% - 5px); width:auto; justify-content:center;}
     .search-wrap{max-width:none; width:100%;}
     .filtro-asiste{width:100%;}
     .filtro-multi{width:100%;}
@@ -400,6 +406,7 @@
       <button id="anadir" class="btn-secundario">Añadir invitado</button>
       <button id="exportarDirecciones" class="btn-secundario">Excel direcciones (sobres)</button>
       <a href="/mesas.html" class="btn-mesas"><span class="icono-mesa">🪑</span>Plano de mesas</a>
+      <a href="/regalos.html" class="btn-mesas btn-regalos"><span class="icono-mesa">🎁</span>Regalos</a>
       <button id="exportar">Descargar CSV</button>
     </div>
   </div>
@@ -548,6 +555,11 @@
           <label for="editAcompananteAlergias">Alergias acomp.</label>
           <textarea id="editAcompananteAlergias"></textarea>
         </div>
+        <div class="span-2">
+          <label for="editTelefono">Teléfono <span style="font-weight:400">· para dar las gracias por WhatsApp</span></label>
+          <input type="text" id="editTelefono" inputmode="tel" placeholder="Ej. 612 345 678">
+        </div>
+        <div class="span-2 bloque-regalos" id="fichaRegalos"></div>
         <div class="span-2 opcion-sobre">
           <label class="casilla"><input type="checkbox" id="editSobreDosApellidos"> Sobre "Sres. Pérez López" (1er apellido del hombre + 1er apellido de la mujer)</label>
           <div class="ayuda">Solo para matrimonios. Si no se marca: "Sres. de Pérez García" (los dos apellidos del hombre).</div>
@@ -598,7 +610,7 @@
       adminToken = token;
       try { localStorage.setItem(CLAVE_TOKEN, token); } catch (err) {}
       currentData = await res.json();
-      await cargarQrScans();
+      await Promise.all([cargarQrScans(), cargarRegalos()]);
       render(currentData);
       document.getElementById('gate').style.display = 'none';
       document.getElementById('panel').style.display = 'block';
@@ -625,8 +637,52 @@
   async function recargar() {
     const res = await fetch('/api/respuestas', { headers: { 'x-admin-token': adminToken } });
     currentData = await res.json();
-    await cargarQrScans();
+    await Promise.all([cargarQrScans(), cargarRegalos()]);
     render(currentData);
+  }
+
+  // Resumen de regalos por ficha, para los iconos de la tabla y el árbol y
+  // para la ficha. La gestión completa está en /regalos.html.
+  let regalosPorFicha = new Map();
+  const TIPO_REGALO = { transferencia: 'Transferencia', lista: 'Lista El Corte Inglés', fisico: 'Regalo físico', sobre: 'Sobre', otro: 'Otro' };
+  async function cargarRegalos() {
+    try {
+      const res = await fetch('/api/regalos', { headers: { 'x-admin-token': adminToken } });
+      if (!res.ok) return;
+      const mapa = new Map();
+      for (const g of await res.json()) {
+        for (const i of g.invitados) {
+          if (!mapa.has(i.rsvp_id)) mapa.set(i.rsvp_id, []);
+          mapa.get(i.rsvp_id).push({ regalo: g, agradecimiento: i.agradecimiento });
+        }
+      }
+      regalosPorFicha = mapa;
+    } catch (err) {
+      // No es crítico: sin esto solo faltan los iconos.
+    }
+  }
+
+  function iconoRegalos(r) {
+    const lista = regalosPorFicha.get(r.id);
+    if (!lista || !lista.length) return '';
+    const pendientes = lista.filter(x => x.agradecimiento !== 'enviado').length;
+    const titulo = `${lista.length} regalo${lista.length === 1 ? '' : 's'} · ` +
+      (pendientes ? `faltan ${pendientes} agradecimiento${pendientes === 1 ? '' : 's'}` : 'ya agradecido');
+    return `<span class="icono-regalo" title="${titulo}">🎁${pendientes ? '⏳' : '✓'}</span>`;
+  }
+
+  function pintarRegalosFicha(r) {
+    const cont = document.getElementById('fichaRegalos');
+    if (!r) { cont.style.display = 'none'; return; }
+    cont.style.display = '';
+    const lista = regalosPorFicha.get(r.id) || [];
+    const estado = { pendiente: 'gracias pendientes', escrito: 'gracias escritas', enviado: 'gracias enviadas ✓' };
+    cont.innerHTML = '<b>🎁 Regalos</b>' + (lista.length
+      ? `<ul>${lista.map(({ regalo: g, agradecimiento }) => `<li>${escapeHtml(g.descripcion || TIPO_REGALO[g.tipo] || g.tipo)}` +
+          `${g.importe !== null ? ' · ' + Number(g.importe).toLocaleString('es-ES', { minimumFractionDigits: 2 }) + ' €' : ''}` +
+          `${g.invitados.length > 1 ? ' · de grupo' : ''} — ${estado[agradecimiento] || agradecimiento}</li>`).join('')}</ul>`
+      : ' · todavía no hay ninguno apuntado. ') +
+      `<a href="/regalos.html?ficha=${r.id}">Apuntar un regalo →</a>`;
   }
 
   async function cargarQrScans() {
@@ -945,7 +1001,7 @@
       <tr data-id="${r.id}" class="${seleccionados.has(r.id) ? 'seleccionada' : ''} ${r.nuevo ? 'fila-nueva' : ''}">
         <td data-label="Seleccionar" class="td-check"><input type="checkbox" class="check-fila" data-id="${r.id}"${seleccionados.has(r.id) ? ' checked' : ''}></td>
         <td data-label="Fecha">${new Date(r.created_at).toLocaleDateString('es-ES')}</td>
-        <td data-label="Nombre">${r.nuevo ? '<span class="etiqueta-nuevo">NUEVO</span>' : ''}${escapeHtml(r.tratamiento)} ${escapeHtml(r.nombre)}${r.nuevo ? avisoDuplicado(r) : ''}</td>
+        <td data-label="Nombre">${r.nuevo ? '<span class="etiqueta-nuevo">NUEVO</span>' : ''}${escapeHtml(r.tratamiento)} ${escapeHtml(r.nombre)}${iconoRegalos(r)}${r.nuevo ? avisoDuplicado(r) : ''}</td>
         <td data-label="Apellidos">${escapeHtml(r.apellidos)}</td>
         <td data-label="Categoría">${r.invitado_por || r.grupo
           ? `${escapeHtml(r.invitado_por) || '<span class="sin-asignar">—</span>'}<span class="categoria-grupo">${escapeHtml(r.grupo)}</span>`
@@ -1039,7 +1095,7 @@
                   ? ` <span class="acomp">+ ${escapeHtml(r.acompanante_nombre)}</span>` : '';
                 return `<li class="invitado ${r.asiste === 'no' ? 'no-asiste' : ''}" data-id="${r.id}" title="${escapeHtml(asisteLabel(r.asiste))} · pulsa para abrir la ficha">
                   <span class="punto ${claseAsiste(r.asiste)}"></span>
-                  <span>${r.nuevo ? '<span class="etiqueta-nuevo">NUEVO</span>' : ''}<span class="quien">${escapeHtml(r.nombre)} ${escapeHtml(r.apellidos)}</span>${acomp}${r.asiste === 'no' && r.enviar_invitacion ? '<span class="icono-sobre" title="Se le envía la invitación por correo igualmente">✉</span>' : ''}</span>
+                  <span>${r.nuevo ? '<span class="etiqueta-nuevo">NUEVO</span>' : ''}<span class="quien">${escapeHtml(r.nombre)} ${escapeHtml(r.apellidos)}</span>${acomp}${iconoRegalos(r)}${r.asiste === 'no' && r.enviar_invitacion ? '<span class="icono-sobre" title="Se le envía la invitación por correo igualmente">✉</span>' : ''}</span>
                 </li>`;
               }).join('')}
             </ul>
@@ -1221,6 +1277,8 @@
     actualizarEnviarInvitacion();
     document.getElementById('editNombre').value = r.nombre || '';
     document.getElementById('editApellidos').value = r.apellidos || '';
+    document.getElementById('editTelefono').value = r.telefono || '';
+    pintarRegalosFicha(r);
     document.getElementById('editCalle').value = r.calle || '';
     document.getElementById('editCp').value = r.cp || '';
     document.getElementById('editCiudad').value = r.ciudad || '';
@@ -1250,6 +1308,8 @@
     actualizarEnviarInvitacion();
     document.getElementById('editNombre').value = '';
     document.getElementById('editApellidos').value = '';
+    document.getElementById('editTelefono').value = '';
+    pintarRegalosFicha(null);
     document.getElementById('editCalle').value = '';
     document.getElementById('editCp').value = '';
     document.getElementById('editCiudad').value = '';
@@ -1292,6 +1352,7 @@
       tratamiento: document.getElementById('editTratamiento').value,
       nombre: document.getElementById('editNombre').value.trim(),
       apellidos: document.getElementById('editApellidos').value.trim(),
+      telefono: document.getElementById('editTelefono').value.trim(),
       calle: document.getElementById('editCalle').value.trim(),
       cp: document.getElementById('editCp').value.trim(),
       ciudad: document.getElementById('editCiudad').value.trim(),

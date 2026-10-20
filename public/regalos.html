@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Regalos y agradecimientos</title>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="icon" href="/favicon-16.png" type="image/png" sizes="16x16">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<style>
+  :root{
+    --cream:#FFFFFF; --gold:#7A2432; --gold-soft:#F1DCD3;
+    --sage:#9C4A50; --ink:#2E2621; --line:#E3E1DE; --muted:#8A8275;
+    --ok:#3E8E5E; --ok-soft:#E3F2E8; --warn:#9A6B00; --warn-soft:#FFF3D6;
+    --wa:#1FA855;
+    --radius-lg:20px; --radius-md:12px; --radius-sm:10px;
+    --shadow-card:0 1px 2px rgba(46,38,33,0.04), 0 16px 32px -12px rgba(46,38,33,0.12);
+  }
+  *{box-sizing:border-box;}
+  body{font-family:-apple-system,'Karla',sans-serif; background:var(--cream); color:var(--ink); margin:0; padding:32px 24px;}
+  h1{font-family:'Cormorant Garamond',serif; font-size:30px; margin-bottom:4px;}
+  .sub{color:var(--muted); font-size:14px; margin-bottom:24px;}
+  .volver{color:var(--gold); font-size:13px; text-decoration:underline; display:inline-block; margin-bottom:14px;}
+  .gate{max-width:360px; margin:80px auto; background:#fff; border-radius:var(--radius-lg); box-shadow:var(--shadow-card); padding:32px;}
+  .gate label{display:block; font-size:13px; font-weight:600; margin-bottom:8px;}
+  .gate input{width:100%; padding:11px 13px; border:1.5px solid var(--line); border-radius:var(--radius-sm); font-size:15px; margin-bottom:14px; background:#fff;}
+  button{
+    background:var(--gold); color:#fff; border:none; border-radius:var(--radius-sm);
+    padding:11px 18px; font-weight:700; cursor:pointer; font-size:14px; font-family:inherit;
+    box-shadow:0 3px 10px rgba(122,36,50,0.28); transition:background .15s, transform .15s;
+  }
+  button:hover{background:#5E1B26; transform:translateY(-1px);}
+  button.girando{pointer-events:none; opacity:.7;}
+  .error{color:#B05A4A; font-size:13px; margin-top:4px;}
+  #panel{display:none; max-width:1300px; margin:0 auto;}
+  .stats{display:flex; gap:14px; margin-bottom:20px; flex-wrap:wrap;}
+  .stat{background:#fff; border-radius:var(--radius-md); box-shadow:var(--shadow-card); padding:14px 18px; min-width:120px; flex:1;}
+  .stat .n{font-family:'Cormorant Garamond',serif; font-size:28px; color:var(--gold);}
+  .stat .l{font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.05em;}
+  .stat.highlight{background:var(--sage);} .stat.highlight .n, .stat.highlight .l{color:#fff;}
+  .toolbar{display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap;}
+  .btn-secundario{background:#fff; color:var(--gold); border:1.5px solid var(--gold); box-shadow:none;}
+  .btn-secundario:hover{background:var(--gold-soft); transform:none;}
+  .btn-suave{background:#EDEAE5; color:var(--ink); box-shadow:none;}
+  .btn-suave:hover{background:#E2DDD5; transform:none;}
+  .btn-peligro{background:#F3DEDE; color:#A33A3A; box-shadow:none;}
+  .btn-peligro:hover{background:#EBC7C7; transform:none;}
+  .btn-wa{background:var(--wa); box-shadow:none; padding:6px 10px; font-size:12px; border-radius:8px;}
+  .btn-wa:hover{background:#178A45; transform:none;}
+  .btn-mini{padding:6px 10px; font-size:12px; border-radius:8px; box-shadow:none;}
+
+  .pestanas{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px;}
+  .pestana{background:#F5F2EE; color:var(--ink); box-shadow:none; font-weight:600; padding:9px 14px; border-radius:999px;}
+  .pestana:hover{background:#ECE6DF; transform:none;}
+  .pestana.activa{background:var(--gold); color:#fff;}
+  .pestana .cuenta{opacity:.75; font-weight:500; margin-left:4px;}
+  .buscador{width:100%; max-width:420px; padding:11px 13px; border:1.5px solid var(--line); border-radius:var(--radius-sm); font-size:14px; font-family:inherit; margin-bottom:14px;}
+
+  .barra-seleccion{
+    display:none; position:sticky; top:0; z-index:15; align-items:center; gap:10px; flex-wrap:wrap;
+    background:#fff; border:1.5px solid var(--sage); border-radius:var(--radius-md);
+    box-shadow:var(--shadow-card); padding:10px 14px; margin-bottom:12px;
+  }
+  .barra-seleccion.visible{display:flex;}
+  .barra-seleccion strong{color:var(--gold);}
+  .barra-seleccion select{padding:9px 10px; border:1.5px solid var(--line); border-radius:var(--radius-sm); font-size:14px; font-family:inherit;}
+
+  .lista{display:grid; grid-template-columns:repeat(auto-fill, minmax(360px, 1fr)); gap:14px;}
+  .tarjeta{background:#fff; border-radius:var(--radius-md); box-shadow:var(--shadow-card); overflow:hidden; display:flex; flex-direction:column;}
+  .tarjeta-cabecera{padding:12px 14px; display:flex; gap:10px; align-items:flex-start; border-bottom:1px solid var(--line);}
+  .tarjeta-icono{font-size:22px; line-height:1;}
+  .tarjeta-titulo{flex:1; min-width:0;}
+  .tarjeta-titulo .que{font-weight:700; font-size:15px;}
+  .tarjeta-titulo .detalle{font-size:12px; color:var(--muted); margin-top:2px;}
+  .importe{font-family:'Cormorant Garamond',serif; font-size:22px; color:var(--gold); white-space:nowrap;}
+  .etiqueta{display:inline-block; font-size:10px; font-weight:800; letter-spacing:.05em; text-transform:uppercase; padding:2px 7px; border-radius:999px; background:#EFE9DE; color:#8A6A2E; margin-left:6px; vertical-align:middle;}
+  .destinos{list-style:none; margin:0; padding:6px 8px;}
+  .destino{display:flex; align-items:center; gap:8px; padding:7px 6px; border-radius:8px; flex-wrap:wrap;}
+  .destino:hover{background:#FBF8F5;}
+  .destino input[type=checkbox]{width:17px; height:17px; accent-color:var(--gold); cursor:pointer; flex-shrink:0;}
+  .destino .quien{flex:1; min-width:140px; font-size:14px;}
+  .destino .quien small{display:block; color:var(--muted); font-size:11px;}
+  .estado{border:1.5px solid var(--line); border-radius:999px; padding:4px 8px; font-size:12px; font-weight:700; font-family:inherit; cursor:pointer; background:#fff;}
+  .estado.pendiente{border-color:#E6C27A; background:var(--warn-soft); color:var(--warn);}
+  .estado.escrito{border-color:#B9CBE6; background:#EAF1FB; color:#2F5C93;}
+  .estado.enviado{border-color:#A8D5B7; background:var(--ok-soft); color:var(--ok);}
+  .cuando{font-size:11px; color:var(--muted); white-space:nowrap;}
+  .tarjeta-pie{margin-top:auto; padding:8px 14px 12px; display:flex; gap:6px; justify-content:flex-end; flex-wrap:wrap;}
+  .tarjeta-pie .notas{flex:1; font-size:12px; color:var(--muted); align-self:center;}
+  .vacio{background:#fff; border-radius:var(--radius-md); box-shadow:var(--shadow-card); padding:28px; text-align:center; color:var(--muted);}
+
+  table.fichas{width:100%; border-collapse:collapse; background:#fff; border-radius:var(--radius-md); overflow:hidden; box-shadow:var(--shadow-card); font-size:13px;}
+  table.fichas th, table.fichas td{padding:10px 12px; border-bottom:1px solid var(--line); text-align:left; vertical-align:middle;}
+  table.fichas th{background:var(--gold-soft); font-weight:700;}
+  .indicio{display:inline-block; font-size:11px; padding:2px 7px; border-radius:999px; background:var(--warn-soft); color:var(--warn); font-weight:700; margin-right:4px;}
+
+  .modal-overlay{display:none; position:fixed; inset:0; background:rgba(46,38,33,.45); align-items:center; justify-content:center; padding:20px; z-index:100;}
+  .modal-overlay.visible{display:flex;}
+  .modal{background:#fff; border-radius:var(--radius-lg); box-shadow:var(--shadow-card); padding:26px; max-width:640px; width:100%; max-height:92vh; overflow-y:auto;}
+  .modal.ancho{max-width:1100px;}
+  .modal-cabecera{display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:16px;}
+  .modal h2{font-family:'Cormorant Garamond',serif; font-size:24px; margin:0;}
+  .modal-cerrar{flex-shrink:0; width:36px; height:36px; padding:0; border-radius:50%; background:#EDEAE5; color:var(--ink); box-shadow:none; font-size:22px; line-height:1;}
+  .modal-cerrar:hover{background:#E2DDD5; transform:none;}
+  .rejilla{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+  .rejilla .span-2{grid-column:1 / -1;}
+  .modal label{display:block; font-size:12px; font-weight:600; margin-bottom:6px; color:#6B6259;}
+  .modal input[type=text], .modal input[type=date], .modal input[type=number], .modal select, .modal textarea{
+    width:100%; padding:9px 11px; border:1.5px solid var(--line); border-radius:var(--radius-sm); font-size:14px; font-family:inherit; background:#fff;
+  }
+  .modal textarea{resize:vertical; min-height:60px;}
+  .ayuda{font-size:12px; color:var(--muted); margin-top:4px;}
+  .modal-acciones{display:flex; justify-content:flex-end; gap:10px; margin-top:20px; flex-wrap:wrap;}
+  .modal-acciones .izquierda{margin-right:auto;}
+  .modal-error{color:#B05A4A; font-size:13px; margin-top:10px; min-height:16px;}
+  .chips{display:flex; flex-wrap:wrap; gap:6px; margin-top:8px;}
+  .chip{background:var(--gold-soft); color:var(--gold); border-radius:999px; padding:5px 6px 5px 11px; font-size:13px; display:inline-flex; align-items:center; gap:4px;}
+  .chip button{background:transparent; color:var(--gold); box-shadow:none; padding:0 6px; font-size:16px; line-height:1;}
+  .chip button:hover{background:transparent; transform:none; color:#5E1B26;}
+  .fila-anadir{display:flex; gap:8px; flex-wrap:wrap; align-items:flex-start;}
+  .fila-anadir > *{flex:1; min-width:200px;}
+
+  .combo{position:relative;}
+  .combo-lista{display:none; position:absolute; left:0; right:0; top:calc(100% + 4px); z-index:120; list-style:none; margin:0; padding:4px; background:#fff; border:1.5px solid var(--line); border-radius:var(--radius-sm); box-shadow:var(--shadow-card); max-height:240px; overflow-y:auto;}
+  .combo.abierto .combo-lista{display:block;}
+  .combo-lista li{padding:8px 10px; border-radius:8px; cursor:pointer; font-size:14px;}
+  .combo-lista li small{color:var(--muted);}
+  .combo-lista li.activo, .combo-lista li:hover{background:var(--gold-soft);}
+  .combo-lista li.vacio{color:var(--muted); cursor:default; background:none;}
+
+  table.banco{width:100%; border-collapse:collapse; font-size:13px;}
+  table.banco th, table.banco td{padding:7px 8px; border-bottom:1px solid var(--line); text-align:left; vertical-align:middle;}
+  table.banco th{background:#F7F5F2;}
+  table.banco td.concepto{max-width:380px; word-break:break-word;}
+  table.banco tr.ya td{opacity:.5;}
+  table.banco .combo{min-width:220px;}
+  table.banco .combo input{width:100%; padding:7px 9px; border:1.5px solid var(--line); border-radius:8px; font-size:13px; font-family:inherit;}
+  .columnas-banco{display:flex; gap:12px; flex-wrap:wrap; margin:12px 0;}
+  .columnas-banco > div{flex:1; min-width:160px;}
+
+  .toast{position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--ink); color:#fff; padding:12px 20px; border-radius:var(--radius-sm); font-size:14px; box-shadow:var(--shadow-card); z-index:200; opacity:0; pointer-events:none; transition:opacity .2s; max-width:90vw; text-align:center;}
+  .toast.visible{opacity:1;}
+
+  @media (max-width:760px){
+    body{padding:20px 14px;}
+    .lista{grid-template-columns:1fr;}
+    .stat{min-width:calc(50% - 7px);}
+    .toolbar > *{flex:1 1 calc(50% - 5px);}
+    .rejilla{grid-template-columns:1fr;}
+    .modal{padding:18px;}
+    .modal-acciones{flex-direction:column-reverse;}
+    .modal-acciones button{width:100%;}
+    .modal-acciones .izquierda{margin-right:0;}
+    table.fichas thead{display:none;}
+    table.fichas, table.fichas tbody, table.fichas tr, table.fichas td{display:block; width:100%;}
+    table.fichas tr{border-bottom:1px solid var(--line);}
+    table.fichas td{border:none; padding:6px 12px;}
+    .tabla-banco{overflow-x:auto;}
+  }
+</style>
+</head>
+<body>
+
+<div class="gate" id="gate">
+  <label for="token">Contraseña de administrador</label>
+  <input type="password" id="token" placeholder="Contraseña">
+  <button id="entrar">Entrar</button>
+  <div class="error" id="gateError"></div>
+</div>
+
+<div id="panel">
+  <a class="volver" href="/admin.html">← Volver a respuestas RSVP</a>
+  <h1>Regalos y agradecimientos</h1>
+  <div class="sub">Apunta cada regalo y lleva la cuenta de a quién falta dar las gracias. · <a href="#" id="cerrarSesion" style="color:#8A8275;">Cerrar sesión</a></div>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="toolbar">
+    <button id="nuevoRegalo">+ Nuevo regalo</button>
+    <button id="importarBanco" class="btn-secundario">Importar extracto del banco</button>
+    <button id="excelPendientes" class="btn-secundario">Excel agradecimientos pendientes</button>
+    <button id="excelTodos" class="btn-secundario">Excel de todos los regalos</button>
+    <button id="editarMensaje" class="btn-secundario">Mensaje de WhatsApp</button>
+    <button id="actualizar" class="btn-suave">Actualizar</button>
+  </div>
+
+  <div class="pestanas" id="pestanas"></div>
+  <input type="text" class="buscador" id="buscador" placeholder="Buscar por nombre, grupo, regalo...">
+
+  <div class="barra-seleccion" id="barraSeleccion">
+    <strong id="barraTotal"></strong>
+    <span>Marcar como:</span>
+    <button type="button" class="btn-mini btn-secundario" data-estado="escrito">Escrito</button>
+    <button type="button" class="btn-mini" data-estado="enviado">Enviado</button>
+    <button type="button" class="btn-mini btn-suave" data-estado="pendiente">Pendiente</button>
+    <select id="barraMedio" title="Cómo se ha dado las gracias">
+      <option value="">Medio: sin cambios</option>
+      <option>WhatsApp</option><option>Carta</option><option>Tarjeta</option>
+      <option>Email</option><option>En persona</option><option>Llamada</option>
+    </select>
+    <button type="button" class="btn-mini btn-suave" id="barraQuitar">Quitar selección</button>
+  </div>
+
+  <div id="contenido"></div>
+</div>
+
+<!-- Ficha del regalo -->
+<div class="modal-overlay" id="modalRegalo">
+  <div class="modal">
+    <div class="modal-cabecera">
+      <h2 id="regaloTitulo">Nuevo regalo</h2>
+      <button type="button" class="modal-cerrar" data-cerrar="modalRegalo" aria-label="Cerrar sin guardar" title="Cerrar sin guardar">&times;</button>
+    </div>
+    <form id="regaloForm">
+      <div class="rejilla">
+        <div>
+          <label for="rTipo">Tipo</label>
+          <select id="rTipo">
+            <option value="transferencia">💶 Transferencia / Bizum</option>
+            <option value="lista">🛍️ Lista El Corte Inglés</option>
+            <option value="fisico">🎁 Regalo físico</option>
+            <option value="sobre">✉️ Sobre en la boda</option>
+            <option value="otro">✨ Otro</option>
+          </select>
+        </div>
+        <div>
+          <label for="rImporte">Importe (€) <span style="font-weight:400">· opcional</span></label>
+          <input type="text" id="rImporte" inputmode="decimal" placeholder="Ej. 150">
+        </div>
+        <div>
+          <label for="rFecha">Fecha en que llegó</label>
+          <input type="date" id="rFecha">
+        </div>
+        <div>
+          <label for="rDescripcion">Qué es <span style="font-weight:400">· opcional</span></label>
+          <input type="text" id="rDescripcion" placeholder="Ej. la cafetera, un cuadro...">
+        </div>
+        <div class="span-2">
+          <label for="rBuscarFicha">De parte de (invitados de la lista)</label>
+          <div class="fila-anadir">
+            <div class="combo"><input type="text" id="rBuscarFicha" autocomplete="off" placeholder="Escribe un nombre para añadirlo..."><ul class="combo-lista"></ul></div>
+            <div class="combo"><input type="text" id="rBuscarGrupo" autocomplete="off" placeholder="...o añade un grupo entero"><ul class="combo-lista"></ul></div>
+          </div>
+          <div class="chips" id="rChips"></div>
+          <div class="ayuda" id="rAyudaGrupo">Para un regalo de grupo, añade a todos los que participan: se les dará las gracias a cada uno.</div>
+        </div>
+        <div class="span-2">
+          <label for="rDePartede">De parte de alguien que no está en la lista <span style="font-weight:400">· opcional</span></label>
+          <input type="text" id="rDePartede" placeholder="Ej. Compañeros de trabajo de mamá">
+        </div>
+        <div class="span-2">
+          <label for="rNotas">Notas</label>
+          <textarea id="rNotas" placeholder="Cualquier detalle que queráis recordar"></textarea>
+        </div>
+      </div>
+      <div class="modal-error" id="regaloError"></div>
+      <div class="modal-acciones">
+        <button type="button" class="btn-peligro izquierda" id="regaloEliminar">Eliminar regalo</button>
+        <button type="button" class="btn-suave" data-cerrar="modalRegalo">Cancelar</button>
+        <button type="submit" id="regaloGuardar">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Agradecer por WhatsApp -->
+<div class="modal-overlay" id="modalWhatsapp">
+  <div class="modal">
+    <div class="modal-cabecera">
+      <h2 id="waTitulo">Agradecer por WhatsApp</h2>
+      <button type="button" class="modal-cerrar" data-cerrar="modalWhatsapp" aria-label="Cerrar">&times;</button>
+    </div>
+    <label for="waTelefono">Teléfono</label>
+    <input type="text" id="waTelefono" inputmode="tel" placeholder="Ej. 612 345 678 (vacío: eliges el contacto en WhatsApp)">
+    <div class="ayuda">Se guarda en su ficha para la próxima vez.</div>
+    <label for="waTexto" style="margin-top:14px">Mensaje</label>
+    <textarea id="waTexto" style="min-height:150px"></textarea>
+    <div class="modal-acciones" id="waPaso1">
+      <button type="button" class="btn-suave" data-cerrar="modalWhatsapp">Cancelar</button>
+      <a id="waAbrir" class="btn-wa" style="padding:11px 18px; font-size:14px; border-radius:var(--radius-sm); color:#fff; text-decoration:none; font-weight:700; text-align:center;" target="_blank" rel="noopener">Abrir WhatsApp</a>
+    </div>
+    <div class="modal-acciones" id="waPaso2" style="display:none; align-items:center;">
+      <span class="izquierda" style="font-size:14px">¿Lo habéis enviado?</span>
+      <button type="button" class="btn-suave" data-cerrar="modalWhatsapp">Todavía no</button>
+      <button type="button" id="waEnviado">Sí, marcar como enviado</button>
+    </div>
+  </div>
+</div>
+
+<!-- Plantilla de WhatsApp -->
+<div class="modal-overlay" id="modalMensaje">
+  <div class="modal">
+    <div class="modal-cabecera">
+      <h2>Mensaje de agradecimiento</h2>
+      <button type="button" class="modal-cerrar" data-cerrar="modalMensaje" aria-label="Cerrar">&times;</button>
+    </div>
+    <label for="mTexto">Texto que se escribe solo al pulsar "WhatsApp"</label>
+    <textarea id="mTexto" style="min-height:150px"></textarea>
+    <div class="ayuda">
+      Se sustituyen automáticamente: <b>{nombres}</b> → "Javier y Elena" · <b>{regalo}</b> → "vuestro regalo", "la cafetera"…
+      · <b>{vuestro}</b> → "vuestro" o "tu" según sean uno o dos. Antes de enviarlo podéis retocarlo en WhatsApp.
+    </div>
+    <div class="ayuda" style="margin-top:10px"><b>Vista previa:</b> <span id="mPrevia"></span></div>
+    <div class="modal-acciones">
+      <button type="button" class="btn-suave izquierda" id="mRestaurar">Volver al texto original</button>
+      <button type="button" class="btn-suave" data-cerrar="modalMensaje">Cancelar</button>
+      <button type="button" id="mGuardar">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Importar extracto -->
+<div class="modal-overlay" id="modalBanco">
+  <div class="modal ancho">
+    <div class="modal-cabecera">
+      <h2>Importar extracto del banco</h2>
+      <button type="button" class="modal-cerrar" data-cerrar="modalBanco" aria-label="Cerrar">&times;</button>
+    </div>
+    <div id="bancoPaso1">
+      <p style="margin-top:0">Descarga los movimientos de la cuenta desde la web del banco en <b>Excel (.xlsx)</b> o <b>CSV</b> y súbelo aquí.
+        Se buscará a qué invitado corresponde cada ingreso por el nombre del concepto. Revisa la propuesta antes de importar: no se guarda nada hasta que pulses "Importar".</p>
+      <input type="file" id="bancoArchivo" accept=".xlsx,.csv,.txt">
+      <div class="modal-error" id="bancoError"></div>
+    </div>
+    <div id="bancoPaso2" style="display:none">
+      <div class="columnas-banco">
+        <div><label for="bColFecha">Columna de la fecha</label><select id="bColFecha"></select></div>
+        <div><label for="bColConcepto">Columna del concepto</label><select id="bColConcepto"></select></div>
+        <div><label for="bColConcepto2">Otra columna con nombres (opcional)</label><select id="bColConcepto2"></select></div>
+        <div><label for="bColImporte">Columna del importe</label><select id="bColImporte"></select></div>
+      </div>
+      <div class="ayuda" id="bancoResumen"></div>
+      <div class="tabla-banco" style="margin-top:10px"><table class="banco" id="bancoTabla"></table></div>
+      <div class="modal-acciones">
+        <button type="button" class="btn-suave izquierda" id="bancoOtro">Subir otro archivo</button>
+        <button type="button" class="btn-suave" data-cerrar="modalBanco">Cancelar</button>
+        <button type="button" id="bancoImportar">Importar seleccionados</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="/categorias.js"></script>
+<script>
+  const CLAVE_TOKEN = 'bodaAdminToken';
+  const TIPOS = {
+    transferencia: { icono: '💶', texto: 'Transferencia / Bizum' },
+    lista: { icono: '🛍️', texto: 'Lista El Corte Inglés' },
+    fisico: { icono: '🎁', texto: 'Regalo físico' },
+    sobre: { icono: '✉️', texto: 'Sobre en la boda' },
+    otro: { icono: '✨', texto: 'Otro' }
+  };
+  const ESTADOS = { pendiente: 'Pendiente', escrito: 'Escrito', enviado: 'Enviado' };
+  const PLANTILLA_ORIGINAL =
+    '¡Hola {nombres}! 🥰 Muchísimas gracias por {regalo}, nos ha hecho muchísima ilusión. ' +
+    '¡Tenemos muchas ganas de celebrarlo juntos!\n\nUn abrazo enorme,\nIgnacio e Ines';
+
+  let adminToken = '';
+  let fichas = [];
+  let porId = new Map();
+  let regalos = [];
+  let plantilla = PLANTILLA_ORIGINAL;
+  let pestana = 'pendientes';
+  const seleccion = new Set(); // claves "regaloId:rsvpId" (rsvpId vacío = regalo sin fichas)
+
+  // ---------- utilidades ----------
+  function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+  function normalizar(str) {
+    return String(str || '').toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '');
+  }
+  function mostrarToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('visible');
+    clearTimeout(mostrarToast._t); mostrarToast._t = setTimeout(() => t.classList.remove('visible'), 3000);
+  }
+  function euros(n) {
+    return Number(n).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+  }
+  function fechaCorta(iso) {
+    if (!iso) return '';
+    const [a, m, d] = iso.split('-');
+    return `${d}/${m}/${a}`;
+  }
+  function hoyIso() {
+    const d = new Date();
+    return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  }
+  async function api(url, opciones = {}) {
+    const res = await fetch(url, {
+      ...opciones,
+      headers: { 'x-admin-token': adminToken, ...(opciones.body && !(opciones.body instanceof Blob) ? { 'Content-Type': 'application/json' } : {}), ...(opciones.headers || {}) }
+    });
+    const data = await res.json().catch(() => null);
+    if (!res.ok) throw new Error((data && data.error) || 'Error ' + res.status);
+    return data;
+  }
+  function tieneAcomp(f) {
+    return f.con_acompanante === 'si' && Boolean((f.acompanante_nombre || '').trim());
+  }
+  function nombresFicha(f) {
+    return [f.nombre, tieneAcomp(f) ? f.acompanante_nombre : ''].map(s => String(s || '').trim()).filter(Boolean).join(' y ');
+  }
+  function nombreCompleto(f) {
+    const base = `${f.nombre || ''} ${f.apellidos || ''}`.trim();
+    return tieneAcomp(f) ? `${base} + ${f.acompanante_nombre}` : base;
+  }
+
+  // ---------- sesión ----------
+  document.getElementById('entrar').addEventListener('click', () => entrar());
+  document.getElementById('token').addEventListener('keydown', e => { if (e.key === 'Enter') entrar(); });
+  document.getElementById('cerrarSesion').addEventListener('click', e => {
+    e.preventDefault();
+    try { localStorage.removeItem(CLAVE_TOKEN); } catch (err) {}
+    location.reload();
+  });
+
+  async function entrar(tokenPrevio) {
+    const token = tokenPrevio || document.getElementById('token').value.trim();
+    const errorEl = document.getElementById('gateError');
+    errorEl.textContent = '';
+    if (!token) return;
+    adminToken = token;
+    try {
+      await cargarTodo();
+    } catch (err) {
+      adminToken = '';
+      errorEl.textContent = /autorizado|401/i.test(err.message) ? 'Contraseña incorrecta.' : 'Error al conectar con el servidor.';
+      if (/autorizado|401/i.test(err.message)) { try { localStorage.removeItem(CLAVE_TOKEN); } catch (e) {} }
+      return;
+    }
+    try { localStorage.setItem(CLAVE_TOKEN, token); } catch (err) {}
+    document.getElementById('gate').style.display = 'none';
+    document.getElementById('panel').style.display = 'block';
+    const fichaParam = Number(new URLSearchParams(location.search).get('ficha'));
+    if (fichaParam && porId.has(fichaParam)) {
+      history.replaceState(null, '', location.pathname);
+      abrirRegalo(null, [fichaParam]);
+    }
+  }
+
+  (function entradaAutomatica() {
+    let guardado = '';
+    try { guardado = localStorage.getItem(CLAVE_TOKEN) || ''; } catch (err) {}
+    if (guardado) entrar(guardado);
+  })();
+
+  async function cargarTodo() {
+    const [f, g, p] = await Promise.all([
+      api('/api/respuestas'), api('/api/regalos'), api('/api/ajustes/plantilla_whatsapp')
+    ]);
+    fichas = f;
+    porId = new Map(fichas.map(x => [x.id, x]));
+    regalos = g;
+    plantilla = p && p.valor ? p.valor : PLANTILLA_ORIGINAL;
+    // Quitar de la selección lo que ya no existe
+    const validas = new Set(destinosTodos().map(d => d.clave));
+    for (const c of seleccion) if (!validas.has(c)) seleccion.delete(c);
+    render();
+  }
+
+  document.getElementById('actualizar').addEventListener('click', async () => {
+    try { await cargarTodo(); mostrarToast('Datos actualizados.'); } catch (err) { mostrarToast(err.message); }
+  });
+
+  // ---------- modelo ----------
+  // Cada "destino" es una persona (ficha) a la que dar las gracias por un regalo.
+  function destinosDe(g) {
+    if (!g.invitados.length) {
+      return [{ clave: g.id + ':', regalo: g, ficha: null, rsvpId: null, estado: g.agradecimiento, medio: g.medio, fecha: g.agradecido_at }];
+    }
+    return g.invitados
+      .filter(i => porId.has(i.rsvp_id))
+      .map(i => ({ clave: g.id + ':' + i.rsvp_id, regalo: g, ficha: porId.get(i.rsvp_id), rsvpId: i.rsvp_id, estado: i.agradecimiento, medio: i.medio, fecha: i.agradecido_at }))
+      .sort((x, y) => nombreCompleto(x.ficha).localeCompare(nombreCompleto(y.ficha), 'es', { sensitivity: 'base' }));
+  }
+  function destinosTodos() {
+    return regalos.flatMap(destinosDe);
+  }
+  function fichasConRegalo() {
+    return new Set(regalos.flatMap(g => g.invitados.map(i => i.rsvp_id)));
+  }
+
+  // ---------- render ----------
+  function render() {
+    const destinos = destinosTodos();
+    const pendientes = destinos.filter(d => d.estado !== 'enviado');
+    const conRegalo = fichasConRegalo();
+    const sinRegalo = fichas.filter(f => !conRegalo.has(f.id) && f.asiste !== 'no');
+    const indicios = fichas.filter(f => !conRegalo.has(f.id) && (f.iban_copiado_at || f.lista_click_at));
+    const total = regalos.reduce((n, g) => n + (g.importe || 0), 0);
+    const deGrupo = regalos.filter(g => g.invitados.length > 1).length;
+
+    document.getElementById('stats').innerHTML = `
+      <div class="stat"><div class="n">${regalos.length}</div><div class="l">Regalos</div></div>
+      <div class="stat"><div class="n">${deGrupo}</div><div class="l">De grupo</div></div>
+      <div class="stat"><div class="n">${euros(total)}</div><div class="l">Importe apuntado</div></div>
+      <div class="stat highlight"><div class="n">${pendientes.length}</div><div class="l">Gracias pendientes</div></div>
+      <div class="stat"><div class="n">${destinos.filter(d => d.estado === 'enviado').length}</div><div class="l">Gracias enviadas</div></div>
+      <div class="stat"><div class="n">${sinRegalo.length}</div><div class="l">Fichas sin regalo</div></div>`;
+
+    const pestanas = [
+      ['pendientes', 'Por agradecer', regalos.filter(g => destinosDe(g).some(d => d.estado !== 'enviado')).length],
+      ['agradecidos', 'Ya agradecidos', regalos.filter(g => destinosDe(g).every(d => d.estado === 'enviado')).length],
+      ['todos', 'Todos los regalos', regalos.length],
+      ['sinregalo', 'Sin regalo apuntado', sinRegalo.length],
+      ['indicios', 'Copiaron IBAN o vieron la lista', indicios.length]
+    ];
+    document.getElementById('pestanas').innerHTML = pestanas.map(([id, texto, n]) =>
+      `<button type="button" class="pestana ${pestana === id ? 'activa' : ''}" data-pestana="${id}">${texto}<span class="cuenta">${n}</span></button>`
+    ).join('');
+
+    const termino = normalizar(document.getElementById('buscador').value.trim());
+    const cont = document.getElementById('contenido');
+    if (pestana === 'sinregalo' || pestana === 'indicios') {
+      renderFichas(cont, pestana === 'sinregalo' ? sinRegalo : indicios, termino, pestana === 'indicios');
+    } else {
+      let lista = regalos;
+      if (pestana === 'pendientes') lista = regalos.filter(g => destinosDe(g).some(d => d.estado !== 'enviado'));
+      if (pestana === 'agradecidos') lista = regalos.filter(g => destinosDe(g).every(d => d.estado === 'enviado'));
+      if (termino) lista = lista.filter(g => coincideRegalo(g, termino));
+      renderRegalos(cont, lista);
+    }
+    actualizarBarra();
+  }
+
+  function coincideRegalo(g, termino) {
+    const texto = normalizar([
+      TIPOS[g.tipo] && TIPOS[g.tipo].texto, g.descripcion, g.de_parte_de, g.notas, g.concepto_banco,
+      ...destinosDe(g).flatMap(d => d.ficha ? [d.ficha.nombre, d.ficha.apellidos, d.ficha.acompanante_nombre, d.ficha.grupo] : [])
+    ].join(' '));
+    return termino.split(/\s+/).every(p => texto.includes(p));
+  }
+
+  function renderRegalos(cont, lista) {
+    if (!lista.length) {
+      const mensajes = {
+        pendientes: regalos.length ? '¡Al día! No falta dar las gracias a nadie.' : 'Todavía no hay regalos apuntados. Pulsa "+ Nuevo regalo" o importa el extracto del banco.',
+        agradecidos: 'Aún no hay regalos con todos los agradecimientos enviados.',
+        todos: 'Todavía no hay regalos apuntados.'
+      };
+      cont.innerHTML = `<div class="vacio">${document.getElementById('buscador').value.trim() ? 'Nada coincide con la búsqueda.' : mensajes[pestana]}</div>`;
+      return;
+    }
+    cont.innerHTML = `<div class="lista">${lista.map(tarjetaRegalo).join('')}</div>`;
+  }
+
+  function tarjetaRegalo(g) {
+    const tipo = TIPOS[g.tipo] || TIPOS.otro;
+    const destinos = destinosDe(g);
+    const titulo = g.descripcion || tipo.texto;
+    const detalle = [
+      g.descripcion ? tipo.texto : '',
+      g.fecha ? 'Llegó el ' + fechaCorta(g.fecha) : '',
+      g.invitados.length && g.de_parte_de ? 'De parte de ' + g.de_parte_de : ''
+    ].filter(Boolean).join(' · ');
+    return `
+      <div class="tarjeta" data-regalo="${g.id}">
+        <div class="tarjeta-cabecera">
+          <div class="tarjeta-icono">${tipo.icono}</div>
+          <div class="tarjeta-titulo">
+            <div class="que">${escapeHtml(titulo)}${g.invitados.length > 1 ? `<span class="etiqueta">De grupo · ${g.invitados.length}</span>` : ''}</div>
+            ${detalle ? `<div class="detalle">${escapeHtml(detalle)}</div>` : ''}
+          </div>
+          ${g.importe !== null ? `<div class="importe">${euros(g.importe)}</div>` : ''}
+        </div>
+        <ul class="destinos">${destinos.map(filaDestino).join('')}</ul>
+        <div class="tarjeta-pie">
+          <span class="notas">${escapeHtml(g.notas)}</span>
+          <button type="button" class="btn-mini btn-secundario" data-accion="editar" data-regalo="${g.id}">Editar</button>
+        </div>
+      </div>`;
+  }
+
+  function filaDestino(d) {
+    const f = d.ficha;
+    const quien = f
+      ? `${escapeHtml(nombreCompleto(f))}<small>${escapeHtml([f.grupo, f.telefono ? '📱 ' + f.telefono : ''].filter(Boolean).join(' · '))}</small>`
+      : `${escapeHtml(d.regalo.de_parte_de)}<small>No está en la lista</small>`;
+    const cuando = d.estado === 'enviado'
+      ? [d.medio, d.fecha ? fechaCorta(d.fecha) : ''].filter(Boolean).join(' · ')
+      : (d.medio ? d.medio : '');
+    return `
+      <li class="destino">
+        <input type="checkbox" data-clave="${d.clave}"${seleccion.has(d.clave) ? ' checked' : ''} title="Seleccionar">
+        <span class="quien">${quien}</span>
+        <select class="estado ${d.estado}" data-clave="${d.clave}" title="Agradecimiento">
+          ${Object.entries(ESTADOS).map(([v, t]) => `<option value="${v}"${v === d.estado ? ' selected' : ''}>${t}</option>`).join('')}
+        </select>
+        ${cuando ? `<span class="cuando">${escapeHtml(cuando)}</span>` : ''}
+        ${f ? `<button type="button" class="btn-wa" data-accion="whatsapp" data-clave="${d.clave}" title="Abrir WhatsApp con el mensaje escrito">WhatsApp</button>` : ''}
+      </li>`;
+  }
+
+  function renderFichas(cont, lista, termino, conIndicios) {
+    const filtradas = lista
+      .filter(f => !termino || normalizar([f.nombre, f.apellidos, f.acompanante_nombre, f.acompanante_apellidos, f.grupo, f.invitado_por].join(' ')).includes(termino))
+      .sort((a, b) => `${a.nombre} ${a.apellidos}`.localeCompare(`${b.nombre} ${b.apellidos}`, 'es', { sensitivity: 'base' }));
+    if (!filtradas.length) {
+      cont.innerHTML = `<div class="vacio">${termino ? 'Nada coincide con la búsqueda.' : (conIndicios ? 'Nadie ha copiado el IBAN ni abierto la lista sin tener ya un regalo apuntado.' : 'Todas las fichas que vienen tienen un regalo apuntado.')}</div>`;
+      return;
+    }
+    const ayuda = conIndicios
+      ? '<p class="ayuda" style="margin-top:0">Han copiado el número de cuenta o abierto la lista de El Corte Inglés desde la web, pero no tienen regalo apuntado: puede que haya una transferencia o un regalo por registrar.</p>'
+      : '<p class="ayuda" style="margin-top:0">Fichas que vienen a la boda (o están pendientes) y no tienen ningún regalo apuntado.</p>';
+    cont.innerHTML = ayuda + `
+      <table class="fichas">
+        <thead><tr><th>Invitado</th><th>Grupo</th><th>Asistencia</th>${conIndicios ? '<th>En la web</th>' : ''}<th></th></tr></thead>
+        <tbody>${filtradas.map(f => `
+          <tr>
+            <td><b>${escapeHtml(nombreCompleto(f))}</b></td>
+            <td>${escapeHtml([f.invitado_por, f.grupo].filter(Boolean).join(' · ')) || '—'}</td>
+            <td>${escapeHtml({ completa: 'Toda la boda', si: 'Toda la boda', copas: 'Solo copas', pendiente: 'Pendiente', no: 'No asiste' }[f.asiste] || f.asiste)}</td>
+            ${conIndicios ? `<td>${f.iban_copiado_at ? '<span class="indicio">Copió el IBAN</span>' : ''}${f.lista_click_at ? '<span class="indicio">Vio la lista</span>' : ''}</td>` : ''}
+            <td style="text-align:right"><button type="button" class="btn-mini" data-accion="nuevo-para" data-ficha="${f.id}">Apuntar regalo</button></td>
+          </tr>`).join('')}
+        </tbody>
+      </table>`;
+  }
+
+  document.getElementById('pestanas').addEventListener('click', e => {
+    const b = e.target.closest('[data-pestana]');
+    if (!b) return;
+    pestana = b.dataset.pestana;
+    render();
+  });
+  document.getElementById('buscador').addEventListener('input', render);
+
+  // ---------- agradecimientos ----------
+  function parDe(clave) {
+    const [regaloId, rsvp] = clave.split(':');
+    return { regaloId: Number(regaloId), rsvpId: rsvp ? Number(rsvp) : null };
+  }
+
+  async function cambiarEstado(claves, estado, medio) {
+    await api('/api/regalos/agradecimientos', {
+      method: 'POST',
+      body: JSON.stringify({ pares: claves.map(parDe), estado, medio: medio || undefined })
+    });
+    await cargarTodo();
+  }
+
+  const contenido = document.getElementById('contenido');
+  contenido.addEventListener('change', async e => {
+    if (e.target.matches('.destino input[type=checkbox]')) {
+      if (e.target.checked) seleccion.add(e.target.dataset.clave); else seleccion.delete(e.target.dataset.clave);
+      actualizarBarra();
+    } else if (e.target.matches('select.estado')) {
+      try { await cambiarEstado([e.target.dataset.clave], e.target.value); mostrarToast('Agradecimiento: ' + ESTADOS[e.target.value].toLowerCase() + '.'); }
+      catch (err) { mostrarToast(err.message); render(); }
+    }
+  });
+  contenido.addEventListener('click', e => {
+    const b = e.target.closest('button[data-accion]');
+    if (!b) return;
+    if (b.dataset.accion === 'editar') abrirRegalo(regalos.find(g => g.id === Number(b.dataset.regalo)));
+    else if (b.dataset.accion === 'nuevo-para') abrirRegalo(null, [Number(b.dataset.ficha)]);
+    else if (b.dataset.accion === 'whatsapp') agradecerWhatsapp(b.dataset.clave);
+  });
+
+  function actualizarBarra() {
+    const n = seleccion.size;
+    document.getElementById('barraSeleccion').classList.toggle('visible', n > 0);
+    document.getElementById('barraTotal').textContent = n === 1 ? '1 seleccionado' : `${n} seleccionados`;
+  }
+  document.getElementById('barraSeleccion').addEventListener('click', async e => {
+    const b = e.target.closest('button[data-estado]');
+    if (!b) return;
+    const medio = document.getElementById('barraMedio').value;
+    try {
+      const claves = [...seleccion];
+      await cambiarEstado(claves, b.dataset.estado, medio);
+      seleccion.clear();
+      document.getElementById('barraMedio').value = '';
+      render();
+      mostrarToast(`${claves.length} marcado${claves.length === 1 ? '' : 's'} como ${ESTADOS[b.dataset.estado].toLowerCase()}.`);
+    } catch (err) { mostrarToast(err.message); }
+  });
+  document.getElementById('barraQuitar').addEventListener('click', () => { seleccion.clear(); render(); });
+
+  // ---------- WhatsApp ----------
+  function textoRegaloMensaje(g, plural) {
+    const vuestro = plural ? 'vuestro' : 'tu';
+    if ((g.tipo === 'fisico' || g.tipo === 'otro') && g.descripcion) return g.descripcion;
+    if (g.tipo === 'lista') return `${vuestro} regalo de la lista`;
+    return `${vuestro} regalo`;
+  }
+  function componerMensaje(texto, d) {
+    const plural = d.ficha ? tieneAcomp(d.ficha) || d.regalo.invitados.length > 1 : true;
+    return texto
+      .replace(/\{nombres\}/g, d.ficha ? nombresFicha(d.ficha) : d.regalo.de_parte_de)
+      .replace(/\{regalo\}/g, textoRegaloMensaje(d.regalo, plural))
+      .replace(/\{vuestro\}/g, plural ? 'vuestro' : 'tu');
+  }
+  // Teléfono español de 9 cifras -> con prefijo 34; "+" y "00" se quitan.
+  function telefonoWhatsapp(t) {
+    let n = String(t || '').replace(/[^\d+]/g, '');
+    if (n.startsWith('+')) n = n.slice(1);
+    else if (n.startsWith('00')) n = n.slice(2);
+    n = n.replace(/\D/g, '');
+    if (/^[6789]\d{8}$/.test(n)) n = '34' + n;
+    return n.length >= 8 ? n : '';
+  }
+
+  let waDestino = null;
+
+  function enlaceWhatsapp() {
+    const telefono = telefonoWhatsapp(document.getElementById('waTelefono').value);
+    const texto = encodeURIComponent(document.getElementById('waTexto').value);
+    document.getElementById('waAbrir').href = telefono ? `https://wa.me/${telefono}?text=${texto}` : `https://wa.me/?text=${texto}`;
+  }
+
+  function agradecerWhatsapp(clave) {
+    const d = destinosTodos().find(x => x.clave === clave);
+    if (!d || !d.ficha) return;
+    waDestino = d;
+    document.getElementById('waTitulo').textContent = 'Gracias a ' + nombresFicha(d.ficha);
+    document.getElementById('waTelefono').value = d.ficha.telefono || '';
+    document.getElementById('waTexto').value = componerMensaje(plantilla, d);
+    document.getElementById('waPaso1').style.display = '';
+    document.getElementById('waPaso2').style.display = 'none';
+    enlaceWhatsapp();
+    abrirModal('modalWhatsapp');
+  }
+  document.getElementById('waTexto').addEventListener('input', enlaceWhatsapp);
+  document.getElementById('waTelefono').addEventListener('input', enlaceWhatsapp);
+  document.getElementById('waTelefono').addEventListener('change', async () => {
+    if (!waDestino) return;
+    const telefono = document.getElementById('waTelefono').value.trim();
+    if (telefono === (waDestino.ficha.telefono || '')) return;
+    try {
+      const r = await api(`/api/respuestas/${waDestino.ficha.id}/telefono`, { method: 'PUT', body: JSON.stringify({ telefono }) });
+      waDestino.ficha.telefono = r.telefono;
+      mostrarToast(telefono ? 'Teléfono guardado en su ficha.' : 'Teléfono borrado de su ficha.');
+    } catch (err) { mostrarToast(err.message); }
+  });
+  // El enlace abre WhatsApp en otra pestaña (o la app en el móvil); aquí se
+  // pregunta si se ha enviado para marcarlo.
+  document.getElementById('waAbrir').addEventListener('click', () => {
+    document.getElementById('waTelefono').dispatchEvent(new Event('change'));
+    setTimeout(() => {
+      document.getElementById('waPaso1').style.display = 'none';
+      document.getElementById('waPaso2').style.display = '';
+    }, 300);
+  });
+  document.getElementById('waEnviado').addEventListener('click', async () => {
+    if (!waDestino) return;
+    try {
+      await cambiarEstado([waDestino.clave], 'enviado', 'WhatsApp');
+      cerrarModal('modalWhatsapp');
+      mostrarToast('Marcado como enviado por WhatsApp.');
+    } catch (err) { mostrarToast(err.message); }
+  });
+
+  document.getElementById('editarMensaje').addEventListener('click', () => {
+    document.getElementById('mTexto').value = plantilla;
+    previaMensaje();
+    abrirModal('modalMensaje');
+  });
+  function previaMensaje() {
+    const ejemplo = {
+      ficha: { nombre: 'Javier', con_acompanante: 'si', acompanante_nombre: 'Elena' },
+      regalo: { tipo: 'fisico', descripcion: 'la cafetera', invitados: [1] }
+    };
+    document.getElementById('mPrevia').textContent = componerMensaje(document.getElementById('mTexto').value, ejemplo);
+  }
+  document.getElementById('mTexto').addEventListener('input', previaMensaje);
+  document.getElementById('mRestaurar').addEventListener('click', () => {
+    document.getElementById('mTexto').value = PLANTILLA_ORIGINAL;
+    previaMensaje();
+  });
+  document.getElementById('mGuardar').addEventListener('click', async () => {
+    const valor = document.getElementById('mTexto').value.trim() || PLANTILLA_ORIGINAL;
+    try {
+      await api('/api/ajustes/plantilla_whatsapp', { method: 'PUT', body: JSON.stringify({ valor }) });
+      plantilla = valor;
+      cerrarModal('modalMensaje');
+      mostrarToast('Mensaje guardado (también para Ines o Ignacio en su ordenador).');
+    } catch (err) { mostrarToast(err.message); }
+  });
+
+  // ---------- Excel ----------
+  async function descargar(url, nombre, btn) {
+    btn.classList.add('girando');
+    try {
+      const res = await fetch(url, { headers: { 'x-admin-token': adminToken } });
+      if (!res.ok) { const d = await res.json().catch(() => null); throw new Error((d && d.error) || 'Error ' + res.status); }
+      const blob = await res.blob();
+      const enlace = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = enlace; a.download = nombre; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(enlace), 60000);
+    } catch (err) { mostrarToast('No se ha podido generar el Excel (' + err.message + ').'); }
+    finally { btn.classList.remove('girando'); }
+  }
+  document.getElementById('excelPendientes').addEventListener('click', e =>
+    descargar('/api/export/agradecimientos', 'agradecimientos-pendientes.xlsx', e.currentTarget));
+  document.getElementById('excelTodos').addEventListener('click', e =>
+    descargar('/api/export/agradecimientos?todos=1', 'regalos-y-agradecimientos.xlsx', e.currentTarget));
+
+  // ---------- modales ----------
+  function abrirModal(id) { document.getElementById(id).classList.add('visible'); }
+  function cerrarModal(id) { document.getElementById(id).classList.remove('visible'); }
+  document.addEventListener('click', e => {
+    const b = e.target.closest('[data-cerrar]');
+    if (b) cerrarModal(b.dataset.cerrar);
+  });
+
+  // Desplegable con buscador (mismo comportamiento que en el panel).
+  function crearCombo(input, opcionesFn, alElegir) {
+    const combo = input.closest('.combo');
+    const lista = combo.querySelector('.combo-lista');
+    let visibles = [];
+    let activo = -1;
+    function pintar() {
+      const t = normalizar(input.value.trim());
+      visibles = opcionesFn().filter(o => !t || t.split(/\s+/).every(p => normalizar(o.buscar).includes(p))).slice(0, 60);
+      activo = visibles.length ? 0 : -1;
+      lista.innerHTML = visibles.length
+        ? visibles.map((o, i) => `<li data-i="${i}" class="${i === activo ? 'activo' : ''}">${escapeHtml(o.texto)}${o.extra ? ` <small>${escapeHtml(o.extra)}</small>` : ''}</li>`).join('')
+        : '<li class="vacio">Nada coincide</li>';
+    }
+    function abrir() { pintar(); combo.classList.add('abierto'); }
+    function cerrar() { combo.classList.remove('abierto'); }
+    function elegir(i) {
+      if (i < 0 || i >= visibles.length) return;
+      alElegir(visibles[i], input);
+      cerrar();
+    }
+    input.addEventListener('focus', abrir);
+    input.addEventListener('click', abrir);
+    input.addEventListener('input', () => { pintar(); combo.classList.add('abierto'); });
+    input.addEventListener('keydown', e => {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (!combo.classList.contains('abierto')) { abrir(); return; }
+        if (!visibles.length) return;
+        activo = (activo + (e.key === 'ArrowDown' ? 1 : -1) + visibles.length) % visibles.length;
+        lista.querySelectorAll('li').forEach((li, i) => li.classList.toggle('activo', i === activo));
+        const li = lista.querySelector('li.activo'); if (li) li.scrollIntoView({ block: 'nearest' });
+      } else if (e.key === 'Enter') {
+        if (combo.classList.contains('abierto')) { e.preventDefault(); elegir(activo); }
+      } else if (e.key === 'Escape') cerrar();
+    });
+    lista.addEventListener('mousedown', e => {
+      const li = e.target.closest('li[data-i]');
+      e.preventDefault();
+      if (li) elegir(Number(li.dataset.i));
+    });
+    input.addEventListener('blur', cerrar);
+  }
+
+  function opcionesFichas(excluir) {
+    return fichas
+      .filter(f => !excluir || !excluir.has(f.id))
+      .map(f => ({
+        id: f.id,
+        texto: nombreCompleto(f),
+        extra: [f.grupo, f.asiste === 'no' ? 'no asiste' : ''].filter(Boolean).join(' · '),
+        buscar: [f.nombre, f.apellidos, f.acompanante_nombre, f.acompanante_apellidos, f.grupo].join(' ')
+      }))
+      .sort((a, b) => a.texto.localeCompare(b.texto, 'es', { sensitivity: 'base' }));
+  }
+
+  // ---------- ficha del regalo ----------
+  let editando = null;
+  let invitadosRegalo = [];
+
+  function pintarChips() {
+    document.getElementById('rChips').innerHTML = invitadosRegalo.map(id => {
+      const f = porId.get(id);
+      return f ? `<span class="chip">${escapeHtml(nombreCompleto(f))}<button type="button" data-quitar="${id}" title="Quitar">&times;</button></span>` : '';
+    }).join('');
+    const n = invitadosRegalo.length;
+    document.getElementById('rAyudaGrupo').textContent = n > 1
+      ? `Regalo de grupo: ${n} fichas. Se les dará las gracias a cada una por separado.`
+      : 'Para un regalo de grupo, añade a todos los que participan: se les dará las gracias a cada uno.';
+  }
+  document.getElementById('rChips').addEventListener('click', e => {
+    const b = e.target.closest('[data-quitar]');
+    if (!b) return;
+    invitadosRegalo = invitadosRegalo.filter(id => id !== Number(b.dataset.quitar));
+    pintarChips();
+  });
+
+  crearCombo(document.getElementById('rBuscarFicha'), () => opcionesFichas(new Set(invitadosRegalo)), (o, input) => {
+    invitadosRegalo.push(o.id);
+    input.value = '';
+    pintarChips();
+    setTimeout(() => input.focus(), 0);
+  });
+  crearCombo(document.getElementById('rBuscarGrupo'), () => CATEGORIAS.grupos
+    .map(g => ({ g, n: fichas.filter(f => f.grupo === g && f.asiste !== 'no').length }))
+    .filter(x => x.n)
+    .map(x => ({ grupo: x.g, texto: x.g, extra: `${x.n} ficha${x.n === 1 ? '' : 's'} (sin contar los que no vienen)`, buscar: x.g })),
+    (o, input) => {
+      const nuevos = fichas.filter(f => f.grupo === o.grupo && f.asiste !== 'no' && !invitadosRegalo.includes(f.id)).map(f => f.id);
+      invitadosRegalo.push(...nuevos);
+      input.value = '';
+      pintarChips();
+      mostrarToast(`Añadidas ${nuevos.length} fichas de "${o.grupo}". Quita a quien no participe.`);
+    });
+
+  function abrirRegalo(g, fichasIniciales) {
+    editando = g || null;
+    document.getElementById('regaloTitulo').textContent = g ? 'Editar regalo' : 'Nuevo regalo';
+    document.getElementById('rTipo').value = g ? g.tipo : 'transferencia';
+    document.getElementById('rImporte').value = g && g.importe !== null ? String(g.importe).replace('.', ',') : '';
+    document.getElementById('rFecha').value = g ? (g.fecha || '') : hoyIso();
+    document.getElementById('rDescripcion').value = g ? g.descripcion : '';
+    document.getElementById('rDePartede').value = g ? g.de_parte_de : '';
+    document.getElementById('rNotas').value = g ? g.notas : '';
+    document.getElementById('rBuscarFicha').value = '';
+    document.getElementById('rBuscarGrupo').value = '';
+    invitadosRegalo = g ? g.invitados.map(i => i.rsvp_id).filter(id => porId.has(id)) : (fichasIniciales || []).slice();
+    pintarChips();
+    document.getElementById('regaloEliminar').style.display = g ? '' : 'none';
+    document.getElementById('regaloError').textContent = '';
+    abrirModal('modalRegalo');
+  }
+  document.getElementById('nuevoRegalo').addEventListener('click', () => abrirRegalo(null));
+
+  document.getElementById('regaloForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const errorEl = document.getElementById('regaloError');
+    errorEl.textContent = '';
+    const payload = {
+      tipo: document.getElementById('rTipo').value,
+      importe: document.getElementById('rImporte').value.trim(),
+      fecha: document.getElementById('rFecha').value || null,
+      descripcion: document.getElementById('rDescripcion').value.trim(),
+      dePartede: document.getElementById('rDePartede').value.trim(),
+      notas: document.getElementById('rNotas').value.trim(),
+      invitados: invitadosRegalo
+    };
+    if (!payload.invitados.length && !payload.dePartede) {
+      errorEl.textContent = 'Añade al menos un invitado o escribe de parte de quién es.';
+      return;
+    }
+    const btn = document.getElementById('regaloGuardar');
+    btn.classList.add('girando');
+    try {
+      await api(editando ? '/api/regalos/' + editando.id : '/api/regalos', {
+        method: editando ? 'PUT' : 'POST', body: JSON.stringify(payload)
+      });
+      const nuevo = !editando;
+      cerrarModal('modalRegalo');
+      if (nuevo && pestana !== 'pendientes' && pestana !== 'todos') pestana = 'pendientes';
+      await cargarTodo();
+      mostrarToast(nuevo ? 'Regalo apuntado. El agradecimiento queda pendiente.' : 'Regalo guardado.');
+    } catch (err) {
+      errorEl.textContent = err.message;
+    } finally {
+      btn.classList.remove('girando');
+    }
+  });
+
+  document.getElementById('regaloEliminar').addEventListener('click', async () => {
+    if (!editando) return;
+    if (!confirm('¿Eliminar este regalo y sus agradecimientos? Se puede recuperar desde la base de datos, pero no desde esta pantalla.')) return;
+    try {
+      await api('/api/regalos/' + editando.id, { method: 'DELETE' });
+      cerrarModal('modalRegalo');
+      await cargarTodo();
+      mostrarToast('Regalo eliminado.');
+    } catch (err) { document.getElementById('regaloError').textContent = err.message; }
+  });
+
+  // ---------- importar extracto del banco ----------
+  let filasBanco = [];
+  let cabeceraBanco = 0;
+  let movimientos = [];
+
+  document.getElementById('importarBanco').addEventListener('click', () => {
+    document.getElementById('bancoPaso1').style.display = '';
+    document.getElementById('bancoPaso2').style.display = 'none';
+    document.getElementById('bancoArchivo').value = '';
+    document.getElementById('bancoError').textContent = '';
+    abrirModal('modalBanco');
+  });
+  document.getElementById('bancoOtro').addEventListener('click', () => document.getElementById('importarBanco').click());
+
+  document.getElementById('bancoArchivo').addEventListener('change', async e => {
+    const archivo = e.target.files[0];
+    if (!archivo) return;
+    const errorEl = document.getElementById('bancoError');
+    errorEl.textContent = 'Leyendo el archivo...';
+    try {
+      const data = await api('/api/banco/leer', {
+        method: 'POST', body: archivo, headers: { 'Content-Type': 'application/octet-stream' }
+      });
+      filasBanco = data.filas;
+      errorEl.textContent = '';
+      prepararColumnas();
+    } catch (err) {
+      errorEl.textContent = err.message;
+    }
+  });
+
+  // La fila de cabecera es la primera que nombra el importe y el concepto.
+  function prepararColumnas() {
+    const esCab = f => f.some(c => /importe|cantidad|amount/i.test(c)) && f.some(c => /concepto|descrip|movimiento|detalle|beneficiario|ordenante|remitente/i.test(c));
+    cabeceraBanco = Math.max(0, filasBanco.slice(0, 30).findIndex(esCab));
+    const cab = filasBanco[cabeceraBanco] || [];
+    const ancho = Math.max(...filasBanco.map(f => f.length));
+    const nombres = Array.from({ length: ancho }, (_, i) => cab[i] || `Columna ${i + 1}`);
+    const busca = re => nombres.findIndex(n => re.test(n));
+    const sel = (id, indice, conVacio) => {
+      document.getElementById(id).innerHTML = (conVacio ? '<option value="-1">—</option>' : '') +
+        nombres.map((n, i) => `<option value="${i}"${i === indice ? ' selected' : ''}>${escapeHtml(n)}</option>`).join('');
+    };
+    const iFecha = busca(/f\.?\s*valor|fecha/i);
+    const iConcepto = busca(/concepto|descrip|detalle|movimiento/i);
+    const iImporte = busca(/importe|cantidad|amount/i);
+    const iOtra = nombres.findIndex((n, i) => i !== iConcepto && /ordenante|remitente|beneficiario|observ|referencia/i.test(n));
+    sel('bColFecha', iFecha >= 0 ? iFecha : 0);
+    sel('bColConcepto', iConcepto >= 0 ? iConcepto : 1);
+    sel('bColConcepto2', iOtra, true);
+    sel('bColImporte', iImporte >= 0 ? iImporte : 2);
+    document.getElementById('bancoPaso1').style.display = 'none';
+    document.getElementById('bancoPaso2').style.display = '';
+    calcularMovimientos();
+  }
+  ['bColFecha', 'bColConcepto', 'bColConcepto2', 'bColImporte'].forEach(id =>
+    document.getElementById(id).addEventListener('change', calcularMovimientos));
+
+  function leerImporte(v) {
+    let t = String(v || '').replace(/[€\s]/g, '');
+    if (!t) return NaN;
+    const coma = t.lastIndexOf(','), punto = t.lastIndexOf('.');
+    if (coma > punto) t = t.replace(/\./g, '').replace(',', '.'); else t = t.replace(/,/g, '');
+    return Number(t);
+  }
+  // "18/10/2026", "18-10-26", "2026-10-18" o número de serie de Excel -> "2026-10-18"
+  function leerFecha(v) {
+    const t = String(v || '').trim();
+    let m = /^(\d{4})-(\d{1,2})-(\d{1,2})/.exec(t);
+    if (m) return `${m[1]}-${m[2].padStart(2, '0')}-${m[3].padStart(2, '0')}`;
+    m = /^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{2,4})/.exec(t);
+    if (m) return `${m[3].length === 2 ? '20' + m[3] : m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`;
+    if (/^\d{5}(\.\d+)?$/.test(t)) {
+      const d = new Date(Date.UTC(1899, 11, 30) + Math.floor(Number(t)) * 86400000);
+      return d.toISOString().slice(0, 10);
+    }
+    return null;
+  }
+
+  // Emparejar el concepto con una ficha: cuenta el primer apellido, el
+  // segundo y el nombre de cada persona de la ficha.
+  const PARTICULAS = new Set(['de', 'del', 'la', 'las', 'los', 'y', 'e', 'i']);
+  function palabras(t) {
+    return normalizar(t).split(/[^a-zñ0-9]+/).filter(p => p.length >= 2);
+  }
+  function puntuacion(f, conjunto) {
+    const personas = [[f.nombre, f.apellidos]];
+    if (f.con_acompanante === 'si') personas.push([f.acompanante_nombre, f.acompanante_apellidos]);
+    let mejor = 0;
+    for (const [nombre, apellidos] of personas) {
+      const ap = palabras(apellidos).filter(p => !PARTICULAS.has(p));
+      const nom = palabras(nombre)[0];
+      if (!ap.length) continue;
+      let s = 0;
+      if (conjunto.has(ap[0])) s += 2;
+      if (ap[1] && conjunto.has(ap[1])) s += 1.5;
+      if (nom && conjunto.has(nom)) s += 1;
+      mejor = Math.max(mejor, s);
+    }
+    return mejor;
+  }
+  function emparejar(texto) {
+    const conjunto = new Set(palabras(texto));
+    let mejor = null, segunda = 0;
+    for (const f of fichas) {
+      const s = puntuacion(f, conjunto);
+      if (s < 3) continue;
+      if (!mejor || s > mejor.s) { segunda = mejor ? mejor.s : 0; mejor = { f, s }; }
+      else if (s > segunda) segunda = s;
+    }
+    // Si dos fichas empatan, mejor no adivinar.
+    return mejor && mejor.s > segunda ? mejor.f.id : null;
+  }
+
+  function calcularMovimientos() {
+    const iF = Number(document.getElementById('bColFecha').value);
+    const iC = Number(document.getElementById('bColConcepto').value);
+    const iC2 = Number(document.getElementById('bColConcepto2').value);
+    const iI = Number(document.getElementById('bColImporte').value);
+    const ya = new Set(regalos.filter(g => g.concepto_banco).map(g => [g.fecha, g.importe, g.concepto_banco].join('|')));
+    movimientos = filasBanco.slice(cabeceraBanco + 1)
+      .map(f => {
+        const concepto = [f[iC], iC2 >= 0 ? f[iC2] : ''].filter(Boolean).join(' · ');
+        return { fecha: leerFecha(f[iF]), concepto, importe: leerImporte(f[iI]) };
+      })
+      .filter(m => Number.isFinite(m.importe) && m.importe > 0 && m.concepto)
+      .map(m => {
+        const importado = ya.has([m.fecha, Math.round(m.importe * 100) / 100, m.concepto].join('|'));
+        const ficha = emparejar(m.concepto);
+        return { ...m, ficha, importado, marcado: !importado && Boolean(ficha) };
+      });
+    pintarMovimientos();
+  }
+
+  function pintarMovimientos() {
+    const tabla = document.getElementById('bancoTabla');
+    const conFicha = movimientos.filter(m => m.ficha).length;
+    document.getElementById('bancoResumen').textContent = movimientos.length
+      ? `${movimientos.length} ingresos encontrados · ${conFicha} con invitado propuesto · ${movimientos.filter(m => m.importado).length} ya importados antes. Revisa el invitado de cada fila; los que no tengan invitado se importan como "de parte de" con el texto del concepto.`
+      : 'No se han encontrado ingresos (importes positivos) con estas columnas. Prueba a cambiar las columnas de arriba.';
+    tabla.innerHTML = movimientos.length ? `
+      <thead><tr><th><input type="checkbox" id="bancoTodos" title="Marcar todos"></th><th>Fecha</th><th>Concepto</th><th>Importe</th><th>Invitado</th></tr></thead>
+      <tbody>${movimientos.map((m, i) => `
+        <tr class="${m.importado ? 'ya' : ''}">
+          <td><input type="checkbox" data-mov="${i}"${m.marcado ? ' checked' : ''}></td>
+          <td>${m.fecha ? fechaCorta(m.fecha) : '—'}</td>
+          <td class="concepto">${escapeHtml(m.concepto)}${m.importado ? ' <span class="etiqueta">Ya importado</span>' : ''}</td>
+          <td style="white-space:nowrap"><b>${euros(m.importe)}</b></td>
+          <td><div class="combo"><input type="text" data-mov-ficha="${i}" autocomplete="off" placeholder="Sin invitado (de parte de)" value="${m.ficha ? escapeHtml(nombreCompleto(porId.get(m.ficha))) : ''}"><ul class="combo-lista"></ul></div></td>
+        </tr>`).join('')}
+      </tbody>` : '';
+    tabla.querySelectorAll('input[data-mov-ficha]').forEach(input => {
+      const i = Number(input.dataset.movFicha);
+      crearCombo(input, () => [{ id: null, texto: '— Sin invitado (de parte de) —', buscar: 'sin invitado ninguno' }, ...opcionesFichas()], (o, inp) => {
+        movimientos[i].ficha = o.id;
+        inp.value = o.id ? o.texto : '';
+        if (!movimientos[i].importado) {
+          movimientos[i].marcado = true;
+          tabla.querySelector(`input[data-mov="${i}"]`).checked = true;
+        }
+      });
+      input.addEventListener('change', () => { if (!input.value.trim()) movimientos[i].ficha = null; });
+    });
+    const todos = document.getElementById('bancoTodos');
+    if (todos) todos.addEventListener('change', () => {
+      movimientos.forEach((m, i) => { m.marcado = todos.checked; tabla.querySelector(`input[data-mov="${i}"]`).checked = todos.checked; });
+    });
+  }
+  document.getElementById('bancoTabla').addEventListener('change', e => {
+    if (e.target.dataset.mov !== undefined) movimientos[Number(e.target.dataset.mov)].marcado = e.target.checked;
+  });
+
+  document.getElementById('bancoImportar').addEventListener('click', async e => {
+    const elegidos = movimientos.filter(m => m.marcado);
+    if (!elegidos.length) { mostrarToast('Marca al menos un movimiento.'); return; }
+    const sinFicha = elegidos.filter(m => !m.ficha).length;
+    if (!confirm(`Se van a apuntar ${elegidos.length} transferencias${sinFicha ? ` (${sinFicha} sin invitado, como "de parte de" el concepto)` : ''}.`)) return;
+    const btn = e.currentTarget;
+    btn.classList.add('girando');
+    try {
+      const r = await api('/api/regalos/lote', {
+        method: 'POST',
+        body: JSON.stringify({
+          regalos: elegidos.map(m => ({
+            tipo: 'transferencia', importe: m.importe, fecha: m.fecha,
+            invitados: m.ficha ? [m.ficha] : [], dePartede: m.ficha ? '' : m.concepto.slice(0, 300),
+            conceptoBanco: m.concepto
+          }))
+        })
+      });
+      cerrarModal('modalBanco');
+      pestana = 'pendientes';
+      await cargarTodo();
+      mostrarToast(`${r.creados} transferencias apuntadas. Sus agradecimientos quedan pendientes.`);
+    } catch (err) {
+      mostrarToast(err.message);
+    } finally {
+      btn.classList.remove('girando');
+    }
+  });
+</script>
+</body>
+</html>

@@ -33,6 +33,18 @@ y expone un panel de administración para consultarlas.
 - **Vista árbol**: el botón cambia la tabla por un árbol Invitado por → Grupo →
   invitados, con invitaciones y personas en cada rama y un punto de color según
   la asistencia. Respeta los filtros; pulsar un invitado abre su ficha.
+- **Regalos** (`/regalos.html`, botón 🎁 del panel): cada regalo (transferencia,
+  lista, regalo físico, sobre u otro) con importe opcional, fecha y de parte de
+  quién: una ficha, varias (regalo de grupo; se añade un grupo entero de golpe)
+  o alguien que no está en la lista. El agradecimiento se lleva por persona:
+  Pendiente → Escrito → Enviado, uno a uno o en bloque. El botón *WhatsApp*
+  abre el chat con el mensaje escrito (plantilla editable, compartida) y guarda
+  el teléfono en la ficha. Pestañas para lo pendiente, las fichas sin regalo y
+  quienes copiaron el IBAN o vieron la lista sin regalo apuntado. *Importar
+  extracto del banco* lee un .xlsx o .csv y propone a qué invitado corresponde
+  cada ingreso (no repite los ya importados). Excel de agradecimientos
+  pendientes o de todos. En la tabla y el árbol: 🎁⏳ si faltan las gracias,
+  🎁✓ si ya están dadas.
 - **Descargar CSV** respeta los filtros activos; el **Excel de direcciones** sale
   siempre con todos los invitados.
 - **Casados**: se deduce del tratamiento. Si en la pareja hay una *Sra.*, se

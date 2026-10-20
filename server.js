@@ -4,6 +4,7 @@ const { Pool } = require('pg');
 const { generarXlsx } = require('./lib/xlsx');
 const { sobresParaEnviar } = require('./lib/sobres');
 const { filasPorMesa, filasPorInvitado } = require('./lib/mesas-export');
+const regalos = require('./lib/regalos');
 const CATEGORIAS = require('./public/categorias');
 
 const app = express();
@@ -92,6 +93,9 @@ async function initDB() {
     )
   `);
   await pool.query(`ALTER TABLE rsvp ADD COLUMN IF NOT EXISTS mesa_id INTEGER REFERENCES mesas(id) ON DELETE SET NULL`);
+  // Teléfono (solo panel) para escribir por WhatsApp los agradecimientos.
+  await pool.query(`ALTER TABLE rsvp ADD COLUMN IF NOT EXISTS telefono VARCHAR(30) NOT NULL DEFAULT ''`);
+  await regalos.initDB(pool);
   console.log('Base de datos lista.');
 }
 
@@ -287,7 +291,7 @@ app.post('/api/respuestas', requireAdmin, async (req, res) => {
     tratamiento, nombre, apellidos,
     calle, cp, ciudad, provincia,
     asiste, conAcompanante, acompananteTratamiento, acompananteNombre, acompananteApellidos, acompananteAlergias,
-    transporte, alergias, invitadoPor, grupo, enviarInvitacion, sobreDosApellidos
+    transporte, alergias, invitadoPor, grupo, enviarInvitacion, sobreDosApellidos, telefono
   } = req.body;
 
   const errorValidacion = validarAdmin(req.body);
@@ -299,14 +303,15 @@ app.post('/api/respuestas', requireAdmin, async (req, res) => {
     const { rows } = await pool.query(
       `INSERT INTO rsvp
         (tratamiento, nombre, apellidos, calle, cp, ciudad, provincia,
-         asiste, con_acompanante, acompanante_tratamiento, acompanante_nombre, acompanante_apellidos, acompanante_alergias, transporte, alergias, invitado_por, grupo, enviar_invitacion, sobre_dos_apellidos)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19)
+         asiste, con_acompanante, acompanante_tratamiento, acompanante_nombre, acompanante_apellidos, acompanante_alergias, transporte, alergias, invitado_por, grupo, enviar_invitacion, sobre_dos_apellidos, telefono)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20)
        RETURNING *`,
       [
         tratamiento || '', nombre, apellidos,
         calle || '', cp || '', ciudad || '', provincia || '',
         asiste, conAcompanante || 'no', acompananteTratamiento || '', acompananteNombre || '', acompananteApellidos || '', acompananteAlergias || '',
-        transporte || '', alergias || '', invitadoPor || '', grupo || '', enviarInvitacion === true, sobreDosApellidos === true
+        transporte || '', alergias || '', invitadoPor || '', grupo || '', enviarInvitacion === true, sobreDosApellidos === true,
+        String(telefono || '').trim().slice(0, 30)
       ]
     );
     await registrarHistorial(rows[0].id, 'crear', rows[0]);
@@ -335,6 +340,24 @@ app.put('/api/respuestas/mesa-bloque', requireAdmin, async (req, res) => {
   }
 });
 
+// Solo el teléfono (para WhatsApp), sin tener que mandar la ficha entera.
+app.put('/api/respuestas/:id/telefono', requireAdmin, async (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) return res.status(400).json({ error: 'Id inválido.' });
+  const telefono = String(req.body.telefono || '').trim().slice(0, 30);
+  try {
+    const { rows } = await pool.query(
+      'UPDATE rsvp SET telefono = $1, updated_at = NOW() WHERE id = $2 AND deleted_at IS NULL RETURNING id, telefono',
+      [telefono, id]
+    );
+    if (!rows.length) return res.status(404).json({ error: 'No encontrado.' });
+    res.json({ ok: true, telefono: rows[0].telefono });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al guardar el teléfono.' });
+  }
+});
+
 app.put('/api/respuestas/:id', requireAdmin, async (req, res) => {
   const id = Number(req.params.id);
   if (!Number.isInteger(id)) {
@@ -345,7 +368,7 @@ app.put('/api/respuestas/:id', requireAdmin, async (req, res) => {
     tratamiento, nombre, apellidos,
     calle, cp, ciudad, provincia,
     asiste, conAcompanante, acompananteTratamiento, acompananteNombre, acompananteApellidos, acompananteAlergias,
-    transporte, alergias, invitadoPor, grupo, enviarInvitacion, sobreDosApellidos
+    transporte, alergias, invitadoPor, grupo, enviarInvitacion, sobreDosApellidos, telefono
   } = req.body;
 
   const errorValidacion = validarAdmin(req.body);
@@ -365,14 +388,15 @@ app.put('/api/respuestas/:id', requireAdmin, async (req, res) => {
          tratamiento=$1, nombre=$2, apellidos=$3, calle=$4, cp=$5, ciudad=$6, provincia=$7,
          asiste=$8, con_acompanante=$9, acompanante_tratamiento=$10, acompanante_nombre=$11,
          acompanante_apellidos=$12, acompanante_alergias=$13, transporte=$14, alergias=$15,
-         invitado_por=$16, grupo=$17, enviar_invitacion=$18, sobre_dos_apellidos=$19, nuevo=FALSE, updated_at=NOW()
-       WHERE id=$20
+         invitado_por=$16, grupo=$17, enviar_invitacion=$18, sobre_dos_apellidos=$19, telefono=$20, nuevo=FALSE, updated_at=NOW()
+       WHERE id=$21
        RETURNING *`,
       [
         tratamiento || '', nombre, apellidos,
         calle || '', cp || '', ciudad || '', provincia || '',
         asiste, conAcompanante || 'no', acompananteTratamiento || '', acompananteNombre || '', acompananteApellidos || '', acompananteAlergias || '',
         transporte || '', alergias || '', invitadoPor || '', grupo || '', enviarInvitacion === true, sobreDosApellidos === true,
+        String(telefono || '').trim().slice(0, 30),
         id
       ]
     );
@@ -663,6 +687,8 @@ app.get('/api/export/mesas-por-invitado', requireAdmin, async (req, res) => {
     res.status(500).json({ error: 'Error al generar el Excel: ' + err.message });
   }
 });
+
+regalos.registrarRutas(app, pool, requireAdmin);
 
 initDB()
   .then(() => {
