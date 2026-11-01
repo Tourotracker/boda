@@ -57,6 +57,16 @@
   .btn-secundario.girando{pointer-events:none; opacity:.7;}
 
   .layout{display:flex; gap:18px; align-items:flex-start;}
+  #layout:fullscreen{
+    background:var(--cream); padding:20px; box-sizing:border-box;
+    width:100vw; height:100vh; position:relative;
+  }
+  #layout:fullscreen .sidebar{max-height:none; height:100%;}
+  #layout:fullscreen .lienzo{min-height:0; height:100%;}
+  .btn-salir-fullscreen{display:none;}
+  #layout:fullscreen .btn-salir-fullscreen{
+    display:inline-flex; position:absolute; top:12px; right:12px; z-index:20;
+  }
   .sidebar{
     width:280px; flex-shrink:0; background:#fff; border-radius:var(--radius-md);
     box-shadow:var(--shadow-card); padding:16px; max-height:76vh; overflow-y:auto;
@@ -157,9 +167,11 @@
     <button id="actualizar" class="btn-secundario">Actualizar</button>
     <button id="exportarPorMesa" class="btn-secundario">Excel por mesa</button>
     <button id="exportarPorInvitado" class="btn-secundario">Excel por invitado</button>
+    <button id="pantallaCompleta" class="btn-secundario">⛶ Pantalla completa</button>
   </div>
 
-  <div class="layout">
+  <div class="layout" id="layout">
+    <button id="salirPantallaCompleta" class="btn-secundario btn-salir-fullscreen" title="Salir de pantalla completa (o pulsa Esc)">✕ Salir de pantalla completa</button>
     <div class="sidebar" id="sidebar">
       <h2>Sin mesa asignada</h2>
       <div class="ayuda">Arrastra cada tarjeta a la mesa que corresponda.</div>
@@ -229,6 +241,24 @@
   }
 
   document.getElementById('actualizar').addEventListener('click', cargarTodo);
+
+  const btnPantallaCompleta = document.getElementById('pantallaCompleta');
+  btnPantallaCompleta.addEventListener('click', () => {
+    document.getElementById('layout').requestFullscreen().catch(() => {
+      mostrarToast('El navegador no ha permitido pantalla completa.');
+    });
+  });
+  // El botón de la barra de herramientas queda fuera del elemento que pasa a
+  // pantalla completa (y por tanto deja de verse): para salir hay un botón
+  // flotante propio dentro del lienzo, además de la tecla Esc de siempre.
+  document.getElementById('salirPantallaCompleta').addEventListener('click', () => {
+    document.exitFullscreen();
+  });
+  document.addEventListener('fullscreenchange', () => {
+    const activo = Boolean(document.fullscreenElement);
+    btnPantallaCompleta.textContent = activo ? '⛶ En pantalla completa' : '⛶ Pantalla completa';
+    btnPantallaCompleta.disabled = activo;
+  });
 
   async function descargarExcel(boton, url, nombreArchivo) {
     boton.classList.add('girando');
