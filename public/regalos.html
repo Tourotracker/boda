@@ -495,6 +495,8 @@
     const sinRegalo = fichas.filter(f => !conRegalo.has(f.id) && f.asiste !== 'no');
     const indicios = fichas.filter(f => !conRegalo.has(f.id) && (f.iban_copiado_at || f.lista_click_at));
     const total = regalos.reduce((n, g) => n + (g.importe || 0), 0);
+    const totalTransferencia = regalos.filter(g => g.tipo === 'transferencia').reduce((n, g) => n + (g.importe || 0), 0);
+    const totalMetalico = regalos.filter(g => g.tipo === 'sobre').reduce((n, g) => n + (g.importe || 0), 0);
     const deGrupo = regalos.filter(g => g.invitados.length > 1).length;
     // Media por persona: solo regalos con importe y de invitados de la lista;
     // cada ficha cuenta como 1 persona más su acompañante (igual que en el
@@ -517,6 +519,8 @@
       <div class="stat"><div class="n">${regalos.length}</div><div class="l">Regalos</div></div>
       <div class="stat"><div class="n">${deGrupo}</div><div class="l">De grupo</div></div>
       <div class="stat"><div class="n">${euros(total)}</div><div class="l">Importe apuntado</div></div>
+      <div class="stat" title="Suma de los regalos registrados como Transferencia / Bizum."><div class="n">${euros(totalTransferencia)}</div><div class="l">Bizum / Transferencia</div></div>
+      <div class="stat" title="Suma de los regalos registrados como Sobre en la boda."><div class="n">${euros(totalMetalico)}</div><div class="l">Metálico</div><div class="l-sub">sobre en la boda</div></div>
       <div class="stat" title="${euros(importeMedia)} entre ${personasMedia} persona${personasMedia === 1 ? '' : 's'} (invitados + acompañantes). Solo regalos con importe y de invitados de la lista."><div class="n">${euros(media)}</div><div class="l">Media por persona</div><div class="l-sub">invitado + acompañante</div></div>
       <div class="stat highlight"><div class="n">${pendientes.length}</div><div class="l">Gracias pendientes</div></div>
       <div class="stat"><div class="n">${destinos.filter(d => d.estado === 'enviado').length}</div><div class="l">Gracias enviadas</div></div>
