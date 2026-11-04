@@ -768,6 +768,8 @@
     const totalAsistentes = personas('completa') + personas('copas');
     const totalLista = totalAsistentes + personas('pendiente') + personas('no');
     const pctAsistencia = respuestas ? Math.round((fichasVienen / respuestas) * 100) : 0;
+    const busIda = data.filter(r => r.transporte === 'ida' || r.transporte === 'ida_vuelta').reduce((n, r) => n + personasFila(r), 0);
+    const busIdaVuelta = data.filter(r => r.transporte === 'ida_vuelta').reduce((n, r) => n + personasFila(r), 0);
     const tarjeta = (n, etiqueta, sub, titulo, clase) =>
       `<div class="stat${clase ? ' ' + clase : ''}"${titulo ? ` title="${titulo}"` : ''}><div class="n">${n}</div><div class="l">${etiqueta}</div>${sub ? `<div class="l-sub">${sub}</div>` : ''}</div>`;
 
@@ -781,6 +783,8 @@
       ${tarjeta(pctAsistencia + '%', '% asistencia', 'de las fichas que han contestado', `${fichasVienen} de ${respuestas} fichas vienen`)}
       ${tarjeta(totalLista, 'Total invitados', 'con acompañantes', `Toda la boda ${personas('completa')} + Solo copas ${personas('copas')} + Pendientes ${personas('pendiente')} + No asisten ${personas('no')}`)}
       ${tarjeta(totalAsistentes, 'Total asistentes', 'toda la boda + copas', `Toda la boda ${personas('completa')} + Solo copas ${personas('copas')}`, 'highlight')}
+      ${tarjeta(busIda, 'Bus ida', 'personas que necesitan el bus para ir', 'Incluye a quienes marcaron "Ida" y "Ida y vuelta"')}
+      ${tarjeta(busIdaVuelta, 'Bus ida y vuelta', 'personas que necesitan el bus completo', 'Solo quienes marcaron "Ida y vuelta"')}
       <div class="stat" title="${qrScansUltimo ? 'Último escaneo: ' + fechaHora(qrScansUltimo) : 'Todavía no se ha escaneado'}"><div class="n">${qrScansTotal}</div><div class="l">Escaneos QR</div></div>
     `;
 
