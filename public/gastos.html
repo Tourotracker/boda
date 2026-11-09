@@ -110,6 +110,13 @@
   .agenda-info .que{font-weight:700; font-size:14px;}
   .agenda-info .detalle{font-size:12px; color:var(--muted);}
   .agenda-importe{font-family:'Cormorant Garamond',serif; font-size:19px; color:var(--gold); white-space:nowrap;}
+
+  .gastos-mini{list-style:none; margin:8px 14px 0; padding:0; border-top:1px dashed var(--line);}
+  .gasto-mini{display:flex; align-items:center; gap:8px; padding:7px 0; font-size:13px; border-bottom:1px solid #F3F0EC;}
+  .gasto-mini .que{flex:1; min-width:0;}
+  .gasto-mini .monto{font-weight:700; white-space:nowrap;}
+  .btn-editar-prov{background:transparent; color:var(--muted); box-shadow:none; padding:0 2px; font-size:13px; vertical-align:middle;}
+  .btn-editar-prov:hover{background:transparent; transform:none; color:var(--gold);}
   .tarjeta-pie{margin-top:auto; padding:10px 14px 12px; display:flex; gap:6px; justify-content:flex-end; align-items:center; flex-wrap:wrap;}
   .tarjeta-pie .notas{flex:1; font-size:12px; color:var(--muted); align-self:center;}
   .tarjeta-pie .doc{font-size:12px;}
@@ -169,10 +176,12 @@
 
   <div class="toolbar">
     <button id="nuevoGasto">+ Nuevo gasto</button>
+    <button id="nuevoProveedor" class="btn-secundario">+ Nuevo proveedor</button>
     <button id="actualizar" class="btn-suave">Actualizar</button>
     <div class="vista-toggle">
       <button type="button" class="activa" data-vista="lista">📋 Lista</button>
       <button type="button" data-vista="calendario">📅 Calendario</button>
+      <button type="button" data-vista="proveedores">🏢 Proveedores</button>
     </div>
   </div>
 
@@ -193,7 +202,9 @@
       <div class="rejilla">
         <div class="span-2">
           <label for="gProveedor">Proveedor</label>
-          <input type="text" id="gProveedor" placeholder="Ej. Finca El Olivar" required>
+          <input type="text" id="gProveedor" list="listaProveedores" placeholder="Ej. Finca El Olivar" required autocomplete="off">
+          <datalist id="listaProveedores"></datalist>
+          <div class="ayuda">Si ya existe un proveedor con ese nombre, este gasto se cuelga de su misma ficha (mismo IBAN y contrato). Para crear o editar un proveedor, usa la pestaña "🏢 Proveedores".</div>
         </div>
         <div>
           <label for="gCategoria">Categoría</label>
@@ -210,14 +221,6 @@
         <div>
           <label for="gDocumento">Factura / presupuesto <span style="font-weight:400">· opcional</span></label>
           <input type="text" id="gDocumento" placeholder="Enlace o referencia, ej. link de Drive">
-        </div>
-        <div>
-          <label for="gContrato">Contrato <span style="font-weight:400">· opcional</span></label>
-          <input type="text" id="gContrato" placeholder="Enlace o referencia, ej. link de Drive">
-        </div>
-        <div>
-          <label for="gIban">IBAN del proveedor <span style="font-weight:400">· opcional</span></label>
-          <input type="text" id="gIban" placeholder="Ej. ES00 0000 0000 0000 0000 0000">
         </div>
         <div class="span-2">
           <label for="gConcepto">Concepto <span style="font-weight:400">· opcional</span></label>
@@ -312,6 +315,42 @@
   </div>
 </div>
 
+<!-- Ficha del proveedor -->
+<div class="modal-overlay" id="modalProveedor">
+  <div class="modal">
+    <div class="modal-cabecera">
+      <h2 id="proveedorTitulo">Nuevo proveedor</h2>
+      <button type="button" class="modal-cerrar" data-cerrar="modalProveedor" aria-label="Cerrar sin guardar" title="Cerrar sin guardar">&times;</button>
+    </div>
+    <form id="proveedorForm">
+      <div class="rejilla">
+        <div class="span-2">
+          <label for="prNombre">Nombre</label>
+          <input type="text" id="prNombre" placeholder="Ej. Finca El Olivar" required>
+        </div>
+        <div class="span-2">
+          <label for="prIban">IBAN <span style="font-weight:400">· opcional</span></label>
+          <input type="text" id="prIban" placeholder="Ej. ES00 0000 0000 0000 0000 0000">
+        </div>
+        <div class="span-2">
+          <label for="prContrato">Contrato <span style="font-weight:400">· opcional</span></label>
+          <input type="text" id="prContrato" placeholder="Enlace o referencia, ej. link de Drive">
+        </div>
+        <div class="span-2">
+          <label for="prNotas">Notas <span style="font-weight:400">· opcional</span></label>
+          <textarea id="prNotas" placeholder="Cualquier detalle que queráis recordar"></textarea>
+        </div>
+      </div>
+      <div class="modal-error" id="proveedorError"></div>
+      <div class="modal-acciones">
+        <button type="button" class="btn-peligro izquierda" id="proveedorEliminar">Eliminar proveedor</button>
+        <button type="button" class="btn-suave" data-cerrar="modalProveedor">Cancelar</button>
+        <button type="submit" id="proveedorGuardar">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script src="/categorias.js"></script>
@@ -335,11 +374,13 @@
 
   let adminToken = '';
   let gastos = [];
+  let proveedores = [];
   let pestana = 'todos';
   let vista = 'lista';
   let gastoActual = null; // id del gasto abierto en el modal de pago
   let plazoAPagar = null; // {gastoId, plazoId} cuando el modal de pago viene de "Pagar" un plazo
   let plazoGastoActual = null; // id del gasto abierto en el modal de nuevo plazo
+  let proveedorEditando = null; // id del proveedor abierto en su modal
 
   // ---------- utilidades ----------
   function escapeHtml(str) {
@@ -426,7 +467,8 @@
   })();
 
   async function cargarTodo() {
-    gastos = await api('/api/gastos');
+    [gastos, proveedores] = await Promise.all([api('/api/gastos'), api('/api/proveedores')]);
+    document.getElementById('listaProveedores').innerHTML = proveedores.map(p => `<option value="${escapeHtml(p.nombre)}">`).join('');
     render();
   }
 
@@ -452,11 +494,12 @@
     const totalPendiente = gastos.reduce((n, g) => n + g.importe_pendiente, 0);
     const candidatosVencimiento = gastos
       .filter(g => g.estado !== 'pagado' && fechaEfectiva(g))
-      .map(g => ({ proveedor: g.proveedor, fecha: fechaEfectiva(g), importe: proximoPlazoPendiente(g) ? proximoPlazoPendiente(g).importe : g.importe_pendiente }));
+      .map(g => ({ proveedor: g.proveedor_nombre, fecha: fechaEfectiva(g), importe: proximoPlazoPendiente(g) ? proximoPlazoPendiente(g).importe : g.importe_pendiente }));
     const porVencer = candidatosVencimiento.sort((a, b) => a.fecha.localeCompare(b.fecha))[0];
 
     document.getElementById('stats').innerHTML = `
-      <div class="stat"><div class="n">${gastos.length}</div><div class="l">Proveedores</div></div>
+      <div class="stat"><div class="n">${proveedores.length}</div><div class="l">Proveedores</div></div>
+      <div class="stat"><div class="n">${gastos.length}</div><div class="l">Conceptos / gastos</div></div>
       <div class="stat"><div class="n">${euros(totalPresupuestado)}</div><div class="l">Total gastos</div></div>
       <div class="stat"><div class="n">${euros(totalPagado)}</div><div class="l">Pagado</div></div>
       <div class="stat highlight"><div class="n">${euros(totalPendiente)}</div><div class="l">Pendiente de pagar</div></div>
@@ -472,6 +515,17 @@
       document.getElementById('pestanas').innerHTML = '';
       document.getElementById('buscador').style.display = 'none';
       cont.innerHTML = renderCalendario();
+      return;
+    }
+    if (vista === 'proveedores') {
+      document.getElementById('pestanas').innerHTML = '';
+      document.getElementById('buscador').style.display = '';
+      const termino = normalizar(document.getElementById('buscador').value.trim());
+      let lista = proveedores;
+      if (termino) lista = lista.filter(p => normalizar(p.nombre).includes(termino));
+      cont.innerHTML = lista.length
+        ? `<div class="lista">${lista.map(tarjetaProveedor).join('')}</div>`
+        : `<div class="vacio">${proveedores.length ? 'Nada coincide con la búsqueda.' : 'Todavía no hay proveedores. Pulsa "+ Nuevo proveedor" para empezar.'}</div>`;
       return;
     }
     document.getElementById('buscador').style.display = '';
@@ -501,7 +555,7 @@
   const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
   function renderCalendario() {
     const filas = gastos.flatMap(g => (g.plazos || []).map(pl => ({
-      gastoId: g.id, plazoId: pl.id, proveedor: g.proveedor, categoria: g.categoria,
+      gastoId: g.id, plazoId: pl.id, proveedor: g.proveedor_nombre, categoria: g.categoria,
       fecha: pl.fecha, importe: pl.importe, notas: pl.notas, pagado: Boolean(pl.pago_id),
       pagoFecha: pl.pago_id ? (g.pagos.find(p => p.id === pl.pago_id) || {}).fecha : null
     })));
@@ -543,8 +597,43 @@
       </li>`;
   }
 
+  // ---------- vista proveedores ----------
+  function tarjetaProveedor(p) {
+    const susGastos = gastos.filter(g => g.proveedor_id === p.id);
+    const totalPendiente = susGastos.reduce((n, g) => n + g.importe_pendiente, 0);
+    return `
+      <div class="tarjeta" data-proveedor="${p.id}">
+        <div class="tarjeta-cabecera">
+          <div class="tarjeta-titulo">
+            <div class="que">${escapeHtml(p.nombre)}</div>
+            ${p.notas ? `<div class="detalle">${escapeHtml(p.notas)}</div>` : ''}
+          </div>
+          ${totalPendiente > 0 ? `<div class="importe">${euros(totalPendiente)}</div>` : ''}
+        </div>
+        ${p.iban ? `<div class="sin-pagos" style="padding-top:8px">🏦 ${escapeHtml(p.iban)} <button type="button" class="btn-mini btn-suave" data-accion="copiariban" data-iban="${escapeHtml(p.iban)}" style="padding:2px 8px;">Copiar</button></div>` : ''}
+        ${p.contrato ? `<div class="sin-pagos">📝 ${enlaceODocumento(p.contrato, 'Ver contrato')}</div>` : ''}
+        ${susGastos.length
+          ? `<ul class="gastos-mini">${susGastos.map(filaGastoMini).join('')}</ul>`
+          : `<div class="sin-pagos">Todavía no tiene ningún gasto.</div>`}
+        <div class="tarjeta-pie">
+          <button type="button" class="btn-mini btn-secundario" data-accion="nuevogastoproveedor" data-proveedor="${p.id}">+ Gasto</button>
+          <button type="button" class="btn-mini btn-suave" data-accion="editarproveedor" data-proveedor="${p.id}">Editar</button>
+        </div>
+      </div>`;
+  }
+
+  function filaGastoMini(g) {
+    const cat = CATEGORIAS[g.categoria] || CATEGORIAS.otros;
+    return `
+      <li class="gasto-mini">
+        <span class="que">${cat.icono} ${escapeHtml(g.concepto || cat.texto)}</span>
+        <span class="etiqueta ${vencido(g) ? 'vencido' : g.estado}" style="margin-top:0;">${vencido(g) ? 'Vencido' : ESTADO_TEXTO[g.estado]}</span>
+        <span class="monto">${euros(g.importe_total)}</span>
+      </li>`;
+  }
+
   function coincideGasto(g, termino) {
-    const texto = normalizar([g.proveedor, (CATEGORIAS[g.categoria] || {}).texto, g.concepto, g.notas].join(' '));
+    const texto = normalizar([g.proveedor_nombre, (CATEGORIAS[g.categoria] || {}).texto, g.concepto, g.notas].join(' '));
     return termino.split(/\s+/).filter(Boolean).every(p => texto.includes(p));
   }
 
@@ -562,7 +651,7 @@
         <div class="tarjeta-cabecera">
           <div class="tarjeta-icono">${cat.icono}</div>
           <div class="tarjeta-titulo">
-            <div class="que">${escapeHtml(g.proveedor)}</div>
+            <div class="que">${escapeHtml(g.proveedor_nombre)} <button type="button" class="btn-editar-prov" data-accion="editarproveedor" data-proveedor="${g.proveedor_id}" title="Editar proveedor">✏️</button></div>
             <div class="detalle">${escapeHtml(detalle)}</div>
             <span class="etiqueta ${vencido(g) ? 'vencido' : g.estado}">${vencido(g) ? 'Vencido' : ESTADO_TEXTO[g.estado]}</span>
           </div>
@@ -575,10 +664,10 @@
           ? `<ul class="pagos">${g.pagos.map(filaPago(g.id)).join('')}</ul>`
           : `<div class="sin-pagos">Todavía no se ha registrado ningún pago.</div>`}
         ${g.plazos.length ? `<div class="plazos-titulo">Plazos previstos</div><ul class="plazos">${g.plazos.map(filaPlazo(g)).join('')}</ul>` : ''}
-        ${g.iban ? `<div class="sin-pagos">🏦 ${escapeHtml(g.iban)} <button type="button" class="btn-mini btn-suave" data-accion="copiariban" data-iban="${escapeHtml(g.iban)}" style="padding:2px 8px;">Copiar</button></div>` : ''}
+        ${g.proveedor_iban ? `<div class="sin-pagos">🏦 ${escapeHtml(g.proveedor_iban)} <button type="button" class="btn-mini btn-suave" data-accion="copiariban" data-iban="${escapeHtml(g.proveedor_iban)}" style="padding:2px 8px;">Copiar</button></div>` : ''}
         <div class="tarjeta-pie">
           ${g.documento ? `<span class="doc">📄 ${enlaceODocumento(g.documento)}</span>` : ''}
-          ${g.contrato ? `<span class="doc">📝 ${enlaceODocumento(g.contrato, 'Ver contrato')}</span>` : ''}
+          ${g.proveedor_contrato ? `<span class="doc">📝 ${enlaceODocumento(g.proveedor_contrato, 'Ver contrato')}</span>` : ''}
           <span class="notas">${escapeHtml(g.notas)}</span>
           <button type="button" class="btn-mini btn-secundario" data-accion="plazo" data-gasto="${g.id}">+ Plazo</button>
           <button type="button" class="btn-mini btn-secundario" data-accion="pago" data-gasto="${g.id}">+ Pago</button>
@@ -661,6 +750,11 @@
         mostrarToast('Plazo eliminado.');
       } catch (err) { mostrarToast(err.message); }
     }
+    if (btn.dataset.accion === 'editarproveedor') abrirProveedor(proveedores.find(p => p.id === Number(btn.dataset.proveedor)));
+    if (btn.dataset.accion === 'nuevogastoproveedor') {
+      const p = proveedores.find(x => x.id === Number(btn.dataset.proveedor));
+      if (p) abrirGasto(null, p.nombre);
+    }
   });
 
   // ---------- modal: gasto ----------
@@ -678,17 +772,15 @@
   let gastoEditando = null;
   document.getElementById('nuevoGasto').addEventListener('click', () => abrirGasto(null));
 
-  function abrirGasto(g) {
+  function abrirGasto(g, proveedorPreset) {
     gastoEditando = g ? g.id : null;
     document.getElementById('gastoTitulo').textContent = g ? 'Editar gasto' : 'Nuevo gasto';
     document.getElementById('gastoError').textContent = '';
-    document.getElementById('gProveedor').value = g ? g.proveedor : '';
+    document.getElementById('gProveedor').value = g ? g.proveedor_nombre : (proveedorPreset || '');
     document.getElementById('gCategoria').value = g ? g.categoria : 'otros';
     document.getElementById('gImporteTotal').value = g ? g.importe_total : '';
     document.getElementById('gFechaLimite').value = g ? (g.fecha_limite || '') : '';
     document.getElementById('gDocumento').value = g ? g.documento : '';
-    document.getElementById('gContrato').value = g ? g.contrato : '';
-    document.getElementById('gIban').value = g ? g.iban : '';
     document.getElementById('gConcepto').value = g ? g.concepto : '';
     document.getElementById('gNotas').value = g ? g.notas : '';
     document.getElementById('gastoEliminar').style.display = g ? 'inline-flex' : 'none';
@@ -699,13 +791,11 @@
   document.getElementById('gastoForm').addEventListener('submit', async e => {
     e.preventDefault();
     const datos = {
-      proveedor: document.getElementById('gProveedor').value.trim(),
+      proveedorNombre: document.getElementById('gProveedor').value.trim(),
       categoria: document.getElementById('gCategoria').value,
       importeTotal: document.getElementById('gImporteTotal').value.trim(),
       fechaLimite: document.getElementById('gFechaLimite').value || null,
       documento: document.getElementById('gDocumento').value.trim(),
-      contrato: document.getElementById('gContrato').value.trim(),
-      iban: document.getElementById('gIban').value.trim(),
       concepto: document.getElementById('gConcepto').value.trim(),
       notas: document.getElementById('gNotas').value.trim()
     };
@@ -815,6 +905,53 @@
       mostrarToast('Plazo guardado.');
     } catch (err) {
       document.getElementById('plazoError').textContent = err.message;
+    }
+  });
+
+  // ---------- modal: proveedor ----------
+  document.getElementById('nuevoProveedor').addEventListener('click', () => abrirProveedor(null));
+
+  function abrirProveedor(p) {
+    proveedorEditando = p ? p.id : null;
+    document.getElementById('proveedorTitulo').textContent = p ? 'Editar proveedor' : 'Nuevo proveedor';
+    document.getElementById('proveedorError').textContent = '';
+    document.getElementById('prNombre').value = p ? p.nombre : '';
+    document.getElementById('prIban').value = p ? p.iban : '';
+    document.getElementById('prContrato').value = p ? p.contrato : '';
+    document.getElementById('prNotas').value = p ? p.notas : '';
+    document.getElementById('proveedorEliminar').style.display = p ? 'inline-flex' : 'none';
+    document.getElementById('modalProveedor').classList.add('visible');
+    document.getElementById('prNombre').focus();
+  }
+
+  document.getElementById('proveedorForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const datos = {
+      nombre: document.getElementById('prNombre').value.trim(),
+      iban: document.getElementById('prIban').value.trim(),
+      contrato: document.getElementById('prContrato').value.trim(),
+      notas: document.getElementById('prNotas').value.trim()
+    };
+    try {
+      if (proveedorEditando) await api(`/api/proveedores/${proveedorEditando}`, { method: 'PUT', body: JSON.stringify(datos) });
+      else await api('/api/proveedores', { method: 'POST', body: JSON.stringify(datos) });
+      cerrarModal('modalProveedor');
+      await cargarTodo();
+      mostrarToast('Proveedor guardado.');
+    } catch (err) {
+      document.getElementById('proveedorError').textContent = err.message;
+    }
+  });
+
+  document.getElementById('proveedorEliminar').addEventListener('click', async () => {
+    if (!proveedorEditando || !confirm('¿Eliminar este proveedor? Los gastos que ya tenga seguirán mostrando su nombre e IBAN.')) return;
+    try {
+      await api(`/api/proveedores/${proveedorEditando}`, { method: 'DELETE' });
+      cerrarModal('modalProveedor');
+      await cargarTodo();
+      mostrarToast('Proveedor eliminado.');
+    } catch (err) {
+      document.getElementById('proveedorError').textContent = err.message;
     }
   });
 </script>
