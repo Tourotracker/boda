@@ -5,6 +5,7 @@ const { generarXlsx } = require('./lib/xlsx');
 const { sobresParaEnviar } = require('./lib/sobres');
 const { filasPorMesa, filasPorInvitado } = require('./lib/mesas-export');
 const regalos = require('./lib/regalos');
+const gastos = require('./lib/gastos');
 const CATEGORIAS = require('./public/categorias');
 
 const app = express();
@@ -96,6 +97,7 @@ async function initDB() {
   // Teléfono (solo panel) para escribir por WhatsApp los agradecimientos.
   await pool.query(`ALTER TABLE rsvp ADD COLUMN IF NOT EXISTS telefono VARCHAR(30) NOT NULL DEFAULT ''`);
   await regalos.initDB(pool);
+  await gastos.initDB(pool);
   console.log('Base de datos lista.');
 }
 
@@ -689,6 +691,7 @@ app.get('/api/export/mesas-por-invitado', requireAdmin, async (req, res) => {
 });
 
 regalos.registrarRutas(app, pool, requireAdmin);
+gastos.registrarRutas(app, pool, requireAdmin);
 
 initDB()
   .then(() => {

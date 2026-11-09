@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gastos y pagos</title>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="icon" href="/favicon-16.png" type="image/png" sizes="16x16">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<style>
+  :root{
+    --cream:#FFFFFF; --gold:#7A2432; --gold-soft:#F1DCD3;
+    --sage:#9C4A50; --ink:#2E2621; --line:#E3E1DE; --muted:#8A8275;
+    --ok:#3E8E5E; --ok-soft:#E3F2E8; --warn:#9A6B00; --warn-soft:#FFF3D6;
+    --bad:#B05A4A; --bad-soft:#F7E2DE;
+    --radius-lg:20px; --radius-md:12px; --radius-sm:10px;
+    --shadow-card:0 1px 2px rgba(46,38,33,0.04), 0 16px 32px -12px rgba(46,38,33,0.12);
+  }
+  *{box-sizing:border-box;}
+  body{font-family:-apple-system,'Karla',sans-serif; background:var(--cream); color:var(--ink); margin:0; padding:32px 24px;}
+  h1{font-family:'Cormorant Garamond',serif; font-size:30px; margin-bottom:4px;}
+  .sub{color:var(--muted); font-size:14px; margin-bottom:24px;}
+  .volver{color:var(--gold); font-size:13px; text-decoration:underline; display:inline-block; margin-bottom:14px;}
+  .gate{max-width:360px; margin:80px auto; background:#fff; border-radius:var(--radius-lg); box-shadow:var(--shadow-card); padding:32px;}
+  .gate label{display:block; font-size:13px; font-weight:600; margin-bottom:8px;}
+  .gate input{width:100%; padding:11px 13px; border:1.5px solid var(--line); border-radius:var(--radius-sm); font-size:15px; margin-bottom:14px; background:#fff;}
+  button{
+    background:var(--gold); color:#fff; border:none; border-radius:var(--radius-sm);
+    padding:11px 18px; font-weight:700; cursor:pointer; font-size:14px; font-family:inherit;
+    box-shadow:0 3px 10px rgba(122,36,50,0.28); transition:background .15s, transform .15s;
+  }
+  button:hover{background:#5E1B26; transform:translateY(-1px);}
+  .error{color:var(--bad); font-size:13px; margin-top:4px;}
+  #panel{display:none; max-width:1300px; margin:0 auto;}
+  .stats{display:flex; gap:14px; margin-bottom:20px; flex-wrap:wrap;}
+  .stat{background:#fff; border-radius:var(--radius-md); box-shadow:var(--shadow-card); padding:14px 18px; min-width:120px; flex:1;}
+  .stat .n{font-family:'Cormorant Garamond',serif; font-size:28px; color:var(--gold);}
+  .stat .l{font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.05em;}
+  .stat .l-sub{font-size:11px; color:#A39B90; margin-top:2px;}
+  .stat.highlight{background:var(--sage);} .stat.highlight .n, .stat.highlight .l{color:#fff;}
+  .toolbar{display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap;}
+  .btn-secundario{background:#fff; color:var(--gold); border:1.5px solid var(--gold); box-shadow:none;}
+  .btn-secundario:hover{background:var(--gold-soft); transform:none;}
+  .btn-suave{background:#EDEAE5; color:var(--ink); box-shadow:none;}
+  .btn-suave:hover{background:#E2DDD5; transform:none;}
+  .btn-peligro{background:#F3DEDE; color:#A33A3A; box-shadow:none;}
+  .btn-peligro:hover{background:#EBC7C7; transform:none;}
+  .btn-mini{padding:6px 10px; font-size:12px; border-radius:8px; box-shadow:none;}
+
+  .pestanas{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px;}
+  .pestana{background:#F5F2EE; color:var(--ink); box-shadow:none; font-weight:600; padding:9px 14px; border-radius:999px;}
+  .pestana:hover{background:#ECE6DF; transform:none;}
+  .pestana.activa{background:var(--gold); color:#fff;}
+  .pestana .cuenta{opacity:.75; font-weight:500; margin-left:4px;}
+  .buscador{width:100%; max-width:420px; padding:11px 13px; border:1.5px solid var(--line); border-radius:var(--radius-sm); font-size:14px; font-family:inherit; margin-bottom:14px;}
+
+  .lista{display:grid; grid-template-columns:repeat(auto-fill, minmax(340px, 1fr)); gap:14px;}
+  .tarjeta{background:#fff; border-radius:var(--radius-md); box-shadow:var(--shadow-card); overflow:hidden; display:flex; flex-direction:column;}
+  .tarjeta-cabecera{padding:12px 14px; display:flex; gap:10px; align-items:flex-start; border-bottom:1px solid var(--line);}
+  .tarjeta-icono{font-size:22px; line-height:1;}
+  .tarjeta-titulo{flex:1; min-width:0;}
+  .tarjeta-titulo .que{font-weight:700; font-size:15px;}
+  .tarjeta-titulo .detalle{font-size:12px; color:var(--muted); margin-top:2px;}
+  .importe{font-family:'Cormorant Garamond',serif; font-size:22px; color:var(--gold); white-space:nowrap;}
+  .etiqueta{display:inline-block; font-size:10px; font-weight:800; letter-spacing:.05em; text-transform:uppercase; padding:3px 8px; border-radius:999px; margin-top:4px;}
+  .etiqueta.pendiente{background:var(--warn-soft); color:var(--warn);}
+  .etiqueta.parcial{background:#EAF1FB; color:#2F5C93;}
+  .etiqueta.pagado{background:var(--ok-soft); color:var(--ok);}
+  .etiqueta.vencido{background:var(--bad-soft); color:var(--bad);}
+  .barra-progreso{height:6px; background:#EFEAE4; border-radius:999px; margin:10px 14px 0; overflow:hidden;}
+  .barra-progreso > div{height:100%; background:var(--ok); border-radius:999px;}
+  .resumen-pago{display:flex; justify-content:space-between; font-size:12px; color:var(--muted); padding:6px 14px 0;}
+  .pagos{list-style:none; margin:8px 14px 0; padding:0; border-top:1px dashed var(--line);}
+  .pago{display:flex; align-items:center; gap:8px; padding:7px 0; font-size:13px; border-bottom:1px solid #F3F0EC;}
+  .pago .fecha{color:var(--muted); font-size:12px; white-space:nowrap;}
+  .pago .monto{font-weight:700; flex:1;}
+  .pago .metodo{color:var(--muted); font-size:12px;}
+  .pago button{background:transparent; color:var(--bad); box-shadow:none; padding:0 4px; font-size:16px; line-height:1;}
+  .pago button:hover{background:transparent; transform:none;}
+  .sin-pagos{font-size:12px; color:var(--muted); padding:8px 14px 0;}
+  .tarjeta-pie{margin-top:auto; padding:10px 14px 12px; display:flex; gap:6px; justify-content:flex-end; align-items:center; flex-wrap:wrap;}
+  .tarjeta-pie .notas{flex:1; font-size:12px; color:var(--muted); align-self:center;}
+  .tarjeta-pie .doc{font-size:12px;}
+  .tarjeta-pie .doc a{color:var(--gold);}
+  .vacio{background:#fff; border-radius:var(--radius-md); box-shadow:var(--shadow-card); padding:28px; text-align:center; color:var(--muted);}
+
+  .modal-overlay{display:none; position:fixed; inset:0; background:rgba(46,38,33,.45); align-items:center; justify-content:center; padding:20px; z-index:100;}
+  .modal-overlay.visible{display:flex;}
+  .modal{background:#fff; border-radius:var(--radius-lg); box-shadow:var(--shadow-card); padding:26px; max-width:560px; width:100%; max-height:92vh; overflow-y:auto;}
+  .modal-cabecera{display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:16px;}
+  .modal h2{font-family:'Cormorant Garamond',serif; font-size:24px; margin:0;}
+  .modal-cerrar{flex-shrink:0; width:36px; height:36px; padding:0; border-radius:50%; background:#EDEAE5; color:var(--ink); box-shadow:none; font-size:22px; line-height:1;}
+  .modal-cerrar:hover{background:#E2DDD5; transform:none;}
+  .rejilla{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+  .rejilla .span-2{grid-column:1 / -1;}
+  .modal label{display:block; font-size:12px; font-weight:600; margin-bottom:6px; color:#6B6259;}
+  .modal input[type=text], .modal input[type=date], .modal select, .modal textarea{
+    width:100%; padding:9px 11px; border:1.5px solid var(--line); border-radius:var(--radius-sm); font-size:14px; font-family:inherit; background:#fff;
+  }
+  .modal textarea{resize:vertical; min-height:60px;}
+  .ayuda{font-size:12px; color:var(--muted); margin-top:4px;}
+  .modal-acciones{display:flex; justify-content:flex-end; gap:10px; margin-top:20px; flex-wrap:wrap;}
+  .modal-acciones .izquierda{margin-right:auto;}
+  .modal-error{color:var(--bad); font-size:13px; margin-top:10px; min-height:16px;}
+
+  .toast{position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--ink); color:#fff; padding:12px 20px; border-radius:var(--radius-sm); font-size:14px; box-shadow:var(--shadow-card); z-index:200; opacity:0; pointer-events:none; transition:opacity .2s; max-width:90vw; text-align:center;}
+  .toast.visible{opacity:1;}
+
+  @media (max-width:760px){
+    body{padding:20px 14px;}
+    .lista{grid-template-columns:1fr;}
+    .stat{min-width:calc(50% - 7px);}
+    .toolbar > *{flex:1 1 calc(50% - 5px);}
+    .rejilla{grid-template-columns:1fr;}
+    .modal{padding:18px;}
+    .modal-acciones{flex-direction:column-reverse;}
+    .modal-acciones button{width:100%;}
+    .modal-acciones .izquierda{margin-right:0;}
+  }
+</style>
+</head>
+<body>
+
+<div class="gate" id="gate">
+  <label for="token">Contraseña de administrador</label>
+  <input type="password" id="token" placeholder="Contraseña">
+  <button id="entrar">Entrar</button>
+  <div class="error" id="gateError"></div>
+</div>
+
+<div id="panel">
+  <a class="volver" href="/admin.html">← Volver a respuestas RSVP</a>
+  <h1>Gastos y pagos</h1>
+  <div class="sub">Lleva la cuenta de lo que se debe a cada proveedor y de cada pago hecho. · <a href="#" id="cerrarSesion" style="color:#8A8275;">Cerrar sesión</a></div>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="toolbar">
+    <button id="nuevoGasto">+ Nuevo gasto</button>
+    <button id="actualizar" class="btn-suave">Actualizar</button>
+  </div>
+
+  <div class="pestanas" id="pestanas"></div>
+  <input type="text" class="buscador" id="buscador" placeholder="Buscar por proveedor, categoría, concepto...">
+
+  <div id="contenido"></div>
+</div>
+
+<!-- Ficha del gasto -->
+<div class="modal-overlay" id="modalGasto">
+  <div class="modal">
+    <div class="modal-cabecera">
+      <h2 id="gastoTitulo">Nuevo gasto</h2>
+      <button type="button" class="modal-cerrar" data-cerrar="modalGasto" aria-label="Cerrar sin guardar" title="Cerrar sin guardar">&times;</button>
+    </div>
+    <form id="gastoForm">
+      <div class="rejilla">
+        <div class="span-2">
+          <label for="gProveedor">Proveedor</label>
+          <input type="text" id="gProveedor" placeholder="Ej. Finca El Olivar" required>
+        </div>
+        <div>
+          <label for="gCategoria">Categoría</label>
+          <select id="gCategoria"></select>
+        </div>
+        <div>
+          <label for="gImporteTotal">Importe total (€)</label>
+          <input type="text" id="gImporteTotal" inputmode="decimal" placeholder="Ej. 3000">
+        </div>
+        <div>
+          <label for="gFechaLimite">Fecha límite de pago <span style="font-weight:400">· opcional</span></label>
+          <input type="date" id="gFechaLimite">
+        </div>
+        <div>
+          <label for="gDocumento">Factura / presupuesto <span style="font-weight:400">· opcional</span></label>
+          <input type="text" id="gDocumento" placeholder="Enlace o referencia, ej. link de Drive">
+        </div>
+        <div class="span-2">
+          <label for="gConcepto">Concepto <span style="font-weight:400">· opcional</span></label>
+          <input type="text" id="gConcepto" placeholder="Ej. Alquiler de la finca y catering para 120">
+        </div>
+        <div class="span-2">
+          <label for="gNotas">Notas</label>
+          <textarea id="gNotas" placeholder="Cualquier detalle que queráis recordar"></textarea>
+        </div>
+      </div>
+      <div class="modal-error" id="gastoError"></div>
+      <div class="modal-acciones">
+        <button type="button" class="btn-peligro izquierda" id="gastoEliminar">Eliminar gasto</button>
+        <button type="button" class="btn-suave" data-cerrar="modalGasto">Cancelar</button>
+        <button type="submit" id="gastoGuardar">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Nuevo pago -->
+<div class="modal-overlay" id="modalPago">
+  <div class="modal">
+    <div class="modal-cabecera">
+      <h2 id="pagoTitulo">Registrar pago</h2>
+      <button type="button" class="modal-cerrar" data-cerrar="modalPago" aria-label="Cerrar sin guardar" title="Cerrar sin guardar">&times;</button>
+    </div>
+    <form id="pagoForm">
+      <div class="rejilla">
+        <div>
+          <label for="pImporte">Importe (€)</label>
+          <input type="text" id="pImporte" inputmode="decimal" placeholder="Ej. 500" required>
+        </div>
+        <div>
+          <label for="pFecha">Fecha</label>
+          <input type="date" id="pFecha">
+        </div>
+        <div class="span-2">
+          <label for="pMetodo">Método</label>
+          <select id="pMetodo"></select>
+        </div>
+        <div class="span-2">
+          <label for="pNotas">Notas <span style="font-weight:400">· opcional</span></label>
+          <input type="text" id="pNotas" placeholder="Ej. señal, segundo pago...">
+        </div>
+      </div>
+      <div class="modal-error" id="pagoError"></div>
+      <div class="modal-acciones">
+        <button type="button" class="btn-suave" data-cerrar="modalPago">Cancelar</button>
+        <button type="submit" id="pagoGuardar">Guardar pago</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const CLAVE_TOKEN = 'bodaAdminToken';
+  const CATEGORIAS = {
+    finca_catering: { icono: '🍽️', texto: 'Finca y catering' },
+    fotografia_video: { icono: '📷', texto: 'Fotografía y vídeo' },
+    flores_decoracion: { icono: '💐', texto: 'Flores y decoración' },
+    musica: { icono: '🎶', texto: 'Música' },
+    vestuario_belleza: { icono: '👗', texto: 'Vestuario y belleza' },
+    invitaciones_papeleria: { icono: '💌', texto: 'Invitaciones y papelería' },
+    transporte: { icono: '🚌', texto: 'Transporte' },
+    pastel: { icono: '🎂', texto: 'Pastel y dulces' },
+    alianzas: { icono: '💍', texto: 'Alianzas' },
+    otros: { icono: '✨', texto: 'Otros' }
+  };
+  const METODOS = { transferencia: 'Transferencia', tarjeta: 'Tarjeta', efectivo: 'Efectivo', bizum: 'Bizum', otro: 'Otro' };
+  const ESTADO_TEXTO = { pendiente: 'Pendiente', parcial: 'Parcial', pagado: 'Pagado' };
+
+  let adminToken = '';
+  let gastos = [];
+  let pestana = 'todos';
+  let gastoActual = null; // id del gasto abierto en el modal de pago
+
+  // ---------- utilidades ----------
+  function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+  function normalizar(str) {
+    return String(str || '').toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '');
+  }
+  function mostrarToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('visible');
+    clearTimeout(mostrarToast._t); mostrarToast._t = setTimeout(() => t.classList.remove('visible'), 3000);
+  }
+  function euros(n) {
+    return Number(n).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+  }
+  function fechaCorta(iso) {
+    if (!iso) return '';
+    const [a, m, d] = iso.split('-');
+    return `${d}/${m}/${a}`;
+  }
+  function hoyIso() {
+    const d = new Date();
+    return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  }
+  async function api(url, opciones = {}) {
+    const res = await fetch(url, {
+      ...opciones,
+      headers: { 'x-admin-token': adminToken, ...(opciones.body ? { 'Content-Type': 'application/json' } : {}), ...(opciones.headers || {}) }
+    });
+    const data = await res.json().catch(() => null);
+    if (!res.ok) throw new Error((data && data.error) || 'Error ' + res.status);
+    return data;
+  }
+
+  // ---------- sesión ----------
+  document.getElementById('entrar').addEventListener('click', () => entrar());
+  document.getElementById('token').addEventListener('keydown', e => { if (e.key === 'Enter') entrar(); });
+  document.getElementById('cerrarSesion').addEventListener('click', e => {
+    e.preventDefault();
+    try { localStorage.removeItem(CLAVE_TOKEN); } catch (err) {}
+    location.reload();
+  });
+
+  async function entrar(tokenPrevio) {
+    const token = tokenPrevio || document.getElementById('token').value.trim();
+    const errorEl = document.getElementById('gateError');
+    errorEl.textContent = '';
+    if (!token) return;
+    adminToken = token;
+    try {
+      await cargarTodo();
+    } catch (err) {
+      adminToken = '';
+      errorEl.textContent = /autorizado|401/i.test(err.message) ? 'Contraseña incorrecta.' : 'Error al conectar con el servidor.';
+      if (/autorizado|401/i.test(err.message)) { try { localStorage.removeItem(CLAVE_TOKEN); } catch (e) {} }
+      return;
+    }
+    try { localStorage.setItem(CLAVE_TOKEN, token); } catch (err) {}
+    document.getElementById('gate').style.display = 'none';
+    document.getElementById('panel').style.display = 'block';
+  }
+
+  (function entradaAutomatica() {
+    let guardado = '';
+    try { guardado = localStorage.getItem(CLAVE_TOKEN) || ''; } catch (err) {}
+    if (guardado) entrar(guardado);
+  })();
+
+  async function cargarTodo() {
+    gastos = await api('/api/gastos');
+    render();
+  }
+
+  document.getElementById('actualizar').addEventListener('click', async () => {
+    try { await cargarTodo(); mostrarToast('Datos actualizados.'); } catch (err) { mostrarToast(err.message); }
+  });
+
+  // ---------- render ----------
+  function render() {
+    const totalPresupuestado = gastos.reduce((n, g) => n + g.importe_total, 0);
+    const totalPagado = gastos.reduce((n, g) => n + g.importe_pagado, 0);
+    const totalPendiente = gastos.reduce((n, g) => n + g.importe_pendiente, 0);
+    const porVencer = gastos
+      .filter(g => g.estado !== 'pagado' && g.fecha_limite)
+      .sort((a, b) => a.fecha_limite.localeCompare(b.fecha_limite))[0];
+
+    document.getElementById('stats').innerHTML = `
+      <div class="stat"><div class="n">${gastos.length}</div><div class="l">Proveedores</div></div>
+      <div class="stat"><div class="n">${euros(totalPresupuestado)}</div><div class="l">Total gastos</div></div>
+      <div class="stat"><div class="n">${euros(totalPagado)}</div><div class="l">Pagado</div></div>
+      <div class="stat highlight"><div class="n">${euros(totalPendiente)}</div><div class="l">Pendiente de pagar</div></div>
+      <div class="stat"><div class="n">${gastos.filter(g => g.estado === 'pagado').length}</div><div class="l">Pagados</div></div>
+      <div class="stat"><div class="n">${gastos.filter(g => g.estado !== 'pagado').length}</div><div class="l">Sin pagar del todo</div></div>
+      ${porVencer ? `<div class="stat" title="${escapeHtml(porVencer.proveedor)}: pendiente ${euros(porVencer.importe_pendiente)}"><div class="n">${fechaCorta(porVencer.fecha_limite)}</div><div class="l">Próximo vencimiento</div><div class="l-sub">${escapeHtml(porVencer.proveedor)}</div></div>` : ''}
+    `;
+
+    const pestanas = [
+      ['todos', 'Todos', gastos.length],
+      ['pendiente', 'Pendientes', gastos.filter(g => g.estado === 'pendiente').length],
+      ['parcial', 'Parciales', gastos.filter(g => g.estado === 'parcial').length],
+      ['pagado', 'Pagados', gastos.filter(g => g.estado === 'pagado').length]
+    ];
+    document.getElementById('pestanas').innerHTML = pestanas.map(([id, texto, n]) =>
+      `<button type="button" class="pestana ${pestana === id ? 'activa' : ''}" data-pestana="${id}">${texto}<span class="cuenta">${n}</span></button>`
+    ).join('');
+
+    const termino = normalizar(document.getElementById('buscador').value.trim());
+    let lista = pestana === 'todos' ? gastos : gastos.filter(g => g.estado === pestana);
+    if (termino) lista = lista.filter(g => coincideGasto(g, termino));
+
+    const cont = document.getElementById('contenido');
+    if (!lista.length) {
+      cont.innerHTML = `<div class="vacio">${gastos.length ? 'Nada coincide con la búsqueda o el filtro.' : 'Todavía no hay gastos apuntados. Pulsa "+ Nuevo gasto" para empezar.'}</div>`;
+      return;
+    }
+    cont.innerHTML = `<div class="lista">${lista.map(tarjetaGasto).join('')}</div>`;
+  }
+
+  function coincideGasto(g, termino) {
+    const texto = normalizar([g.proveedor, (CATEGORIAS[g.categoria] || {}).texto, g.concepto, g.notas].join(' '));
+    return termino.split(/\s+/).filter(Boolean).every(p => texto.includes(p));
+  }
+
+  function vencido(g) {
+    return g.estado !== 'pagado' && g.fecha_limite && g.fecha_limite < hoyIso();
+  }
+
+  function tarjetaGasto(g) {
+    const cat = CATEGORIAS[g.categoria] || CATEGORIAS.otros;
+    const pct = g.importe_total > 0 ? Math.min(100, Math.round(g.importe_pagado / g.importe_total * 100)) : 100;
+    const detalle = [cat.texto, g.fecha_limite ? 'Límite ' + fechaCorta(g.fecha_limite) : ''].filter(Boolean).join(' · ');
+    return `
+      <div class="tarjeta" data-gasto="${g.id}">
+        <div class="tarjeta-cabecera">
+          <div class="tarjeta-icono">${cat.icono}</div>
+          <div class="tarjeta-titulo">
+            <div class="que">${escapeHtml(g.proveedor)}</div>
+            <div class="detalle">${escapeHtml(detalle)}</div>
+            <span class="etiqueta ${vencido(g) ? 'vencido' : g.estado}">${vencido(g) ? 'Vencido' : ESTADO_TEXTO[g.estado]}</span>
+          </div>
+          <div class="importe">${euros(g.importe_total)}</div>
+        </div>
+        <div class="barra-progreso"><div style="width:${pct}%"></div></div>
+        <div class="resumen-pago"><span>Pagado ${euros(g.importe_pagado)}</span><span>Pendiente ${euros(g.importe_pendiente)}</span></div>
+        ${g.concepto ? `<div class="sin-pagos" style="padding-top:8px">${escapeHtml(g.concepto)}</div>` : ''}
+        ${g.pagos.length
+          ? `<ul class="pagos">${g.pagos.map(filaPago(g.id)).join('')}</ul>`
+          : `<div class="sin-pagos">Todavía no se ha registrado ningún pago.</div>`}
+        <div class="tarjeta-pie">
+          ${g.documento ? `<span class="doc">📄 ${enlaceODocumento(g.documento)}</span>` : ''}
+          <span class="notas">${escapeHtml(g.notas)}</span>
+          <button type="button" class="btn-mini btn-secundario" data-accion="pago" data-gasto="${g.id}">+ Pago</button>
+          <button type="button" class="btn-mini btn-suave" data-accion="editar" data-gasto="${g.id}">Editar</button>
+        </div>
+      </div>`;
+  }
+
+  function enlaceODocumento(doc) {
+    if (/^https?:\/\//i.test(doc)) return `<a href="${escapeHtml(doc)}" target="_blank" rel="noopener">Ver documento</a>`;
+    return escapeHtml(doc);
+  }
+
+  function filaPago(gastoId) {
+    return p => `
+      <li class="pago">
+        <span class="fecha">${fechaCorta(p.fecha)}</span>
+        <span class="monto">${euros(p.importe)}</span>
+        <span class="metodo">${escapeHtml(METODOS[p.metodo] || p.metodo)}${p.notas ? ' · ' + escapeHtml(p.notas) : ''}</span>
+        <button type="button" data-accion="borrarpago" data-gasto="${gastoId}" data-pago="${p.id}" title="Eliminar este pago">&times;</button>
+      </li>`;
+  }
+
+  document.getElementById('pestanas').addEventListener('click', e => {
+    const b = e.target.closest('[data-pestana]');
+    if (!b) return;
+    pestana = b.dataset.pestana;
+    render();
+  });
+  document.getElementById('buscador').addEventListener('input', render);
+
+  document.getElementById('contenido').addEventListener('click', async e => {
+    const btn = e.target.closest('[data-accion]');
+    if (!btn) return;
+    const gastoId = Number(btn.dataset.gasto);
+    if (btn.dataset.accion === 'editar') abrirGasto(gastos.find(g => g.id === gastoId));
+    if (btn.dataset.accion === 'pago') abrirPago(gastoId);
+    if (btn.dataset.accion === 'borrarpago') {
+      if (!confirm('¿Eliminar este pago?')) return;
+      try {
+        await api(`/api/gastos/${gastoId}/pagos/${btn.dataset.pago}`, { method: 'DELETE' });
+        await cargarTodo();
+        mostrarToast('Pago eliminado.');
+      } catch (err) { mostrarToast(err.message); }
+    }
+  });
+
+  // ---------- modal: gasto ----------
+  function cerrarModal(id) { document.getElementById(id).classList.remove('visible'); }
+  document.querySelectorAll('[data-cerrar]').forEach(b => b.addEventListener('click', () => cerrarModal(b.dataset.cerrar)));
+  document.querySelectorAll('.modal-overlay').forEach(ov => ov.addEventListener('click', e => { if (e.target === ov) ov.classList.remove('visible'); }));
+
+  function opcionesSelect(mapa) {
+    return Object.entries(mapa).map(([v, t]) => `<option value="${v}">${t.texto || t}</option>`).join('');
+  }
+  document.getElementById('gCategoria').innerHTML = opcionesSelect(CATEGORIAS);
+  document.getElementById('pMetodo').innerHTML = opcionesSelect(METODOS);
+
+  let gastoEditando = null;
+  document.getElementById('nuevoGasto').addEventListener('click', () => abrirGasto(null));
+
+  function abrirGasto(g) {
+    gastoEditando = g ? g.id : null;
+    document.getElementById('gastoTitulo').textContent = g ? 'Editar gasto' : 'Nuevo gasto';
+    document.getElementById('gastoError').textContent = '';
+    document.getElementById('gProveedor').value = g ? g.proveedor : '';
+    document.getElementById('gCategoria').value = g ? g.categoria : 'otros';
+    document.getElementById('gImporteTotal').value = g ? g.importe_total : '';
+    document.getElementById('gFechaLimite').value = g ? (g.fecha_limite || '') : '';
+    document.getElementById('gDocumento').value = g ? g.documento : '';
+    document.getElementById('gConcepto').value = g ? g.concepto : '';
+    document.getElementById('gNotas').value = g ? g.notas : '';
+    document.getElementById('gastoEliminar').style.display = g ? 'inline-flex' : 'none';
+    document.getElementById('modalGasto').classList.add('visible');
+    document.getElementById('gProveedor').focus();
+  }
+
+  document.getElementById('gastoForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const datos = {
+      proveedor: document.getElementById('gProveedor').value.trim(),
+      categoria: document.getElementById('gCategoria').value,
+      importeTotal: document.getElementById('gImporteTotal').value.trim(),
+      fechaLimite: document.getElementById('gFechaLimite').value || null,
+      documento: document.getElementById('gDocumento').value.trim(),
+      concepto: document.getElementById('gConcepto').value.trim(),
+      notas: document.getElementById('gNotas').value.trim()
+    };
+    try {
+      if (gastoEditando) await api(`/api/gastos/${gastoEditando}`, { method: 'PUT', body: JSON.stringify(datos) });
+      else await api('/api/gastos', { method: 'POST', body: JSON.stringify(datos) });
+      cerrarModal('modalGasto');
+      await cargarTodo();
+      mostrarToast('Gasto guardado.');
+    } catch (err) {
+      document.getElementById('gastoError').textContent = err.message;
+    }
+  });
+
+  document.getElementById('gastoEliminar').addEventListener('click', async () => {
+    if (!gastoEditando || !confirm('¿Eliminar este gasto y todos sus pagos registrados?')) return;
+    try {
+      await api(`/api/gastos/${gastoEditando}`, { method: 'DELETE' });
+      cerrarModal('modalGasto');
+      await cargarTodo();
+      mostrarToast('Gasto eliminado.');
+    } catch (err) {
+      document.getElementById('gastoError').textContent = err.message;
+    }
+  });
+
+  // ---------- modal: pago ----------
+  function abrirPago(gastoId) {
+    gastoActual = gastoId;
+    document.getElementById('pagoError').textContent = '';
+    document.getElementById('pImporte').value = '';
+    document.getElementById('pFecha').value = hoyIso();
+    document.getElementById('pMetodo').value = 'transferencia';
+    document.getElementById('pNotas').value = '';
+    document.getElementById('modalPago').classList.add('visible');
+    document.getElementById('pImporte').focus();
+  }
+
+  document.getElementById('pagoForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const datos = {
+      importe: document.getElementById('pImporte').value.trim(),
+      fecha: document.getElementById('pFecha').value || null,
+      metodo: document.getElementById('pMetodo').value,
+      notas: document.getElementById('pNotas').value.trim()
+    };
+    try {
+      await api(`/api/gastos/${gastoActual}/pagos`, { method: 'POST', body: JSON.stringify(datos) });
+      cerrarModal('modalPago');
+      await cargarTodo();
+      mostrarToast('Pago registrado.');
+    } catch (err) {
+      document.getElementById('pagoError').textContent = err.message;
+    }
+  });
+</script>
+</body>
+</html>
