@@ -79,6 +79,37 @@
   .pago button{background:transparent; color:var(--bad); box-shadow:none; padding:0 4px; font-size:16px; line-height:1;}
   .pago button:hover{background:transparent; transform:none;}
   .sin-pagos{font-size:12px; color:var(--muted); padding:8px 14px 0;}
+  .plazos{list-style:none; margin:8px 14px 0; padding:0; border-top:1px dashed var(--line);}
+  .plazos-titulo{font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); margin:10px 14px 0;}
+  .plazo{display:flex; align-items:center; gap:8px; padding:7px 0; font-size:13px; border-bottom:1px solid #F3F0EC; flex-wrap:wrap;}
+  .plazo .fecha{color:var(--muted); font-size:12px; white-space:nowrap;}
+  .plazo.vencido .fecha{color:var(--bad); font-weight:700;}
+  .plazo .monto{font-weight:700; flex:1; min-width:70px;}
+  .plazo .notas{color:var(--muted); font-size:12px;}
+  .plazo.pagado{opacity:.6;}
+  .plazo .ok-pagado{color:var(--ok); font-size:12px; font-weight:700;}
+  .plazo button{background:transparent; color:var(--bad); box-shadow:none; padding:0 4px; font-size:16px; line-height:1;}
+  .plazo button:hover{background:transparent; transform:none;}
+
+  .vista-toggle{display:flex; gap:0; border:1.5px solid var(--gold); border-radius:var(--radius-sm); overflow:hidden;}
+  .vista-toggle button{background:#fff; color:var(--gold); box-shadow:none; border-radius:0; padding:11px 16px;}
+  .vista-toggle button.activa{background:var(--gold); color:#fff;}
+  .vista-toggle button:hover{transform:none;}
+
+  .calendario{display:flex; flex-direction:column; gap:22px;}
+  .mes-grupo{background:#fff; border-radius:var(--radius-md); box-shadow:var(--shadow-card); overflow:hidden;}
+  .mes-cabecera{background:var(--gold-soft); color:var(--gold); font-weight:700; padding:10px 16px; font-size:14px; text-transform:capitalize;}
+  .agenda{list-style:none; margin:0; padding:0;}
+  .agenda-fila{display:flex; align-items:center; gap:12px; padding:11px 16px; border-bottom:1px solid var(--line);}
+  .agenda-fila:last-child{border-bottom:none;}
+  .agenda-fila.vencido{background:var(--bad-soft);}
+  .agenda-fila.pagado{opacity:.55;}
+  .agenda-dia{font-family:'Cormorant Garamond',serif; font-size:22px; color:var(--gold); min-width:36px; text-align:center;}
+  .agenda-fila.vencido .agenda-dia{color:var(--bad);}
+  .agenda-info{flex:1; min-width:0;}
+  .agenda-info .que{font-weight:700; font-size:14px;}
+  .agenda-info .detalle{font-size:12px; color:var(--muted);}
+  .agenda-importe{font-family:'Cormorant Garamond',serif; font-size:19px; color:var(--gold); white-space:nowrap;}
   .tarjeta-pie{margin-top:auto; padding:10px 14px 12px; display:flex; gap:6px; justify-content:flex-end; align-items:center; flex-wrap:wrap;}
   .tarjeta-pie .notas{flex:1; font-size:12px; color:var(--muted); align-self:center;}
   .tarjeta-pie .doc{font-size:12px;}
@@ -139,6 +170,10 @@
   <div class="toolbar">
     <button id="nuevoGasto">+ Nuevo gasto</button>
     <button id="actualizar" class="btn-suave">Actualizar</button>
+    <div class="vista-toggle">
+      <button type="button" class="activa" data-vista="lista">📋 Lista</button>
+      <button type="button" data-vista="calendario">📅 Calendario</button>
+    </div>
   </div>
 
   <div class="pestanas" id="pestanas"></div>
@@ -242,6 +277,37 @@
   </div>
 </div>
 
+<!-- Plazo previsto -->
+<div class="modal-overlay" id="modalPlazo">
+  <div class="modal">
+    <div class="modal-cabecera">
+      <h2 id="plazoTitulo">Nuevo plazo previsto</h2>
+      <button type="button" class="modal-cerrar" data-cerrar="modalPlazo" aria-label="Cerrar sin guardar" title="Cerrar sin guardar">&times;</button>
+    </div>
+    <form id="plazoForm">
+      <div class="rejilla">
+        <div>
+          <label for="plImporte">Importe (€)</label>
+          <input type="text" id="plImporte" inputmode="decimal" placeholder="Ej. 1000" required>
+        </div>
+        <div>
+          <label for="plFecha">Fecha prevista</label>
+          <input type="date" id="plFecha" required>
+        </div>
+        <div class="span-2">
+          <label for="plNotas">Notas <span style="font-weight:400">· opcional</span></label>
+          <input type="text" id="plNotas" placeholder="Ej. señal, segundo pago, liquidación...">
+        </div>
+      </div>
+      <div class="modal-error" id="plazoError"></div>
+      <div class="modal-acciones">
+        <button type="button" class="btn-suave" data-cerrar="modalPlazo">Cancelar</button>
+        <button type="submit" id="plazoGuardar">Guardar plazo</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script src="/categorias.js"></script>
@@ -266,7 +332,10 @@
   let adminToken = '';
   let gastos = [];
   let pestana = 'todos';
+  let vista = 'lista';
   let gastoActual = null; // id del gasto abierto en el modal de pago
+  let plazoAPagar = null; // {gastoId, plazoId} cuando el modal de pago viene de "Pagar" un plazo
+  let plazoGastoActual = null; // id del gasto abierto en el modal de nuevo plazo
 
   // ---------- utilidades ----------
   function escapeHtml(str) {
@@ -362,13 +431,25 @@
   });
 
   // ---------- render ----------
+  // El plazo previsto más próximo sin pagar, o null si no hay ninguno.
+  function proximoPlazoPendiente(g) {
+    return (g.plazos || []).filter(p => !p.pago_id).sort((a, b) => a.fecha.localeCompare(b.fecha))[0] || null;
+  }
+  // La fecha que de verdad manda para un gasto: el plazo pendiente más
+  // próximo si lo hay, o si no la fecha límite de toda la vida.
+  function fechaEfectiva(g) {
+    const p = proximoPlazoPendiente(g);
+    return p ? p.fecha : g.fecha_limite;
+  }
+
   function render() {
     const totalPresupuestado = gastos.reduce((n, g) => n + g.importe_total, 0);
     const totalPagado = gastos.reduce((n, g) => n + g.importe_pagado, 0);
     const totalPendiente = gastos.reduce((n, g) => n + g.importe_pendiente, 0);
-    const porVencer = gastos
-      .filter(g => g.estado !== 'pagado' && g.fecha_limite)
-      .sort((a, b) => a.fecha_limite.localeCompare(b.fecha_limite))[0];
+    const candidatosVencimiento = gastos
+      .filter(g => g.estado !== 'pagado' && fechaEfectiva(g))
+      .map(g => ({ proveedor: g.proveedor, fecha: fechaEfectiva(g), importe: proximoPlazoPendiente(g) ? proximoPlazoPendiente(g).importe : g.importe_pendiente }));
+    const porVencer = candidatosVencimiento.sort((a, b) => a.fecha.localeCompare(b.fecha))[0];
 
     document.getElementById('stats').innerHTML = `
       <div class="stat"><div class="n">${gastos.length}</div><div class="l">Proveedores</div></div>
@@ -377,8 +458,19 @@
       <div class="stat highlight"><div class="n">${euros(totalPendiente)}</div><div class="l">Pendiente de pagar</div></div>
       <div class="stat"><div class="n">${gastos.filter(g => g.estado === 'pagado').length}</div><div class="l">Pagados</div></div>
       <div class="stat"><div class="n">${gastos.filter(g => g.estado !== 'pagado').length}</div><div class="l">Sin pagar del todo</div></div>
-      ${porVencer ? `<div class="stat" title="${escapeHtml(porVencer.proveedor)}: pendiente ${euros(porVencer.importe_pendiente)}"><div class="n">${fechaCorta(porVencer.fecha_limite)}</div><div class="l">Próximo vencimiento</div><div class="l-sub">${escapeHtml(porVencer.proveedor)}</div></div>` : ''}
+      ${porVencer ? `<div class="stat" title="${escapeHtml(porVencer.proveedor)}: ${euros(porVencer.importe)}"><div class="n">${fechaCorta(porVencer.fecha)}</div><div class="l">Próximo vencimiento</div><div class="l-sub">${escapeHtml(porVencer.proveedor)}</div></div>` : ''}
     `;
+
+    document.querySelectorAll('.vista-toggle button').forEach(b => b.classList.toggle('activa', b.dataset.vista === vista));
+
+    const cont = document.getElementById('contenido');
+    if (vista === 'calendario') {
+      document.getElementById('pestanas').innerHTML = '';
+      document.getElementById('buscador').style.display = 'none';
+      cont.innerHTML = renderCalendario();
+      return;
+    }
+    document.getElementById('buscador').style.display = '';
 
     const pestanas = [
       ['todos', 'Todos', gastos.length],
@@ -394,12 +486,57 @@
     let lista = pestana === 'todos' ? gastos : gastos.filter(g => g.estado === pestana);
     if (termino) lista = lista.filter(g => coincideGasto(g, termino));
 
-    const cont = document.getElementById('contenido');
     if (!lista.length) {
       cont.innerHTML = `<div class="vacio">${gastos.length ? 'Nada coincide con la búsqueda o el filtro.' : 'Todavía no hay gastos apuntados. Pulsa "+ Nuevo gasto" para empezar.'}</div>`;
       return;
     }
     cont.innerHTML = `<div class="lista">${lista.map(tarjetaGasto).join('')}</div>`;
+  }
+
+  // ---------- vista calendario ----------
+  const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+  function renderCalendario() {
+    const filas = gastos.flatMap(g => (g.plazos || []).map(pl => ({
+      gastoId: g.id, plazoId: pl.id, proveedor: g.proveedor, categoria: g.categoria,
+      fecha: pl.fecha, importe: pl.importe, notas: pl.notas, pagado: Boolean(pl.pago_id),
+      pagoFecha: pl.pago_id ? (g.pagos.find(p => p.id === pl.pago_id) || {}).fecha : null
+    })));
+    if (!filas.length) {
+      return `<div class="vacio">Todavía no hay plazos previstos. Añade uno con "+ Plazo" desde la vista de lista.</div>`;
+    }
+    filas.sort((a, b) => a.fecha.localeCompare(b.fecha));
+    const grupos = new Map();
+    for (const f of filas) {
+      const clave = f.fecha.slice(0, 7); // YYYY-MM
+      if (!grupos.has(clave)) grupos.set(clave, []);
+      grupos.get(clave).push(f);
+    }
+    return `<div class="calendario">${[...grupos.entries()].map(([clave, filasDelMes]) => {
+      const [anio, mes] = clave.split('-');
+      const titulo = `${MESES[Number(mes) - 1]} ${anio}`;
+      return `
+        <div class="mes-grupo">
+          <div class="mes-cabecera">${titulo}</div>
+          <ul class="agenda">${filasDelMes.map(filaAgenda).join('')}</ul>
+        </div>`;
+    }).join('')}</div>`;
+  }
+
+  function filaAgenda(f) {
+    const cat = CATEGORIAS[f.categoria] || CATEGORIAS.otros;
+    const venc = !f.pagado && f.fecha < hoyIso();
+    const [, , dia] = f.fecha.split('-');
+    const detalle = [cat.texto, f.notas].filter(Boolean).join(' · ');
+    return `
+      <li class="agenda-fila ${venc ? 'vencido' : ''} ${f.pagado ? 'pagado' : ''}">
+        <div class="agenda-dia">${dia}</div>
+        <div class="agenda-info">
+          <div class="que">${cat.icono} ${escapeHtml(f.proveedor)}</div>
+          <div class="detalle">${escapeHtml(detalle)}${f.pagado ? ' · ✓ Pagado' + (f.pagoFecha ? ' el ' + fechaCorta(f.pagoFecha) : '') : (venc ? ' · Vencido' : '')}</div>
+        </div>
+        <div class="agenda-importe">${euros(f.importe)}</div>
+        ${!f.pagado ? `<button type="button" class="btn-mini btn-secundario" data-accion="pagarplazo" data-gasto="${f.gastoId}" data-plazo="${f.plazoId}">Pagar</button>` : ''}
+      </li>`;
   }
 
   function coincideGasto(g, termino) {
@@ -408,7 +545,8 @@
   }
 
   function vencido(g) {
-    return g.estado !== 'pagado' && g.fecha_limite && g.fecha_limite < hoyIso();
+    const f = fechaEfectiva(g);
+    return g.estado !== 'pagado' && f && f < hoyIso();
   }
 
   function tarjetaGasto(g) {
@@ -432,15 +570,35 @@
         ${g.pagos.length
           ? `<ul class="pagos">${g.pagos.map(filaPago(g.id)).join('')}</ul>`
           : `<div class="sin-pagos">Todavía no se ha registrado ningún pago.</div>`}
+        ${g.plazos.length ? `<div class="plazos-titulo">Plazos previstos</div><ul class="plazos">${g.plazos.map(filaPlazo(g)).join('')}</ul>` : ''}
         ${g.iban ? `<div class="sin-pagos">🏦 ${escapeHtml(g.iban)} <button type="button" class="btn-mini btn-suave" data-accion="copiariban" data-iban="${escapeHtml(g.iban)}" style="padding:2px 8px;">Copiar</button></div>` : ''}
         <div class="tarjeta-pie">
           ${g.documento ? `<span class="doc">📄 ${enlaceODocumento(g.documento)}</span>` : ''}
           ${g.contrato ? `<span class="doc">📝 ${enlaceODocumento(g.contrato, 'Ver contrato')}</span>` : ''}
           <span class="notas">${escapeHtml(g.notas)}</span>
+          <button type="button" class="btn-mini btn-secundario" data-accion="plazo" data-gasto="${g.id}">+ Plazo</button>
           <button type="button" class="btn-mini btn-secundario" data-accion="pago" data-gasto="${g.id}">+ Pago</button>
           <button type="button" class="btn-mini btn-suave" data-accion="editar" data-gasto="${g.id}">Editar</button>
         </div>
       </div>`;
+  }
+
+  function filaPlazo(g) {
+    return pl => {
+      const pagado = Boolean(pl.pago_id);
+      const pago = pagado ? g.pagos.find(p => p.id === pl.pago_id) : null;
+      const venc = !pagado && pl.fecha < hoyIso();
+      return `
+      <li class="plazo ${pagado ? 'pagado' : (venc ? 'vencido' : '')}">
+        <span class="fecha">${fechaCorta(pl.fecha)}</span>
+        <span class="monto">${euros(pl.importe)}</span>
+        <span class="notas">${escapeHtml(pl.notas)}</span>
+        ${pagado
+          ? `<span class="ok-pagado">✓ Pagado${pago ? ' el ' + fechaCorta(pago.fecha) : ''}</span>`
+          : `<button type="button" class="btn-mini btn-secundario" data-accion="pagarplazo" data-gasto="${g.id}" data-plazo="${pl.id}" style="padding:2px 8px;">Pagar</button>
+             <button type="button" data-accion="borrarplazo" data-gasto="${g.id}" data-plazo="${pl.id}" title="Eliminar este plazo">&times;</button>`}
+      </li>`;
+    };
   }
 
   function enlaceODocumento(doc, texto) {
@@ -465,6 +623,12 @@
     render();
   });
   document.getElementById('buscador').addEventListener('input', render);
+  document.querySelector('.vista-toggle').addEventListener('click', e => {
+    const b = e.target.closest('[data-vista]');
+    if (!b) return;
+    vista = b.dataset.vista;
+    render();
+  });
 
   document.getElementById('contenido').addEventListener('click', async e => {
     const btn = e.target.closest('[data-accion]');
@@ -481,6 +645,16 @@
         await api(`/api/gastos/${gastoId}/pagos/${btn.dataset.pago}`, { method: 'DELETE' });
         await cargarTodo();
         mostrarToast('Pago eliminado.');
+      } catch (err) { mostrarToast(err.message); }
+    }
+    if (btn.dataset.accion === 'plazo') abrirPlazo(gastoId);
+    if (btn.dataset.accion === 'pagarplazo') abrirPagoDesdePlazo(Number(btn.dataset.gasto), Number(btn.dataset.plazo));
+    if (btn.dataset.accion === 'borrarplazo') {
+      if (!confirm('¿Eliminar este plazo previsto?')) return;
+      try {
+        await api(`/api/gastos/${gastoId}/plazos/${btn.dataset.plazo}`, { method: 'DELETE' });
+        await cargarTodo();
+        mostrarToast('Plazo eliminado.');
       } catch (err) { mostrarToast(err.message); }
     }
   });
@@ -557,12 +731,34 @@
   // ---------- modal: pago ----------
   function abrirPago(gastoId) {
     gastoActual = gastoId;
+    plazoAPagar = null;
+    document.getElementById('pagoTitulo').textContent = 'Registrar pago';
     document.getElementById('pagoError').textContent = '';
     document.getElementById('pImporte').value = '';
     document.getElementById('pFecha').value = hoyIso();
     document.getElementById('pMetodo').value = 'transferencia';
     document.getElementById('pPagadoPor').value = 'Ambos';
     document.getElementById('pNotas').value = '';
+    document.getElementById('modalPago').classList.add('visible');
+    document.getElementById('pImporte').focus();
+  }
+
+  // Abre el mismo modal de pago pero para liquidar un plazo previsto:
+  // el importe y la fecha prevista vienen rellenados, y al guardar se
+  // crea el pago real enlazado a ese plazo en vez de uno suelto.
+  function abrirPagoDesdePlazo(gastoId, plazoId) {
+    const g = gastos.find(x => x.id === gastoId);
+    const pl = g && (g.plazos || []).find(p => p.id === plazoId);
+    if (!pl) return;
+    gastoActual = gastoId;
+    plazoAPagar = plazoId;
+    document.getElementById('pagoTitulo').textContent = 'Pagar plazo previsto';
+    document.getElementById('pagoError').textContent = '';
+    document.getElementById('pImporte').value = pl.importe;
+    document.getElementById('pFecha').value = hoyIso();
+    document.getElementById('pMetodo').value = 'transferencia';
+    document.getElementById('pPagadoPor').value = 'Ambos';
+    document.getElementById('pNotas').value = pl.notas || '';
     document.getElementById('modalPago').classList.add('visible');
     document.getElementById('pImporte').focus();
   }
@@ -577,12 +773,41 @@
       notas: document.getElementById('pNotas').value.trim()
     };
     try {
-      await api(`/api/gastos/${gastoActual}/pagos`, { method: 'POST', body: JSON.stringify(datos) });
+      if (plazoAPagar) await api(`/api/gastos/${gastoActual}/plazos/${plazoAPagar}/pagar`, { method: 'POST', body: JSON.stringify(datos) });
+      else await api(`/api/gastos/${gastoActual}/pagos`, { method: 'POST', body: JSON.stringify(datos) });
       cerrarModal('modalPago');
       await cargarTodo();
       mostrarToast('Pago registrado.');
     } catch (err) {
       document.getElementById('pagoError').textContent = err.message;
+    }
+  });
+
+  // ---------- modal: plazo previsto ----------
+  function abrirPlazo(gastoId) {
+    plazoGastoActual = gastoId;
+    document.getElementById('plazoError').textContent = '';
+    document.getElementById('plImporte').value = '';
+    document.getElementById('plFecha').value = '';
+    document.getElementById('plNotas').value = '';
+    document.getElementById('modalPlazo').classList.add('visible');
+    document.getElementById('plImporte').focus();
+  }
+
+  document.getElementById('plazoForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const datos = {
+      importe: document.getElementById('plImporte').value.trim(),
+      fecha: document.getElementById('plFecha').value,
+      notas: document.getElementById('plNotas').value.trim()
+    };
+    try {
+      await api(`/api/gastos/${plazoGastoActual}/plazos`, { method: 'POST', body: JSON.stringify(datos) });
+      cerrarModal('modalPlazo');
+      await cargarTodo();
+      mostrarToast('Plazo guardado.');
+    } catch (err) {
+      document.getElementById('plazoError').textContent = err.message;
     }
   });
 </script>
