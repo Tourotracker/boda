@@ -177,6 +177,10 @@
           <input type="text" id="gDocumento" placeholder="Enlace o referencia, ej. link de Drive">
         </div>
         <div>
+          <label for="gContrato">Contrato <span style="font-weight:400">· opcional</span></label>
+          <input type="text" id="gContrato" placeholder="Enlace o referencia, ej. link de Drive">
+        </div>
+        <div>
           <label for="gIban">IBAN del proveedor <span style="font-weight:400">· opcional</span></label>
           <input type="text" id="gIban" placeholder="Ej. ES00 0000 0000 0000 0000 0000">
         </div>
@@ -431,6 +435,7 @@
         ${g.iban ? `<div class="sin-pagos">🏦 ${escapeHtml(g.iban)} <button type="button" class="btn-mini btn-suave" data-accion="copiariban" data-iban="${escapeHtml(g.iban)}" style="padding:2px 8px;">Copiar</button></div>` : ''}
         <div class="tarjeta-pie">
           ${g.documento ? `<span class="doc">📄 ${enlaceODocumento(g.documento)}</span>` : ''}
+          ${g.contrato ? `<span class="doc">📝 ${enlaceODocumento(g.contrato, 'Ver contrato')}</span>` : ''}
           <span class="notas">${escapeHtml(g.notas)}</span>
           <button type="button" class="btn-mini btn-secundario" data-accion="pago" data-gasto="${g.id}">+ Pago</button>
           <button type="button" class="btn-mini btn-suave" data-accion="editar" data-gasto="${g.id}">Editar</button>
@@ -438,8 +443,8 @@
       </div>`;
   }
 
-  function enlaceODocumento(doc) {
-    if (/^https?:\/\//i.test(doc)) return `<a href="${escapeHtml(doc)}" target="_blank" rel="noopener">Ver documento</a>`;
+  function enlaceODocumento(doc, texto) {
+    if (/^https?:\/\//i.test(doc)) return `<a href="${escapeHtml(doc)}" target="_blank" rel="noopener">${escapeHtml(texto || 'Ver documento')}</a>`;
     return escapeHtml(doc);
   }
 
@@ -504,6 +509,7 @@
     document.getElementById('gImporteTotal').value = g ? g.importe_total : '';
     document.getElementById('gFechaLimite').value = g ? (g.fecha_limite || '') : '';
     document.getElementById('gDocumento').value = g ? g.documento : '';
+    document.getElementById('gContrato').value = g ? g.contrato : '';
     document.getElementById('gIban').value = g ? g.iban : '';
     document.getElementById('gConcepto').value = g ? g.concepto : '';
     document.getElementById('gNotas').value = g ? g.notas : '';
@@ -520,6 +526,7 @@
       importeTotal: document.getElementById('gImporteTotal').value.trim(),
       fechaLimite: document.getElementById('gFechaLimite').value || null,
       documento: document.getElementById('gDocumento').value.trim(),
+      contrato: document.getElementById('gContrato').value.trim(),
       iban: document.getElementById('gIban').value.trim(),
       concepto: document.getElementById('gConcepto').value.trim(),
       notas: document.getElementById('gNotas').value.trim()
