@@ -263,6 +263,10 @@
           <label for="pPagadoPor">Pagado por</label>
           <select id="pPagadoPor"></select>
         </div>
+        <div>
+          <label for="pIva">IVA (€) <span style="font-weight:400">· opcional</span></label>
+          <input type="text" id="pIva" inputmode="decimal" placeholder="Ej. 63">
+        </div>
         <div class="span-2">
           <label for="pNotas">Notas <span style="font-weight:400">· opcional</span></label>
           <input type="text" id="pNotas" placeholder="Ej. señal, segundo pago...">
@@ -611,7 +615,7 @@
       <li class="pago">
         <span class="fecha">${fechaCorta(p.fecha)}</span>
         <span class="monto">${euros(p.importe)}</span>
-        <span class="metodo">${escapeHtml(METODOS[p.metodo] || p.metodo)} · ${escapeHtml(p.pagado_por)}${p.notas ? ' · ' + escapeHtml(p.notas) : ''}</span>
+        <span class="metodo">${escapeHtml(METODOS[p.metodo] || p.metodo)} · ${escapeHtml(p.pagado_por)}${p.iva !== null ? ' · IVA ' + euros(p.iva) : ''}${p.notas ? ' · ' + escapeHtml(p.notas) : ''}</span>
         <button type="button" data-accion="borrarpago" data-gasto="${gastoId}" data-pago="${p.id}" title="Eliminar este pago">&times;</button>
       </li>`;
   }
@@ -738,6 +742,7 @@
     document.getElementById('pFecha').value = hoyIso();
     document.getElementById('pMetodo').value = 'transferencia';
     document.getElementById('pPagadoPor').value = 'Ambos';
+    document.getElementById('pIva').value = '';
     document.getElementById('pNotas').value = '';
     document.getElementById('modalPago').classList.add('visible');
     document.getElementById('pImporte').focus();
@@ -758,6 +763,7 @@
     document.getElementById('pFecha').value = hoyIso();
     document.getElementById('pMetodo').value = 'transferencia';
     document.getElementById('pPagadoPor').value = 'Ambos';
+    document.getElementById('pIva').value = '';
     document.getElementById('pNotas').value = pl.notas || '';
     document.getElementById('modalPago').classList.add('visible');
     document.getElementById('pImporte').focus();
@@ -770,6 +776,7 @@
       fecha: document.getElementById('pFecha').value || null,
       metodo: document.getElementById('pMetodo').value,
       pagadoPor: document.getElementById('pPagadoPor').value,
+      iva: document.getElementById('pIva').value.trim(),
       notas: document.getElementById('pNotas').value.trim()
     };
     try {
