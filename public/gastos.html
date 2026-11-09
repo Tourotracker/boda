@@ -212,9 +212,13 @@
           <label for="pFecha">Fecha</label>
           <input type="date" id="pFecha">
         </div>
-        <div class="span-2">
+        <div>
           <label for="pMetodo">Método</label>
           <select id="pMetodo"></select>
+        </div>
+        <div>
+          <label for="pPagadoPor">Pagado por</label>
+          <select id="pPagadoPor"></select>
         </div>
         <div class="span-2">
           <label for="pNotas">Notas <span style="font-weight:400">· opcional</span></label>
@@ -232,8 +236,10 @@
 
 <div class="toast" id="toast"></div>
 
+<script src="/categorias.js"></script>
 <script>
   const CLAVE_TOKEN = 'bodaAdminToken';
+  const PAGADORES = window.CATEGORIAS.invitadoPor; // ['Ignacio', 'Ines', 'Ambos']
   const CATEGORIAS = {
     finca_catering: { icono: '🍽️', texto: 'Finca y catering' },
     fotografia_video: { icono: '📷', texto: 'Fotografía y vídeo' },
@@ -422,7 +428,7 @@
       <li class="pago">
         <span class="fecha">${fechaCorta(p.fecha)}</span>
         <span class="monto">${euros(p.importe)}</span>
-        <span class="metodo">${escapeHtml(METODOS[p.metodo] || p.metodo)}${p.notas ? ' · ' + escapeHtml(p.notas) : ''}</span>
+        <span class="metodo">${escapeHtml(METODOS[p.metodo] || p.metodo)} · ${escapeHtml(p.pagado_por)}${p.notas ? ' · ' + escapeHtml(p.notas) : ''}</span>
         <button type="button" data-accion="borrarpago" data-gasto="${gastoId}" data-pago="${p.id}" title="Eliminar este pago">&times;</button>
       </li>`;
   }
@@ -461,6 +467,7 @@
   }
   document.getElementById('gCategoria').innerHTML = opcionesSelect(CATEGORIAS);
   document.getElementById('pMetodo').innerHTML = opcionesSelect(METODOS);
+  document.getElementById('pPagadoPor').innerHTML = PAGADORES.map(p => `<option value="${p}">${p}</option>`).join('');
 
   let gastoEditando = null;
   document.getElementById('nuevoGasto').addEventListener('click', () => abrirGasto(null));
@@ -522,6 +529,7 @@
     document.getElementById('pImporte').value = '';
     document.getElementById('pFecha').value = hoyIso();
     document.getElementById('pMetodo').value = 'transferencia';
+    document.getElementById('pPagadoPor').value = 'Ambos';
     document.getElementById('pNotas').value = '';
     document.getElementById('modalPago').classList.add('visible');
     document.getElementById('pImporte').focus();
@@ -533,6 +541,7 @@
       importe: document.getElementById('pImporte').value.trim(),
       fecha: document.getElementById('pFecha').value || null,
       metodo: document.getElementById('pMetodo').value,
+      pagadoPor: document.getElementById('pPagadoPor').value,
       notas: document.getElementById('pNotas').value.trim()
     };
     try {
