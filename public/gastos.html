@@ -176,6 +176,10 @@
           <label for="gDocumento">Factura / presupuesto <span style="font-weight:400">· opcional</span></label>
           <input type="text" id="gDocumento" placeholder="Enlace o referencia, ej. link de Drive">
         </div>
+        <div>
+          <label for="gIban">IBAN del proveedor <span style="font-weight:400">· opcional</span></label>
+          <input type="text" id="gIban" placeholder="Ej. ES00 0000 0000 0000 0000 0000">
+        </div>
         <div class="span-2">
           <label for="gConcepto">Concepto <span style="font-weight:400">· opcional</span></label>
           <input type="text" id="gConcepto" placeholder="Ej. Alquiler de la finca y catering para 120">
@@ -252,7 +256,7 @@
     alianzas: { icono: '💍', texto: 'Alianzas' },
     otros: { icono: '✨', texto: 'Otros' }
   };
-  const METODOS = { transferencia: 'Transferencia', tarjeta: 'Tarjeta', efectivo: 'Efectivo', bizum: 'Bizum', otro: 'Otro' };
+  const METODOS = { metalico: 'Metálico', transferencia: 'Transferencia' };
   const ESTADO_TEXTO = { pendiente: 'Pendiente', parcial: 'Parcial', pagado: 'Pagado' };
 
   let adminToken = '';
@@ -272,6 +276,21 @@
     const t = document.getElementById('toast');
     t.textContent = msg; t.classList.add('visible');
     clearTimeout(mostrarToast._t); mostrarToast._t = setTimeout(() => t.classList.remove('visible'), 3000);
+  }
+  async function copiarTexto(texto) {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(texto);
+      return;
+    }
+    const textarea = document.createElement('textarea');
+    textarea.value = texto;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
   }
   function euros(n) {
     return Number(n).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
@@ -409,6 +428,7 @@
         ${g.pagos.length
           ? `<ul class="pagos">${g.pagos.map(filaPago(g.id)).join('')}</ul>`
           : `<div class="sin-pagos">Todavía no se ha registrado ningún pago.</div>`}
+        ${g.iban ? `<div class="sin-pagos">🏦 ${escapeHtml(g.iban)} <button type="button" class="btn-mini btn-suave" data-accion="copiariban" data-iban="${escapeHtml(g.iban)}" style="padding:2px 8px;">Copiar</button></div>` : ''}
         <div class="tarjeta-pie">
           ${g.documento ? `<span class="doc">📄 ${enlaceODocumento(g.documento)}</span>` : ''}
           <span class="notas">${escapeHtml(g.notas)}</span>
@@ -447,6 +467,9 @@
     const gastoId = Number(btn.dataset.gasto);
     if (btn.dataset.accion === 'editar') abrirGasto(gastos.find(g => g.id === gastoId));
     if (btn.dataset.accion === 'pago') abrirPago(gastoId);
+    if (btn.dataset.accion === 'copiariban') {
+      try { await copiarTexto(btn.dataset.iban); mostrarToast('IBAN copiado.'); } catch (err) { mostrarToast('No se ha podido copiar.'); }
+    }
     if (btn.dataset.accion === 'borrarpago') {
       if (!confirm('¿Eliminar este pago?')) return;
       try {
@@ -481,6 +504,7 @@
     document.getElementById('gImporteTotal').value = g ? g.importe_total : '';
     document.getElementById('gFechaLimite').value = g ? (g.fecha_limite || '') : '';
     document.getElementById('gDocumento').value = g ? g.documento : '';
+    document.getElementById('gIban').value = g ? g.iban : '';
     document.getElementById('gConcepto').value = g ? g.concepto : '';
     document.getElementById('gNotas').value = g ? g.notas : '';
     document.getElementById('gastoEliminar').style.display = g ? 'inline-flex' : 'none';
@@ -496,6 +520,7 @@
       importeTotal: document.getElementById('gImporteTotal').value.trim(),
       fechaLimite: document.getElementById('gFechaLimite').value || null,
       documento: document.getElementById('gDocumento').value.trim(),
+      iban: document.getElementById('gIban').value.trim(),
       concepto: document.getElementById('gConcepto').value.trim(),
       notas: document.getElementById('gNotas').value.trim()
     };
