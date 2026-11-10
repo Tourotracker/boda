@@ -503,6 +503,14 @@
     const totalViajeTotal = gastosViaje.reduce((n, g) => n + g.importe_total, 0);
     const totalViajePagado = gastosViaje.reduce((n, g) => n + g.importe_pagado + g.iva_pagado, 0);
     const totalViajePendiente = Math.max(totalViajeTotal - totalViajePagado, 0);
+    // Cuánto ha pagado cada uno, de la boda (sin el viaje de novios), IVA incluido.
+    const pagosBoda = gastosBoda.flatMap(g => g.pagos);
+    const pagadoPorPersona = {};
+    for (const persona of PAGADORES) {
+      pagadoPorPersona[persona] = pagosBoda
+        .filter(p => p.pagado_por === persona)
+        .reduce((n, p) => n + p.importe + (p.iva || 0), 0);
+    }
     const candidatosVencimiento = gastosBoda
       .filter(g => g.estado !== 'pagado' && fechaEfectiva(g))
       .map(g => ({ proveedor: g.proveedor_nombre, fecha: fechaEfectiva(g), importe: proximoPlazoPendiente(g) ? proximoPlazoPendiente(g).importe : g.importe_pendiente }));
@@ -517,6 +525,7 @@
       <div class="stat"><div class="n">${gastos.filter(g => g.estado === 'pagado').length}</div><div class="l">Pagados</div></div>
       <div class="stat"><div class="n">${gastos.filter(g => g.estado !== 'pagado').length}</div><div class="l">Sin pagar del todo</div></div>
       ${porVencer ? `<div class="stat" title="${escapeHtml(porVencer.proveedor)}: ${euros(porVencer.importe)}"><div class="n">${fechaCorta(porVencer.fecha)}</div><div class="l">Próximo vencimiento</div><div class="l-sub">${escapeHtml(porVencer.proveedor)}</div></div>` : ''}
+      ${PAGADORES.map(persona => `<div class="stat"><div class="n">${euros(pagadoPorPersona[persona])}</div><div class="l">Pagado por ${escapeHtml(persona)}</div></div>`).join('')}
       <div class="stat" title="Importe aparte, no cuenta en los totales de la boda."><div class="n">${euros(totalViajeTotal)}</div><div class="l">✈️ Viaje de novios</div><div class="l-sub">Pagado ${euros(totalViajePagado)} · Pendiente ${euros(totalViajePendiente)}</div></div>
     `;
 
