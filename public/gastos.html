@@ -367,6 +367,7 @@
     transporte: { icono: '🚌', texto: 'Transporte' },
     pastel: { icono: '🎂', texto: 'Pastel y dulces' },
     alianzas: { icono: '💍', texto: 'Alianzas' },
+    viaje_novios: { icono: '✈️', texto: 'Viaje de novios' },
     otros: { icono: '✨', texto: 'Otros' }
   };
   const METODOS = { metalico: 'Metálico', transferencia: 'Transferencia' };
@@ -489,10 +490,17 @@
   }
 
   function render() {
-    const totalPresupuestado = gastos.reduce((n, g) => n + g.importe_total, 0);
-    const totalPagado = gastos.reduce((n, g) => n + g.importe_pagado, 0);
-    const totalPendiente = gastos.reduce((n, g) => n + g.importe_pendiente, 0);
-    const candidatosVencimiento = gastos
+    // El viaje de novios se lleva aparte: no cuenta en los totales de la
+    // boda, tiene su propio KPI.
+    const gastosBoda = gastos.filter(g => g.categoria !== 'viaje_novios');
+    const gastosViaje = gastos.filter(g => g.categoria === 'viaje_novios');
+    const totalPresupuestado = gastosBoda.reduce((n, g) => n + g.importe_total, 0);
+    const totalPagado = gastosBoda.reduce((n, g) => n + g.importe_pagado, 0);
+    const totalPendiente = gastosBoda.reduce((n, g) => n + g.importe_pendiente, 0);
+    const totalViajeTotal = gastosViaje.reduce((n, g) => n + g.importe_total, 0);
+    const totalViajePagado = gastosViaje.reduce((n, g) => n + g.importe_pagado, 0);
+    const totalViajePendiente = gastosViaje.reduce((n, g) => n + g.importe_pendiente, 0);
+    const candidatosVencimiento = gastosBoda
       .filter(g => g.estado !== 'pagado' && fechaEfectiva(g))
       .map(g => ({ proveedor: g.proveedor_nombre, fecha: fechaEfectiva(g), importe: proximoPlazoPendiente(g) ? proximoPlazoPendiente(g).importe : g.importe_pendiente }));
     const porVencer = candidatosVencimiento.sort((a, b) => a.fecha.localeCompare(b.fecha))[0];
@@ -506,6 +514,7 @@
       <div class="stat"><div class="n">${gastos.filter(g => g.estado === 'pagado').length}</div><div class="l">Pagados</div></div>
       <div class="stat"><div class="n">${gastos.filter(g => g.estado !== 'pagado').length}</div><div class="l">Sin pagar del todo</div></div>
       ${porVencer ? `<div class="stat" title="${escapeHtml(porVencer.proveedor)}: ${euros(porVencer.importe)}"><div class="n">${fechaCorta(porVencer.fecha)}</div><div class="l">Próximo vencimiento</div><div class="l-sub">${escapeHtml(porVencer.proveedor)}</div></div>` : ''}
+      <div class="stat" title="Importe aparte, no cuenta en los totales de la boda."><div class="n">${euros(totalViajeTotal)}</div><div class="l">✈️ Viaje de novios</div><div class="l-sub">Pagado ${euros(totalViajePagado)} · Pendiente ${euros(totalViajePendiente)}</div></div>
     `;
 
     document.querySelectorAll('.vista-toggle button').forEach(b => b.classList.toggle('activa', b.dataset.vista === vista));
