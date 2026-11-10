@@ -487,6 +487,25 @@
     return new Set(regalos.flatMap(g => g.invitados.map(i => i.rsvp_id)));
   }
 
+  // 'Ignacio'/'Ines'/'Ambos' si todas las fichas del regalo comparten ese
+  // "invitado por"; '' (sin clasificar) si es de grupo mixto, de alguien
+  // fuera de la lista, o de una ficha sin "invitado por" asignado.
+  function categoriaInvitadoPorDeRegalo(g) {
+    const fichasRegalo = g.invitados.map(i => porId.get(i.rsvp_id)).filter(Boolean);
+    const valores = new Set(fichasRegalo.map(f => f.invitado_por || ''));
+    const categoria = valores.size === 1 ? [...valores][0] : '';
+    return CATEGORIAS.invitadoPor.includes(categoria) ? categoria : '';
+  }
+
+  function razonSinClasificar(g) {
+    if (!g.invitados.length) return 'De alguien que no está en la lista';
+    const fichasRegalo = g.invitados.map(i => porId.get(i.rsvp_id)).filter(Boolean);
+    const valores = new Set(fichasRegalo.map(f => f.invitado_por || ''));
+    if (valores.size > 1) return 'Grupo con invitados de distinta procedencia (' + [...valores].map(v => v || 'sin asignar').join(', ') + ')';
+    if (valores.has('')) return 'La ficha no tiene "invitado por" asignado';
+    return 'Sin clasificar';
+  }
+
   // ---------- render ----------
   function render() {
     const destinos = destinosTodos();
@@ -521,13 +540,12 @@
     // lista, va a "Sin clasificar" para que los totales sigan cuadrando.
     const totalPorInvitadoPor = Object.fromEntries(CATEGORIAS.invitadoPor.map(p => [p, 0]));
     let totalSinClasificar = 0;
+    const regalosSinClasificar = [];
     for (const g of regalos) {
       if (g.importe === null) continue;
-      const fichasRegalo = g.invitados.map(i => porId.get(i.rsvp_id)).filter(Boolean);
-      const valores = new Set(fichasRegalo.map(f => f.invitado_por || ''));
-      const categoria = valores.size === 1 ? [...valores][0] : '';
-      if (categoria && totalPorInvitadoPor.hasOwnProperty(categoria)) totalPorInvitadoPor[categoria] += g.importe;
-      else totalSinClasificar += g.importe;
+      const categoria = categoriaInvitadoPorDeRegalo(g);
+      if (categoria) totalPorInvitadoPor[categoria] += g.importe;
+      else { totalSinClasificar += g.importe; regalosSinClasificar.push(g); }
     }
 
     document.getElementById('stats').innerHTML = `
@@ -538,7 +556,7 @@
       <div class="stat" title="Suma de los regalos registrados como Sobre en la boda."><div class="n">${euros(totalMetalico)}</div><div class="l">Metálico</div><div class="l-sub">sobre en la boda</div></div>
       <div class="stat" title="${euros(importeMedia)} entre ${personasMedia} persona${personasMedia === 1 ? '' : 's'} (invitados + acompañantes). Solo regalos con importe y de invitados de la lista."><div class="n">${euros(media)}</div><div class="l">Media por persona</div><div class="l-sub">invitado + acompañante</div></div>
       ${CATEGORIAS.invitadoPor.map(p => `<div class="stat" title="Regalos de invitados de ${escapeHtml(p)}."><div class="n">${euros(totalPorInvitadoPor[p])}</div><div class="l">De invitados de ${escapeHtml(p)}</div></div>`).join('')}
-      <div class="stat" title="Regalos de grupo con invitados de distinta procedencia, o de alguien que no está en la lista."><div class="n">${euros(totalSinClasificar)}</div><div class="l">Sin clasificar</div></div>
+      <div class="stat" title="Pulsa la pestaña &quot;Sin clasificar&quot; para ver cuáles son y por qué."><div class="n">${euros(totalSinClasificar)}</div><div class="l">Sin clasificar</div></div>
       <div class="stat highlight"><div class="n">${pendientes.length}</div><div class="l">Gracias pendientes</div></div>
       <div class="stat"><div class="n">${destinos.filter(d => d.estado === 'enviado').length}</div><div class="l">Gracias enviadas</div></div>
       <div class="stat"><div class="n">${sinRegalo.length}</div><div class="l">Fichas sin regalo</div></div>`;
@@ -548,7 +566,8 @@
       ['agradecidos', 'Ya agradecidos', regalos.filter(g => destinosDe(g).every(d => d.estado === 'enviado')).length],
       ['todos', 'Todos los regalos', regalos.length],
       ['sinregalo', 'Sin regalo apuntado', sinRegalo.length],
-      ['indicios', 'Copiaron IBAN o vieron la lista', indicios.length]
+      ['indicios', 'Copiaron IBAN o vieron la lista', indicios.length],
+      ['sinclasificar', 'Sin clasificar (por quién invitó)', regalosSinClasificar.length]
     ];
     document.getElementById('pestanas').innerHTML = pestanas.map(([id, texto, n]) =>
       `<button type="button" class="pestana ${pestana === id ? 'activa' : ''}" data-pestana="${id}">${texto}<span class="cuenta">${n}</span></button>`
@@ -562,8 +581,9 @@
       let lista = regalos;
       if (pestana === 'pendientes') lista = regalos.filter(g => destinosDe(g).some(d => d.estado !== 'enviado'));
       if (pestana === 'agradecidos') lista = regalos.filter(g => destinosDe(g).every(d => d.estado === 'enviado'));
+      if (pestana === 'sinclasificar') lista = regalosSinClasificar;
       if (termino) lista = lista.filter(g => coincideRegalo(g, termino));
-      renderRegalos(cont, lista);
+      renderRegalos(cont, lista, pestana === 'sinclasificar');
     }
     actualizarBarra();
   }
@@ -576,20 +596,21 @@
     return termino.split(/\s+/).every(p => texto.includes(p));
   }
 
-  function renderRegalos(cont, lista) {
+  function renderRegalos(cont, lista, conRazon) {
     if (!lista.length) {
       const mensajes = {
         pendientes: regalos.length ? '¡Al día! No falta dar las gracias a nadie.' : 'Todavía no hay regalos apuntados. Pulsa "+ Nuevo regalo" o importa el extracto del banco.',
         agradecidos: 'Aún no hay regalos con todos los agradecimientos enviados.',
-        todos: 'Todavía no hay regalos apuntados.'
+        todos: 'Todavía no hay regalos apuntados.',
+        sinclasificar: 'Todos los regalos con importe están clasificados por quién invitó.'
       };
       cont.innerHTML = `<div class="vacio">${document.getElementById('buscador').value.trim() ? 'Nada coincide con la búsqueda.' : mensajes[pestana]}</div>`;
       return;
     }
-    cont.innerHTML = `<div class="lista">${lista.map(tarjetaRegalo).join('')}</div>`;
+    cont.innerHTML = `<div class="lista">${lista.map(g => tarjetaRegalo(g, conRazon)).join('')}</div>`;
   }
 
-  function tarjetaRegalo(g) {
+  function tarjetaRegalo(g, conRazon) {
     const tipo = TIPOS[g.tipo] || TIPOS.otro;
     const destinos = destinosDe(g);
     const titulo = g.descripcion || tipo.texto;
@@ -604,6 +625,7 @@
           <div class="tarjeta-icono">${tipo.icono}</div>
           <div class="tarjeta-titulo">
             <div class="que">${escapeHtml(titulo)}${g.invitados.length > 1 ? `<span class="etiqueta">De grupo · ${g.invitados.length}</span>` : ''}</div>
+            ${conRazon ? `<span class="indicio">${escapeHtml(razonSinClasificar(g))}</span>` : ''}
             ${detalle ? `<div class="detalle">${escapeHtml(detalle)}</div>` : ''}
           </div>
           ${g.importe !== null ? `<div class="importe">${euros(g.importe)}</div>` : ''}
