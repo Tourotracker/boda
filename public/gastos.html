@@ -689,6 +689,7 @@
         ${pagado
           ? `<span class="ok-pagado">✓ Pagado${pago ? ' el ' + fechaCorta(pago.fecha) : ''}</span>`
           : `<button type="button" class="btn-mini btn-secundario" data-accion="pagarplazo" data-gasto="${g.id}" data-plazo="${pl.id}" style="padding:2px 8px;">Pagar</button>
+             <button type="button" class="btn-mini btn-suave" data-accion="editarplazo" data-gasto="${g.id}" data-plazo="${pl.id}" style="padding:2px 8px;">Editar</button>
              <button type="button" data-accion="borrarplazo" data-gasto="${g.id}" data-plazo="${pl.id}" title="Eliminar este plazo">&times;</button>`}
       </li>`;
     };
@@ -741,6 +742,11 @@
       } catch (err) { mostrarToast(err.message); }
     }
     if (btn.dataset.accion === 'plazo') abrirPlazo(gastoId);
+    if (btn.dataset.accion === 'editarplazo') {
+      const g = gastos.find(x => x.id === gastoId);
+      const pl = g && (g.plazos || []).find(p => p.id === Number(btn.dataset.plazo));
+      if (pl) abrirPlazo(gastoId, pl);
+    }
     if (btn.dataset.accion === 'pagarplazo') abrirPagoDesdePlazo(Number(btn.dataset.gasto), Number(btn.dataset.plazo));
     if (btn.dataset.accion === 'borrarplazo') {
       if (!confirm('¿Eliminar este plazo previsto?')) return;
@@ -881,12 +887,15 @@
   });
 
   // ---------- modal: plazo previsto ----------
-  function abrirPlazo(gastoId) {
+  let plazoEditando = null; // id del plazo abierto para editar, null = nuevo
+  function abrirPlazo(gastoId, pl) {
     plazoGastoActual = gastoId;
+    plazoEditando = pl ? pl.id : null;
+    document.getElementById('plazoTitulo').textContent = pl ? 'Editar plazo previsto' : 'Nuevo plazo previsto';
     document.getElementById('plazoError').textContent = '';
-    document.getElementById('plImporte').value = '';
-    document.getElementById('plFecha').value = '';
-    document.getElementById('plNotas').value = '';
+    document.getElementById('plImporte').value = pl ? pl.importe : '';
+    document.getElementById('plFecha').value = pl ? pl.fecha : '';
+    document.getElementById('plNotas').value = pl ? pl.notas : '';
     document.getElementById('modalPlazo').classList.add('visible');
     document.getElementById('plImporte').focus();
   }
@@ -899,7 +908,8 @@
       notas: document.getElementById('plNotas').value.trim()
     };
     try {
-      await api(`/api/gastos/${plazoGastoActual}/plazos`, { method: 'POST', body: JSON.stringify(datos) });
+      if (plazoEditando) await api(`/api/gastos/${plazoGastoActual}/plazos/${plazoEditando}`, { method: 'PUT', body: JSON.stringify(datos) });
+      else await api(`/api/gastos/${plazoGastoActual}/plazos`, { method: 'POST', body: JSON.stringify(datos) });
       cerrarModal('modalPlazo');
       await cargarTodo();
       mostrarToast('Plazo guardado.');
