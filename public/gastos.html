@@ -494,12 +494,15 @@
     // boda, tiene su propio KPI.
     const gastosBoda = gastos.filter(g => g.categoria !== 'viaje_novios');
     const gastosViaje = gastos.filter(g => g.categoria === 'viaje_novios');
+    // El IVA apuntado en los pagos se suma en estos KPIs (dinero real
+    // pagado), aunque en la ficha de cada gasto el pagado/pendiente se
+    // siga viendo sin el IVA, como siempre.
     const totalPresupuestado = gastosBoda.reduce((n, g) => n + g.importe_total, 0);
-    const totalPagado = gastosBoda.reduce((n, g) => n + g.importe_pagado, 0);
-    const totalPendiente = gastosBoda.reduce((n, g) => n + g.importe_pendiente, 0);
+    const totalPagado = gastosBoda.reduce((n, g) => n + g.importe_pagado + g.iva_pagado, 0);
+    const totalPendiente = Math.max(totalPresupuestado - totalPagado, 0);
     const totalViajeTotal = gastosViaje.reduce((n, g) => n + g.importe_total, 0);
-    const totalViajePagado = gastosViaje.reduce((n, g) => n + g.importe_pagado, 0);
-    const totalViajePendiente = gastosViaje.reduce((n, g) => n + g.importe_pendiente, 0);
+    const totalViajePagado = gastosViaje.reduce((n, g) => n + g.importe_pagado + g.iva_pagado, 0);
+    const totalViajePendiente = Math.max(totalViajeTotal - totalViajePagado, 0);
     const candidatosVencimiento = gastosBoda
       .filter(g => g.estado !== 'pagado' && fechaEfectiva(g))
       .map(g => ({ proveedor: g.proveedor_nombre, fecha: fechaEfectiva(g), importe: proximoPlazoPendiente(g) ? proximoPlazoPendiente(g).importe : g.importe_pendiente }));
