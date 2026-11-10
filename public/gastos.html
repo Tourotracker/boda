@@ -33,12 +33,15 @@
   button:hover{background:#5E1B26; transform:translateY(-1px);}
   .error{color:var(--bad); font-size:13px; margin-top:4px;}
   #panel{display:none; max-width:1300px; margin:0 auto;}
-  .stats{display:flex; gap:14px; margin-bottom:20px; flex-wrap:wrap;}
-  .stat{background:#fff; border-radius:var(--radius-md); box-shadow:var(--shadow-card); padding:14px 18px; min-width:120px; flex:1;}
+  .stats-bloque{margin-bottom:18px;}
+  .stats-titulo{font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin-bottom:8px;}
+  .stats{display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:14px;}
+  .stat{background:#fff; border-radius:var(--radius-md); box-shadow:var(--shadow-card); padding:14px 18px;}
   .stat .n{font-family:'Cormorant Garamond',serif; font-size:28px; color:var(--gold);}
   .stat .l{font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.05em;}
   .stat .l-sub{font-size:11px; color:#A39B90; margin-top:2px;}
   .stat.highlight{background:var(--sage);} .stat.highlight .n, .stat.highlight .l{color:#fff;}
+  .stats-viaje .stat{background:#F4F6FA;}
   .toolbar{display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap;}
   .btn-secundario{background:#fff; color:var(--gold); border:1.5px solid var(--gold); box-shadow:none;}
   .btn-secundario:hover{background:var(--gold-soft); transform:none;}
@@ -148,7 +151,7 @@
   @media (max-width:760px){
     body{padding:20px 14px;}
     .lista{grid-template-columns:1fr;}
-    .stat{min-width:calc(50% - 7px);}
+    .stats{grid-template-columns:repeat(2, 1fr);}
     .toolbar > *{flex:1 1 calc(50% - 5px);}
     .rejilla{grid-template-columns:1fr;}
     .modal{padding:18px;}
@@ -172,7 +175,18 @@
   <h1>Gastos y pagos</h1>
   <div class="sub">Lleva la cuenta de lo que se debe a cada proveedor y de cada pago hecho. · <a href="#" id="cerrarSesion" style="color:#8A8275;">Cerrar sesión</a></div>
 
-  <div class="stats" id="stats"></div>
+  <div class="stats-bloque">
+    <div class="stats-titulo">La boda</div>
+    <div class="stats" id="statsGenerales"></div>
+  </div>
+  <div class="stats-bloque">
+    <div class="stats-titulo">Quién ha pagado</div>
+    <div class="stats" id="statsPagadores"></div>
+  </div>
+  <div class="stats-bloque">
+    <div class="stats-titulo">Aparte (no cuenta en los totales de la boda)</div>
+    <div class="stats stats-viaje" id="statsViaje"></div>
+  </div>
 
   <div class="toolbar">
     <button id="nuevoGasto">+ Nuevo gasto</button>
@@ -516,7 +530,7 @@
       .map(g => ({ proveedor: g.proveedor_nombre, fecha: fechaEfectiva(g), importe: proximoPlazoPendiente(g) ? proximoPlazoPendiente(g).importe : g.importe_pendiente }));
     const porVencer = candidatosVencimiento.sort((a, b) => a.fecha.localeCompare(b.fecha))[0];
 
-    document.getElementById('stats').innerHTML = `
+    document.getElementById('statsGenerales').innerHTML = `
       <div class="stat"><div class="n">${proveedores.length}</div><div class="l">Proveedores</div></div>
       <div class="stat"><div class="n">${gastos.length}</div><div class="l">Conceptos / gastos</div></div>
       <div class="stat"><div class="n">${euros(totalPresupuestado)}</div><div class="l">Total gastos</div></div>
@@ -525,8 +539,14 @@
       <div class="stat"><div class="n">${gastos.filter(g => g.estado === 'pagado').length}</div><div class="l">Pagados</div></div>
       <div class="stat"><div class="n">${gastos.filter(g => g.estado !== 'pagado').length}</div><div class="l">Sin pagar del todo</div></div>
       ${porVencer ? `<div class="stat" title="${escapeHtml(porVencer.proveedor)}: ${euros(porVencer.importe)}"><div class="n">${fechaCorta(porVencer.fecha)}</div><div class="l">Próximo vencimiento</div><div class="l-sub">${escapeHtml(porVencer.proveedor)}</div></div>` : ''}
-      ${PAGADORES.map(persona => `<div class="stat"><div class="n">${euros(pagadoPorPersona[persona])}</div><div class="l">Pagado por ${escapeHtml(persona)}</div></div>`).join('')}
-      <div class="stat" title="Importe aparte, no cuenta en los totales de la boda."><div class="n">${euros(totalViajeTotal)}</div><div class="l">✈️ Viaje de novios</div><div class="l-sub">Pagado ${euros(totalViajePagado)} · Pendiente ${euros(totalViajePendiente)}</div></div>
+    `;
+    document.getElementById('statsPagadores').innerHTML = PAGADORES.map(persona =>
+      `<div class="stat"><div class="n">${euros(pagadoPorPersona[persona])}</div><div class="l">Pagado por ${escapeHtml(persona)}</div></div>`
+    ).join('');
+    document.getElementById('statsViaje').innerHTML = `
+      <div class="stat"><div class="n">${euros(totalViajeTotal)}</div><div class="l">✈️ Viaje de novios</div></div>
+      <div class="stat"><div class="n">${euros(totalViajePagado)}</div><div class="l">Pagado</div></div>
+      <div class="stat"><div class="n">${euros(totalViajePendiente)}</div><div class="l">Pendiente</div></div>
     `;
 
     document.querySelectorAll('.vista-toggle button').forEach(b => b.classList.toggle('activa', b.dataset.vista === vista));
