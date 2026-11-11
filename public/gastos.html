@@ -187,6 +187,10 @@
     <div class="stats-titulo">Aparte (no cuenta en los totales de la boda)</div>
     <div class="stats stats-viaje" id="statsViaje"></div>
   </div>
+  <div class="stats-bloque">
+    <div class="stats-titulo">Total general</div>
+    <div class="stats" id="statsGeneral"></div>
+  </div>
 
   <div class="toolbar">
     <button id="nuevoGasto">+ Nuevo gasto</button>
@@ -547,6 +551,11 @@
       <div class="stat"><div class="n">${euros(totalViajeTotal)}</div><div class="l">✈️ Viaje de novios</div></div>
       <div class="stat"><div class="n">${euros(totalViajePagado)}</div><div class="l">Pagado</div></div>
       <div class="stat"><div class="n">${euros(totalViajePendiente)}</div><div class="l">Pendiente</div></div>
+    `;
+    document.getElementById('statsGeneral').innerHTML = `
+      <div class="stat highlight"><div class="n">${euros(totalPresupuestado + totalViajeTotal)}</div><div class="l">Coste total</div><div class="l-sub">Boda ${euros(totalPresupuestado)} + Viaje ${euros(totalViajeTotal)}</div></div>
+      <div class="stat"><div class="n">${euros(totalPagado + totalViajePagado)}</div><div class="l">Pagado total</div></div>
+      <div class="stat"><div class="n">${euros(totalPendiente + totalViajePendiente)}</div><div class="l">Pendiente total</div></div>
     `;
 
     document.querySelectorAll('.vista-toggle button').forEach(b => b.classList.toggle('activa', b.dataset.vista === vista));
