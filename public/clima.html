@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Climatología de la boda</title>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="icon" href="/favicon-16.png" type="image/png" sizes="16x16">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<style>
+  :root{
+    --cream:#FFFFFF; --gold:#2F6F6B; --gold-soft:#DCEFEC;
+    --sage:#1D4A46; --ink:#2E2621; --line:#E3E1DE; --muted:#8A8275;
+    --ok:#3E8E5E; --ok-soft:#E3F2E8; --warn:#9A6B00; --warn-soft:#FFF3D6;
+    --bad:#B05A4A; --bad-soft:#F7E2DE;
+    --radius-lg:20px; --radius-md:12px; --radius-sm:10px;
+    --shadow-card:0 1px 2px rgba(46,38,33,0.04), 0 16px 32px -12px rgba(46,38,33,0.12);
+  }
+  *{box-sizing:border-box;}
+  body{font-family:-apple-system,'Karla',sans-serif; background:var(--cream); color:var(--ink); margin:0; padding:32px 24px;}
+  h1{font-family:'Cormorant Garamond',serif; font-size:30px; margin-bottom:4px;}
+  .sub{color:var(--muted); font-size:14px; margin-bottom:24px;}
+  .volver{color:var(--gold); font-size:13px; text-decoration:underline; display:inline-block; margin-bottom:14px;}
+  .gate{max-width:360px; margin:80px auto; background:#fff; border-radius:var(--radius-lg); box-shadow:var(--shadow-card); padding:32px;}
+  .gate label{display:block; font-size:13px; font-weight:600; margin-bottom:8px;}
+  .gate input{width:100%; padding:11px 13px; border:1.5px solid var(--line); border-radius:var(--radius-sm); font-size:15px; margin-bottom:14px; background:#fff;}
+  button{
+    background:var(--gold); color:#fff; border:none; border-radius:var(--radius-sm);
+    padding:11px 18px; font-weight:700; cursor:pointer; font-size:14px; font-family:inherit;
+    box-shadow:0 3px 10px rgba(29,74,70,0.28); transition:background .15s, transform .15s;
+  }
+  button:hover{background:var(--sage); transform:translateY(-1px);}
+  button:disabled{opacity:.6; cursor:default; transform:none;}
+  .btn-suave{background:#EDEAE5; color:var(--ink); box-shadow:none;}
+  .btn-suave:hover{background:#E2DDD5; transform:none;}
+  .error{color:var(--bad); font-size:13px; margin-top:4px;}
+  #panel{display:none; max-width:1200px; margin:0 auto;}
+  .cabecera-evento{background:linear-gradient(135deg, #1D4A46, #2F6F6B); color:#fff; border-radius:var(--radius-lg); padding:22px 26px; margin-bottom:22px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px;}
+  .cabecera-evento .fecha{font-family:'Cormorant Garamond',serif; font-size:26px;}
+  .cabecera-evento .cuenta{font-size:14px; opacity:.9;}
+  .cabecera-evento .dias{font-family:'Cormorant Garamond',serif; font-size:40px; text-align:right;}
+  .cabecera-evento .dias-l{font-size:11px; text-transform:uppercase; letter-spacing:.05em; opacity:.85; text-align:right;}
+
+  .toolbar{display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap; align-items:center;}
+  .nota-actualizacion{font-size:12px; color:var(--muted);}
+
+  .seccion-titulo{font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin:0 0 10px;}
+  .fuentes{display:grid; grid-template-columns:repeat(auto-fit, minmax(160px, 1fr)); gap:14px; margin-bottom:28px;}
+  .fuente{background:#fff; border-radius:var(--radius-md); box-shadow:var(--shadow-card); padding:16px; text-align:center;}
+  .fuente .icono{font-size:32px;}
+  .fuente .nombre{font-size:12px; color:var(--muted); font-weight:700; text-transform:uppercase; letter-spacing:.04em; margin-top:4px;}
+  .fuente .temp{font-family:'Cormorant Garamond',serif; font-size:24px; color:var(--gold); margin-top:6px;}
+  .fuente .detalle{font-size:12px; color:var(--muted); margin-top:4px;}
+  .fuente.vacio{color:var(--muted); font-size:13px;}
+
+  .vacio-grande{background:#fff; border-radius:var(--radius-md); box-shadow:var(--shadow-card); padding:28px; text-align:center; color:var(--muted); margin-bottom:24px;}
+
+  table.evolucion{width:100%; border-collapse:collapse; background:#fff; border-radius:var(--radius-md); overflow:hidden; box-shadow:var(--shadow-card); font-size:13px;}
+  table.evolucion th, table.evolucion td{padding:10px 12px; border-bottom:1px solid var(--line); text-align:center; vertical-align:middle;}
+  table.evolucion th{background:var(--gold-soft); font-weight:700; font-size:11px; text-transform:uppercase; letter-spacing:.03em;}
+  table.evolucion td.fecha{text-align:left; font-weight:700; white-space:nowrap;}
+  table.evolucion td.celda-fuente{white-space:nowrap;}
+  table.evolucion .sin-dato{color:var(--muted);}
+  .tabla-wrap{overflow-x:auto;}
+
+  .toast{position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--ink); color:#fff; padding:12px 20px; border-radius:var(--radius-sm); font-size:14px; box-shadow:var(--shadow-card); z-index:200; opacity:0; pointer-events:none; transition:opacity .2s; max-width:90vw; text-align:center;}
+  .toast.visible{opacity:1;}
+
+  @media (max-width:760px){
+    body{padding:20px 14px;}
+    .cabecera-evento{flex-direction:column; align-items:flex-start;}
+    .cabecera-evento .dias, .cabecera-evento .dias-l{text-align:left;}
+  }
+</style>
+</head>
+<body>
+
+<div class="gate" id="gate">
+  <label for="token">Contraseña de administrador</label>
+  <input type="password" id="token" placeholder="Contraseña">
+  <button id="entrar">Entrar</button>
+  <div class="error" id="gateError"></div>
+</div>
+
+<div id="panel">
+  <a class="volver" href="/admin.html">← Volver a respuestas RSVP</a>
+  <h1>Climatología de la boda</h1>
+  <div class="sub">Previsión del día del evento, de varias fuentes meteorológicas, actualizada cada día. · <a href="#" id="cerrarSesion" style="color:#8A8275;">Cerrar sesión</a></div>
+
+  <div class="cabecera-evento">
+    <div>
+      <div class="fecha" id="cabFecha">27 de noviembre de 2026</div>
+      <div class="cuenta">Sevilla (coordenadas aproximadas de la ciudad, no de la finca exacta)</div>
+    </div>
+    <div>
+      <div class="dias" id="cabDias">—</div>
+      <div class="dias-l">días para la boda</div>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <button id="actualizarAhora">Actualizar previsión ahora</button>
+    <span class="nota-actualizacion" id="notaActualizacion"></span>
+  </div>
+
+  <div class="seccion-titulo">Previsión de hoy, por fuente</div>
+  <div class="fuentes" id="fuentesHoy"></div>
+
+  <div class="seccion-titulo">Cómo ha evolucionado la previsión</div>
+  <div id="evolucionWrap"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const CLAVE_TOKEN = 'bodaAdminToken';
+  const TIEMPO_TEXTO = {
+    0: { icono: '☀️', texto: 'Despejado' },
+    1: { icono: '🌤️', texto: 'Principalmente despejado' },
+    2: { icono: '⛅', texto: 'Parcialmente nublado' },
+    3: { icono: '☁️', texto: 'Cubierto' },
+    45: { icono: '🌫️', texto: 'Niebla' }, 48: { icono: '🌫️', texto: 'Niebla' },
+    51: { icono: '🌦️', texto: 'Llovizna débil' }, 53: { icono: '🌦️', texto: 'Llovizna' }, 55: { icono: '🌦️', texto: 'Llovizna intensa' },
+    56: { icono: '🌧️', texto: 'Llovizna helada' }, 57: { icono: '🌧️', texto: 'Llovizna helada' },
+    61: { icono: '🌧️', texto: 'Lluvia débil' }, 63: { icono: '🌧️', texto: 'Lluvia' }, 65: { icono: '🌧️', texto: 'Lluvia intensa' },
+    66: { icono: '🌧️', texto: 'Lluvia helada' }, 67: { icono: '🌧️', texto: 'Lluvia helada' },
+    71: { icono: '❄️', texto: 'Nieve débil' }, 73: { icono: '❄️', texto: 'Nieve' }, 75: { icono: '❄️', texto: 'Nieve intensa' },
+    77: { icono: '🌨️', texto: 'Granizo fino' },
+    80: { icono: '🌦️', texto: 'Chubascos débiles' }, 81: { icono: '🌦️', texto: 'Chubascos' }, 82: { icono: '🌦️', texto: 'Chubascos fuertes' },
+    85: { icono: '🌨️', texto: 'Chubascos de nieve' }, 86: { icono: '🌨️', texto: 'Chubascos de nieve' },
+    95: { icono: '⛈️', texto: 'Tormenta' }, 96: { icono: '⛈️', texto: 'Tormenta con granizo' }, 99: { icono: '⛈️', texto: 'Tormenta con granizo' }
+  };
+  function textoTiempo(codigo) {
+    if (codigo === null || codigo === undefined) return { icono: '🌡️', texto: 'Sin dato' };
+    return TIEMPO_TEXTO[codigo] || { icono: '🌡️', texto: 'Código ' + codigo };
+  }
+
+  let adminToken = '';
+  let fuentes = {};
+  let fechaBoda = '';
+  let previsiones = [];
+
+  function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+  function mostrarToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('visible');
+    clearTimeout(mostrarToast._t); mostrarToast._t = setTimeout(() => t.classList.remove('visible'), 3500);
+  }
+  function fechaLarga(iso) {
+    const [a, m, d] = iso.split('-').map(Number);
+    const fecha = new Date(Date.UTC(a, m - 1, d));
+    return fecha.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+  }
+  function fechaCorta(iso) {
+    const [, m, d] = iso.split('-');
+    return `${d}/${m}`;
+  }
+  function hoyIso() {
+    const d = new Date();
+    return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  }
+  async function api(url, opciones = {}) {
+    const res = await fetch(url, {
+      ...opciones,
+      headers: { 'x-admin-token': adminToken, ...(opciones.body ? { 'Content-Type': 'application/json' } : {}), ...(opciones.headers || {}) }
+    });
+    const data = await res.json().catch(() => null);
+    if (!res.ok) throw new Error((data && data.error) || 'Error ' + res.status);
+    return data;
+  }
+
+  // ---------- sesión ----------
+  document.getElementById('entrar').addEventListener('click', () => entrar());
+  document.getElementById('token').addEventListener('keydown', e => { if (e.key === 'Enter') entrar(); });
+  document.getElementById('cerrarSesion').addEventListener('click', e => {
+    e.preventDefault();
+    try { localStorage.removeItem(CLAVE_TOKEN); } catch (err) {}
+    location.reload();
+  });
+
+  async function entrar(tokenPrevio) {
+    const token = tokenPrevio || document.getElementById('token').value.trim();
+    const errorEl = document.getElementById('gateError');
+    errorEl.textContent = '';
+    if (!token) return;
+    adminToken = token;
+    try {
+      await cargarTodo();
+    } catch (err) {
+      adminToken = '';
+      errorEl.textContent = /autorizado|401/i.test(err.message) ? 'Contraseña incorrecta.' : 'Error al conectar con el servidor.';
+      if (/autorizado|401/i.test(err.message)) { try { localStorage.removeItem(CLAVE_TOKEN); } catch (e) {} }
+      return;
+    }
+    try { localStorage.setItem(CLAVE_TOKEN, token); } catch (err) {}
+    document.getElementById('gate').style.display = 'none';
+    document.getElementById('panel').style.display = 'block';
+  }
+
+  (function entradaAutomatica() {
+    let guardado = '';
+    try { guardado = localStorage.getItem(CLAVE_TOKEN) || ''; } catch (err) {}
+    if (guardado) entrar(guardado);
+  })();
+
+  async function cargarTodo() {
+    const datos = await api('/api/clima');
+    fuentes = datos.fuentes;
+    fechaBoda = datos.fechaBoda;
+    previsiones = datos.previsiones;
+    render();
+  }
+
+  document.getElementById('actualizarAhora').addEventListener('click', async () => {
+    const btn = document.getElementById('actualizarAhora');
+    btn.disabled = true;
+    btn.textContent = 'Consultando las fuentes…';
+    try {
+      const r = await api('/api/clima/actualizar', { method: 'POST' });
+      await cargarTodo();
+      if (r.errores && r.errores.length) {
+        mostrarToast(`Actualizado con avisos: ${r.guardadas} fuente(s) guardadas, ${r.errores.length} con error.`);
+        console.warn('Clima: errores al actualizar', r.errores);
+      } else {
+        mostrarToast(`Previsión actualizada (${r.guardadas} fuentes).`);
+      }
+    } catch (err) {
+      mostrarToast(err.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Actualizar previsión ahora';
+    }
+  });
+
+  function render() {
+    document.getElementById('cabFecha').textContent = fechaLarga(fechaBoda);
+    const dias = Math.round((new Date(fechaBoda + 'T00:00:00Z') - new Date(hoyIso() + 'T00:00:00Z')) / 86400000);
+    document.getElementById('cabDias').textContent = dias > 0 ? dias : (dias === 0 ? '¡Hoy!' : 'Ya pasó');
+
+    const porFuenteHoy = new Map();
+    for (const p of previsiones) {
+      if (p.fecha_consulta === hoyIso() && !porFuenteHoy.has(p.fuente)) porFuenteHoy.set(p.fuente, p);
+    }
+    // Si todavía no se ha consultado hoy, se usa la consulta más reciente que haya.
+    if (!porFuenteHoy.size) {
+      for (const p of previsiones) {
+        if (!porFuenteHoy.has(p.fuente)) porFuenteHoy.set(p.fuente, p);
+      }
+    }
+
+    const nombresFuente = Object.keys(fuentes);
+    if (!previsiones.length) {
+      document.getElementById('fuentesHoy').innerHTML = '';
+      document.getElementById('evolucionWrap').innerHTML = `<div class="vacio-grande">Todavía no hay ninguna previsión guardada. Pulsa "Actualizar previsión ahora" para pedirla por primera vez.</div>`;
+      document.getElementById('notaActualizacion').textContent = '';
+      return;
+    }
+
+    const ultimaConsulta = previsiones.reduce((max, p) => p.fecha_consulta > max ? p.fecha_consulta : max, previsiones[0].fecha_consulta);
+    document.getElementById('notaActualizacion').textContent = `Última consulta guardada: ${fechaCorta(ultimaConsulta)}`;
+
+    document.getElementById('fuentesHoy').innerHTML = nombresFuente.map(f => {
+      const p = porFuenteHoy.get(f);
+      if (!p) return `<div class="fuente vacio"><div class="nombre">${escapeHtml(fuentes[f])}</div><div style="margin-top:10px;">Sin dato todavía</div></div>`;
+      const t = textoTiempo(p.codigo_tiempo);
+      return `
+        <div class="fuente">
+          <div class="icono">${t.icono}</div>
+          <div class="nombre">${escapeHtml(fuentes[f])}</div>
+          <div class="temp">${p.temp_max !== null ? Math.round(p.temp_max) + '°' : '—'} / ${p.temp_min !== null ? Math.round(p.temp_min) + '°' : '—'}</div>
+          <div class="detalle">${escapeHtml(t.texto)}</div>
+          <div class="detalle">💧 ${p.prob_precipitacion !== null ? p.prob_precipitacion + '%' : '—'}${p.viento_kmh !== null ? ' · 💨 ' + Math.round(p.viento_kmh) + ' km/h' : ''}</div>
+        </div>`;
+    }).join('');
+
+    const fechasConsulta = [...new Set(previsiones.map(p => p.fecha_consulta))].sort((a, b) => b.localeCompare(a));
+    const porFechaYFuente = new Map();
+    for (const p of previsiones) porFechaYFuente.set(p.fecha_consulta + '|' + p.fuente, p);
+
+    const filas = fechasConsulta.map(fecha => {
+      const celdas = nombresFuente.map(f => {
+        const p = porFechaYFuente.get(fecha + '|' + f);
+        if (!p) return `<td class="celda-fuente sin-dato">—</td>`;
+        const t = textoTiempo(p.codigo_tiempo);
+        return `<td class="celda-fuente" title="${escapeHtml(t.texto)}">${t.icono} ${p.temp_max !== null ? Math.round(p.temp_max) + '°' : '—'}/${p.temp_min !== null ? Math.round(p.temp_min) + '°' : '—'} · 💧${p.prob_precipitacion !== null ? p.prob_precipitacion + '%' : '—'}</td>`;
+      }).join('');
+      return `<tr><td class="fecha">${fechaCorta(fecha)}</td>${celdas}</tr>`;
+    }).join('');
+
+    document.getElementById('evolucionWrap').innerHTML = `
+      <div class="tabla-wrap">
+        <table class="evolucion">
+          <thead><tr><th>Consultado el</th>${nombresFuente.map(f => `<th>${escapeHtml(fuentes[f])}</th>`).join('')}</tr></thead>
+          <tbody>${filas}</tbody>
+        </table>
+      </div>`;
+  }
+</script>
+</body>
+</html>
