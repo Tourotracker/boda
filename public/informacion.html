@@ -226,6 +226,14 @@
     line-height:1.6;
     margin-bottom:14px;
   }
+  .clima-eventos{display:flex; flex-wrap:wrap; gap:10px; margin-bottom:16px;}
+  .clima-chip{flex:1; min-width:110px; background:#fff; border:1px solid var(--line); border-radius:10px; padding:10px 12px; text-align:center;}
+  .clima-chip .clima-hora{font-size:11px; font-weight:600; letter-spacing:.04em; text-transform:uppercase; color:var(--gray); margin-bottom:2px;}
+  .clima-chip .clima-icono{font-size:22px;}
+  .clima-chip .clima-temp{font-family:'Cormorant Garamond', serif; font-weight:600; font-size:20px; color:var(--gold); margin:2px 0;}
+  .clima-chip .clima-lluvia{font-size:11px; color:var(--gray);}
+  .clima-informe{font-size:14px; color:var(--ink); line-height:1.7; white-space:pre-wrap;}
+  .clima-nota{font-size:11px; color:var(--gray); margin-top:10px;}
   .proximamente{
     font-size:14px;
     color:var(--gray);
@@ -293,6 +301,14 @@
     </div>
   </section>
 
+  <section class="info-block" id="climaBlock">
+    <div class="info-heading">El tiempo</div>
+    <div class="clima-eventos" id="climaEventos"></div>
+    <p class="clima-informe" id="climaInformeTexto"></p>
+    <p class="proximamente" id="climaProximamente">Información próximamente.</p>
+    <p class="clima-nota" id="climaNota"></p>
+  </section>
+
   <section class="info-block">
     <div class="info-heading">Autobuses</div>
     <p class="proximamente">Información próximamente.</p>
@@ -338,6 +354,58 @@
     return match ? decodeURIComponent(match.pop()) : '';
   }
   const guestToken = getCookie('guestToken');
+
+  const CLIMA_TIEMPO_TEXTO = {
+    0: '☀️', 1: '🌤️', 2: '⛅', 3: '☁️',
+    45: '🌫️', 48: '🌫️',
+    51: '🌦️', 53: '🌦️', 55: '🌦️', 56: '🌧️', 57: '🌧️',
+    61: '🌧️', 63: '🌧️', 65: '🌧️', 66: '🌧️', 67: '🌧️',
+    71: '❄️', 73: '❄️', 75: '❄️', 77: '🌨️',
+    80: '🌦️', 81: '🌦️', 82: '🌦️', 85: '🌨️', 86: '🌨️',
+    95: '⛈️', 96: '⛈️', 99: '⛈️'
+  };
+  function iconoClima(codigo) {
+    return CLIMA_TIEMPO_TEXTO[codigo] || '🌡️';
+  }
+
+  async function cargarClima() {
+    const bloque = document.getElementById('climaBlock');
+    const cajaEventos = document.getElementById('climaEventos');
+    const cajaInforme = document.getElementById('climaInformeTexto');
+    const cajaProximamente = document.getElementById('climaProximamente');
+    const cajaNota = document.getElementById('climaNota');
+    try {
+      const res = await fetch('/api/clima/publico');
+      if (!res.ok) throw new Error('No disponible');
+      const datos = await res.json();
+      const hayEventos = datos.eventos.some(ev => datos.resumenEventos[ev.id]);
+      const hayInforme = !!(datos.informe && datos.informe.texto);
+      if (!hayEventos && !hayInforme) return; // se queda el "Información próximamente" por defecto
+
+      cajaProximamente.style.display = 'none';
+
+      if (hayEventos) {
+        cajaEventos.innerHTML = datos.eventos.map(ev => {
+          const r = datos.resumenEventos[ev.id];
+          if (!r) return `<div class="clima-chip"><div class="clima-hora">${ev.nombre}</div><div class="clima-lluvia">Sin previsión aún</div></div>`;
+          return `<div class="clima-chip">
+            <div class="clima-hora">${ev.nombre} · ${ev.horaMostrada}</div>
+            <div class="clima-icono">${iconoClima(r.codigo_tiempo)}</div>
+            <div class="clima-temp">${r.temp !== null ? Math.round(r.temp) + '°' : '—'}</div>
+            <div class="clima-lluvia">${r.prob_precipitacion !== null ? '💧 ' + r.prob_precipitacion + '%' : ''}</div>
+          </div>`;
+        }).join('');
+      }
+
+      if (hayInforme) {
+        cajaInforme.textContent = datos.informe.texto;
+        cajaNota.textContent = 'Previsión orientativa, actualizada cada día — puede cambiar según se acerque la fecha.';
+      }
+    } catch (err) {
+      // Sin clima todavía: se queda el bloque con "Información próximamente".
+    }
+  }
+  cargarClima();
 
   function registrarEvento(tipo) {
     if (!guestToken) return;
