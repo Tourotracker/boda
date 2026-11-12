@@ -45,6 +45,11 @@
   .toolbar{display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap; align-items:center;}
   .nota-actualizacion{font-size:12px; color:var(--muted);}
 
+  .informe{background:#fff; border-radius:var(--radius-lg); box-shadow:var(--shadow-card); padding:20px 24px; margin-bottom:20px; border-left:4px solid var(--gold);}
+  .informe .informe-titulo{font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin-bottom:4px;}
+  .informe .informe-fecha{font-size:12px; color:var(--muted); margin-bottom:10px;}
+  .informe .informe-texto{font-size:15px; line-height:1.6; white-space:pre-wrap;}
+
   .horario{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:20px;}
   .horario-item{background:#fff; border-radius:var(--radius-md); box-shadow:var(--shadow-card); padding:10px 14px; font-size:13px; min-width:140px;}
   .horario-item .h{font-weight:700; color:var(--gold);}
@@ -108,6 +113,8 @@
     </div>
   </div>
 
+  <div id="informeWrap"></div>
+
   <div class="horario" id="horario"></div>
 
   <div class="toolbar">
@@ -154,6 +161,7 @@
   let fechaBoda = '';
   let eventos = [];
   let previsiones = [];
+  let informe = null;
   let eventoActual = 'ceremonia';
 
   function escapeHtml(str) {
@@ -228,6 +236,7 @@
     fechaBoda = datos.fechaBoda;
     eventos = datos.eventos;
     previsiones = datos.previsiones;
+    informe = datos.informe;
     render();
   }
 
@@ -256,6 +265,13 @@
     document.getElementById('cabFecha').textContent = fechaLarga(fechaBoda);
     const dias = Math.round((new Date(fechaBoda + 'T00:00:00Z') - new Date(hoyIso() + 'T00:00:00Z')) / 86400000);
     document.getElementById('cabDias').textContent = dias > 0 ? dias : (dias === 0 ? '¡Hoy!' : 'Ya pasó');
+
+    document.getElementById('informeWrap').innerHTML = !informe ? '' : `
+      <div class="informe">
+        <div class="informe-titulo">Informe del día</div>
+        <div class="informe-fecha">${fechaCorta(informe.fecha)}</div>
+        <div class="informe-texto">${escapeHtml(informe.texto)}</div>
+      </div>`;
 
     document.getElementById('horario').innerHTML = eventos.map(ev =>
       `<div class="horario-item"><span class="h">${escapeHtml(ev.horaMostrada)}</span> — ${escapeHtml(ev.nombre)}</div>`
