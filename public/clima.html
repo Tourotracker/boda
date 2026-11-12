@@ -45,6 +45,15 @@
   .toolbar{display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap; align-items:center;}
   .nota-actualizacion{font-size:12px; color:var(--muted);}
 
+  .horario{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:20px;}
+  .horario-item{background:#fff; border-radius:var(--radius-md); box-shadow:var(--shadow-card); padding:10px 14px; font-size:13px; min-width:140px;}
+  .horario-item .h{font-weight:700; color:var(--gold);}
+
+  .pestanas{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:18px;}
+  .pestana{background:#F5F2EE; color:var(--ink); box-shadow:none; font-weight:600; padding:9px 14px; border-radius:999px;}
+  .pestana:hover{background:#ECE6DF; transform:none;}
+  .pestana.activa{background:var(--gold); color:#fff;}
+
   .seccion-titulo{font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin:0 0 10px;}
   .fuentes{display:grid; grid-template-columns:repeat(auto-fit, minmax(160px, 1fr)); gap:14px; margin-bottom:28px;}
   .fuente{background:#fff; border-radius:var(--radius-md); box-shadow:var(--shadow-card); padding:16px; text-align:center;}
@@ -99,10 +108,14 @@
     </div>
   </div>
 
+  <div class="horario" id="horario"></div>
+
   <div class="toolbar">
     <button id="actualizarAhora">Actualizar previsión ahora</button>
     <span class="nota-actualizacion" id="notaActualizacion"></span>
   </div>
+
+  <div class="pestanas" id="pestanasEvento"></div>
 
   <div class="seccion-titulo">Previsión de hoy, por fuente</div>
   <div class="fuentes" id="fuentesHoy"></div>
@@ -139,7 +152,9 @@
   let adminToken = '';
   let fuentes = {};
   let fechaBoda = '';
+  let eventos = [];
   let previsiones = [];
+  let eventoActual = 'ceremonia';
 
   function escapeHtml(str) {
     if (str === null || str === undefined) return '';
@@ -211,6 +226,7 @@
     const datos = await api('/api/clima');
     fuentes = datos.fuentes;
     fechaBoda = datos.fechaBoda;
+    eventos = datos.eventos;
     previsiones = datos.previsiones;
     render();
   }
@@ -241,16 +257,13 @@
     const dias = Math.round((new Date(fechaBoda + 'T00:00:00Z') - new Date(hoyIso() + 'T00:00:00Z')) / 86400000);
     document.getElementById('cabDias').textContent = dias > 0 ? dias : (dias === 0 ? '¡Hoy!' : 'Ya pasó');
 
-    const porFuenteHoy = new Map();
-    for (const p of previsiones) {
-      if (p.fecha_consulta === hoyIso() && !porFuenteHoy.has(p.fuente)) porFuenteHoy.set(p.fuente, p);
-    }
-    // Si todavía no se ha consultado hoy, se usa la consulta más reciente que haya.
-    if (!porFuenteHoy.size) {
-      for (const p of previsiones) {
-        if (!porFuenteHoy.has(p.fuente)) porFuenteHoy.set(p.fuente, p);
-      }
-    }
+    document.getElementById('horario').innerHTML = eventos.map(ev =>
+      `<div class="horario-item"><span class="h">${escapeHtml(ev.horaMostrada)}</span> — ${escapeHtml(ev.nombre)}</div>`
+    ).join('');
+
+    document.getElementById('pestanasEvento').innerHTML = eventos.map(ev =>
+      `<button type="button" class="pestana ${eventoActual === ev.id ? 'activa' : ''}" data-evento="${ev.id}">${escapeHtml(ev.nombre)}</button>`
+    ).join('');
 
     const nombresFuente = Object.keys(fuentes);
     if (!previsiones.length) {
@@ -260,8 +273,21 @@
       return;
     }
 
+    const previsionesEvento = previsiones.filter(p => p.evento === eventoActual);
+
     const ultimaConsulta = previsiones.reduce((max, p) => p.fecha_consulta > max ? p.fecha_consulta : max, previsiones[0].fecha_consulta);
     document.getElementById('notaActualizacion').textContent = `Última consulta guardada: ${fechaCorta(ultimaConsulta)}`;
+
+    const porFuenteHoy = new Map();
+    for (const p of previsionesEvento) {
+      if (p.fecha_consulta === hoyIso() && !porFuenteHoy.has(p.fuente)) porFuenteHoy.set(p.fuente, p);
+    }
+    // Si todavía no se ha consultado hoy, se usa la consulta más reciente que haya.
+    if (!porFuenteHoy.size) {
+      for (const p of previsionesEvento) {
+        if (!porFuenteHoy.has(p.fuente)) porFuenteHoy.set(p.fuente, p);
+      }
+    }
 
     document.getElementById('fuentesHoy').innerHTML = nombresFuente.map(f => {
       const p = porFuenteHoy.get(f);
@@ -271,34 +297,42 @@
         <div class="fuente">
           <div class="icono">${t.icono}</div>
           <div class="nombre">${escapeHtml(fuentes[f])}</div>
-          <div class="temp">${p.temp_max !== null ? Math.round(p.temp_max) + '°' : '—'} / ${p.temp_min !== null ? Math.round(p.temp_min) + '°' : '—'}</div>
-          <div class="detalle">${escapeHtml(t.texto)}</div>
+          <div class="temp">${p.temp !== null ? Math.round(p.temp) + '°' : '—'}</div>
+          <div class="detalle">${escapeHtml(t.texto)}${p.sensacion_termica !== null ? ' · sensación ' + Math.round(p.sensacion_termica) + '°' : ''}</div>
           <div class="detalle">💧 ${p.prob_precipitacion !== null ? p.prob_precipitacion + '%' : '—'}${p.viento_kmh !== null ? ' · 💨 ' + Math.round(p.viento_kmh) + ' km/h' : ''}</div>
         </div>`;
     }).join('');
 
-    const fechasConsulta = [...new Set(previsiones.map(p => p.fecha_consulta))].sort((a, b) => b.localeCompare(a));
+    const fechasConsulta = [...new Set(previsionesEvento.map(p => p.fecha_consulta))].sort((a, b) => b.localeCompare(a));
     const porFechaYFuente = new Map();
-    for (const p of previsiones) porFechaYFuente.set(p.fecha_consulta + '|' + p.fuente, p);
+    for (const p of previsionesEvento) porFechaYFuente.set(p.fecha_consulta + '|' + p.fuente, p);
 
     const filas = fechasConsulta.map(fecha => {
       const celdas = nombresFuente.map(f => {
         const p = porFechaYFuente.get(fecha + '|' + f);
         if (!p) return `<td class="celda-fuente sin-dato">—</td>`;
         const t = textoTiempo(p.codigo_tiempo);
-        return `<td class="celda-fuente" title="${escapeHtml(t.texto)}">${t.icono} ${p.temp_max !== null ? Math.round(p.temp_max) + '°' : '—'}/${p.temp_min !== null ? Math.round(p.temp_min) + '°' : '—'} · 💧${p.prob_precipitacion !== null ? p.prob_precipitacion + '%' : '—'}</td>`;
+        return `<td class="celda-fuente" title="${escapeHtml(t.texto)}">${t.icono} ${p.temp !== null ? Math.round(p.temp) + '°' : '—'} · 💧${p.prob_precipitacion !== null ? p.prob_precipitacion + '%' : '—'}</td>`;
       }).join('');
       return `<tr><td class="fecha">${fechaCorta(fecha)}</td>${celdas}</tr>`;
     }).join('');
 
-    document.getElementById('evolucionWrap').innerHTML = `
-      <div class="tabla-wrap">
-        <table class="evolucion">
-          <thead><tr><th>Consultado el</th>${nombresFuente.map(f => `<th>${escapeHtml(fuentes[f])}</th>`).join('')}</tr></thead>
-          <tbody>${filas}</tbody>
-        </table>
-      </div>`;
+    document.getElementById('evolucionWrap').innerHTML = !fechasConsulta.length
+      ? `<div class="vacio-grande">Todavía no hay datos guardados para este momento (puede que esté fuera del rango de 16 días de previsión).</div>`
+      : `<div class="tabla-wrap">
+          <table class="evolucion">
+            <thead><tr><th>Consultado el</th>${nombresFuente.map(f => `<th>${escapeHtml(fuentes[f])}</th>`).join('')}</tr></thead>
+            <tbody>${filas}</tbody>
+          </table>
+        </div>`;
   }
+
+  document.getElementById('pestanasEvento').addEventListener('click', e => {
+    const b = e.target.closest('[data-evento]');
+    if (!b) return;
+    eventoActual = b.dataset.evento;
+    render();
+  });
 </script>
 </body>
 </html>
