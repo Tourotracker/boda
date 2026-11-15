@@ -48,7 +48,12 @@
   }
   .stat .n{font-family:'Cormorant Garamond',serif; font-size:28px; color:var(--gold);}
   .stat .l{font-size:12px; color:#8A8275; text-transform:uppercase; letter-spacing:.05em;}
-  .toolbar{display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap;}
+  .toolbar{display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap; align-items:center;}
+  .buscador{
+    flex:1; min-width:200px; padding:10px 14px; border:1.5px solid var(--line); border-radius:var(--radius-sm);
+    font-size:14px; font-family:inherit; background:#fff; color:var(--ink);
+  }
+  .buscador:focus{outline:none; border-color:var(--gold);}
   .btn-secundario{
     background:#fff; color:var(--gold); border:1.5px solid var(--gold);
     box-shadow:none;
@@ -138,6 +143,8 @@
     padding:0 4px; font-weight:700;
   }
   .chip-quitar:hover{background:none; color:#B05A4A; transform:none;}
+  .chip.resaltado, .chip-mesa.resaltado{background:#F6D9A8; border-color:#C9962E;}
+  .mesa.sin-coincidencia{opacity:.35;}
 
   @media (max-width:760px){
     .layout{flex-direction:column;}
@@ -167,7 +174,9 @@
     <button id="actualizar" class="btn-secundario">Actualizar</button>
     <button id="exportarPorMesa" class="btn-secundario">Excel por mesa</button>
     <button id="exportarPorInvitado" class="btn-secundario">Excel por invitado</button>
+    <button id="plegarTodas" class="btn-secundario">Desplegar todas</button>
     <button id="pantallaCompleta" class="btn-secundario">⛶ Pantalla completa</button>
+    <input type="search" id="buscador" class="buscador" placeholder="Buscar invitado por nombre…">
   </div>
 
   <div class="layout" id="layout">
@@ -239,6 +248,24 @@
     mesas = await resMesas.json();
     render();
   }
+
+  const btnPlegarTodas = document.getElementById('plegarTodas');
+  function todasLasMesasAbiertas() {
+    return mesas.length > 0 && mesas.every(m => mesasAbiertas.has(m.id));
+  }
+  function actualizarBotonPlegarTodas() {
+    btnPlegarTodas.textContent = todasLasMesasAbiertas() ? 'Plegar todas' : 'Desplegar todas';
+    btnPlegarTodas.disabled = mesas.length === 0;
+  }
+  btnPlegarTodas.addEventListener('click', () => {
+    if (todasLasMesasAbiertas()) {
+      mesasAbiertas.clear();
+    } else {
+      mesas.forEach(m => mesasAbiertas.add(m.id));
+    }
+    actualizarBotonPlegarTodas();
+    renderLienzo();
+  });
 
   document.getElementById('actualizar').addEventListener('click', cargarTodo);
 
@@ -318,6 +345,22 @@
     return `${escapeHtml(r.nombre)} ${escapeHtml(r.apellidos)}${acomp}`;
   }
 
+  // Búsqueda por nombre, insensible a mayúsculas y acentos.
+  let busqueda = '';
+  function normalizar(s) {
+    return String(s || '').toLocaleLowerCase('es').normalize('NFD').replace(/[̀-ͯ]/g, '');
+  }
+  function coincideBusqueda(r) {
+    if (!busqueda) return false;
+    const texto = normalizar(`${r.nombre} ${r.apellidos} ${r.acompanante_nombre || ''} ${r.acompanante_apellidos || ''}`);
+    return texto.includes(busqueda);
+  }
+
+  document.getElementById('buscador').addEventListener('input', (e) => {
+    busqueda = normalizar(e.target.value.trim());
+    render();
+  });
+
   function render() {
     const sinMesa = respuestas.filter(r => necesitaMesa(r) && !r.mesa_id);
     const totalPersonasSinMesa = sinMesa.reduce((n, r) => n + personasFila(r), 0);
@@ -334,6 +377,7 @@
 
     renderSidebar(sinMesa);
     renderLienzo();
+    actualizarBotonPlegarTodas();
   }
 
   // Qué grupos se han desplegado, para que sigan abiertos entre renders
@@ -343,10 +387,11 @@
   // para poder colocarlas sin que ocupen media pantalla cada una.
   const mesasAbiertas = new Set();
 
-  function renderSidebar(sinMesa) {
+  function renderSidebar(sinMesaOriginal) {
     const cont = document.getElementById('sidebarContenido');
+    const sinMesa = busqueda ? sinMesaOriginal.filter(coincideBusqueda) : sinMesaOriginal;
     if (!sinMesa.length) {
-      cont.innerHTML = '<div class="sidebar-vacio">Todos los que vienen a toda la boda ya tienen mesa.</div>';
+      cont.innerHTML = `<div class="sidebar-vacio">${busqueda ? 'Nadie sin mesa coincide con la búsqueda.' : 'Todos los que vienen a toda la boda ya tienen mesa.'}</div>`;
       return;
     }
     const comparar = (a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' });
@@ -356,7 +401,7 @@
       .filter(b => b.filas.length);
 
     cont.innerHTML = bloques.map(({ g, filas }) => {
-      const abierto = gruposAbiertos.has(g);
+      const abierto = busqueda ? true : gruposAbiertos.has(g);
       return `
       <div class="grupo-sidebar">
         <div class="grupo-cabecera" data-toggle-grupo="${escapeHtml(g)}">
@@ -365,7 +410,7 @@
         </div>
         <div class="grupo-contenido" style="display:${abierto ? 'block' : 'none'}">
           ${filas.map(r => `
-            <div class="chip" draggable="true" data-id="${r.id}">
+            <div class="chip ${busqueda ? 'resaltado' : ''}" draggable="true" data-id="${r.id}">
               ${nombreFicha(r)} <span class="n-personas">(${personasFila(r)})</span>
             </div>
           `).join('')}
@@ -398,9 +443,13 @@
       const asignados = respuestas.filter(r => r.mesa_id === m.id);
       const ocupadas = asignados.reduce((n, r) => n + personasFila(r), 0);
       const sobreCapacidad = ocupadas > m.capacidad;
-      const plegada = !mesasAbiertas.has(m.id);
+      const hayCoincidencia = busqueda ? asignados.some(coincideBusqueda) : false;
+      const sinCoincidencia = busqueda && !hayCoincidencia;
+      // Buscando: se despliega sola la mesa de quien coincide, y se atenúan
+      // las demás para que destaque. Sin búsqueda, manda el plegado manual.
+      const plegada = busqueda ? !hayCoincidencia : !mesasAbiertas.has(m.id);
       return `
-        <div class="mesa ${sobreCapacidad ? 'sobre-capacidad' : ''} ${plegada ? 'plegada' : ''}" style="left:${m.pos_x}px; top:${m.pos_y}px;" data-id="${m.id}">
+        <div class="mesa ${sobreCapacidad ? 'sobre-capacidad' : ''} ${plegada ? 'plegada' : ''} ${sinCoincidencia ? 'sin-coincidencia' : ''}" style="left:${m.pos_x}px; top:${m.pos_y}px;" data-id="${m.id}">
           <div class="mesa-cabecera" data-arrastre-mesa="${m.id}"${plegada ? ` data-mesa-drop="${m.id}" title="Suelta aquí para sentar en esta mesa"` : ''}>
             <button class="mesa-plegar" data-plegar="${m.id}" title="${plegada ? 'Desplegar' : 'Plegar'} mesa">${plegada ? '▸' : '▾'}</button>
             <div class="mesa-nombre" data-renombrar="${m.id}" title="Pulsa para renombrar">${escapeHtml(m.nombre)}</div>
@@ -409,7 +458,7 @@
           </div>
           <div class="mesa-cuerpo" data-mesa-drop="${m.id}">
             ${asignados.length ? asignados.map(r => `
-              <div class="chip-mesa" draggable="true" data-id="${r.id}">
+              <div class="chip-mesa ${busqueda && coincideBusqueda(r) ? 'resaltado' : ''}" draggable="true" data-id="${r.id}">
                 <span>${nombreFicha(r)} (${personasFila(r)})</span>
                 <button class="chip-quitar" data-quitar="${r.id}" title="Quitar de la mesa">×</button>
               </div>

@@ -97,6 +97,10 @@ async function initDB() {
   await pool.query(`ALTER TABLE rsvp ADD COLUMN IF NOT EXISTS mesa_id INTEGER REFERENCES mesas(id) ON DELETE SET NULL`);
   // Teléfono (solo panel) para escribir por WhatsApp los agradecimientos.
   await pool.query(`ALTER TABLE rsvp ADD COLUMN IF NOT EXISTS telefono VARCHAR(30) NOT NULL DEFAULT ''`);
+  // Corrección de datos: quien ya no viene a toda la boda no debe seguir
+  // ocupando una mesa (puede quedar así si antes de este arreglo se cambió
+  // la asistencia a "no"/"copas" sin liberar su mesa).
+  await pool.query(`UPDATE rsvp SET mesa_id = NULL WHERE asiste NOT IN ('completa', 'si') AND mesa_id IS NOT NULL`);
   await regalos.initDB(pool);
   await gastos.initDB(pool);
   await clima.initDB(pool);
@@ -208,7 +212,8 @@ app.post('/api/rsvp', async (req, res) => {
          asiste=EXCLUDED.asiste, con_acompanante=EXCLUDED.con_acompanante,
          acompanante_tratamiento=EXCLUDED.acompanante_tratamiento, acompanante_nombre=EXCLUDED.acompanante_nombre,
          acompanante_apellidos=EXCLUDED.acompanante_apellidos, acompanante_alergias=EXCLUDED.acompanante_alergias,
-         transporte=EXCLUDED.transporte, alergias=EXCLUDED.alergias, updated_at=NOW(), deleted_at=NULL, nuevo=TRUE`,
+         transporte=EXCLUDED.transporte, alergias=EXCLUDED.alergias, updated_at=NOW(), deleted_at=NULL, nuevo=TRUE,
+         mesa_id=CASE WHEN EXCLUDED.asiste IN ('completa', 'si') THEN rsvp.mesa_id ELSE NULL END`,
       [
         token,
         tratamiento || '', nombre, apellidos,
@@ -393,7 +398,8 @@ app.put('/api/respuestas/:id', requireAdmin, async (req, res) => {
          tratamiento=$1, nombre=$2, apellidos=$3, calle=$4, cp=$5, ciudad=$6, provincia=$7,
          asiste=$8, con_acompanante=$9, acompanante_tratamiento=$10, acompanante_nombre=$11,
          acompanante_apellidos=$12, acompanante_alergias=$13, transporte=$14, alergias=$15,
-         invitado_por=$16, grupo=$17, enviar_invitacion=$18, sobre_dos_apellidos=$19, telefono=$20, nuevo=FALSE, updated_at=NOW()
+         invitado_por=$16, grupo=$17, enviar_invitacion=$18, sobre_dos_apellidos=$19, telefono=$20, nuevo=FALSE, updated_at=NOW(),
+         mesa_id=CASE WHEN $8::varchar IN ('completa', 'si') THEN mesa_id ELSE NULL END
        WHERE id=$21
        RETURNING *`,
       [
