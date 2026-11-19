@@ -64,6 +64,8 @@ async function initDB() {
   await pool.query(`ALTER TABLE rsvp ADD COLUMN IF NOT EXISTS enviar_invitacion BOOLEAN NOT NULL DEFAULT FALSE`);
   // Sobre de matrimonio como "Sres. de <1er apellido marido> <1er apellido mujer>".
   await pool.query(`ALTER TABLE rsvp ADD COLUMN IF NOT EXISTS sobre_dos_apellidos BOOLEAN NOT NULL DEFAULT FALSE`);
+  // Tipología del invitado (joven/mayor), para poder filtrar.
+  await pool.query(`ALTER TABLE rsvp ADD COLUMN IF NOT EXISTS tipologia VARCHAR(10) NOT NULL DEFAULT ''`);
   await pool.query(`
     CREATE UNIQUE INDEX IF NOT EXISTS rsvp_guest_token_idx
     ON rsvp(guest_token) WHERE guest_token IS NOT NULL
@@ -118,6 +120,7 @@ async function registrarHistorial(rsvpId, accion, datosAnteriores) {
 // Desde el panel también se pueden dar de alta invitados que aún no han
 // contestado ('pendiente'); a esos no se les exige todavía la dirección.
 const ASISTE_ADMIN = ['completa', 'copas', 'no', 'pendiente'];
+const TIPOLOGIAS = ['joven', 'mayor'];
 
 function validarAdmin(body) {
   const { tratamiento, nombre, apellidos, calle, cp, ciudad, provincia, asiste } = body;
@@ -125,6 +128,7 @@ function validarAdmin(body) {
   if (!ASISTE_ADMIN.includes(asiste)) return 'Valor de asistencia no válido.';
   if (body.invitadoPor && !CATEGORIAS.invitadoPor.includes(body.invitadoPor)) return '"Invitado por" no válido.';
   if (body.grupo && !CATEGORIAS.grupos.includes(body.grupo)) return 'Grupo no válido.';
+  if (body.tipologia && !TIPOLOGIAS.includes(body.tipologia)) return 'Tipología no válida.';
   if ((asiste === 'completa' || asiste === 'copas') && (!tratamiento || !calle || !cp || !ciudad || !provincia)) {
     return 'Faltan campos obligatorios.';
   }
@@ -301,7 +305,7 @@ app.post('/api/respuestas', requireAdmin, async (req, res) => {
     tratamiento, nombre, apellidos,
     calle, cp, ciudad, provincia,
     asiste, conAcompanante, acompananteTratamiento, acompananteNombre, acompananteApellidos, acompananteAlergias,
-    transporte, alergias, invitadoPor, grupo, enviarInvitacion, sobreDosApellidos, telefono
+    transporte, alergias, invitadoPor, grupo, enviarInvitacion, sobreDosApellidos, telefono, tipologia
   } = req.body;
 
   const errorValidacion = validarAdmin(req.body);
@@ -313,15 +317,15 @@ app.post('/api/respuestas', requireAdmin, async (req, res) => {
     const { rows } = await pool.query(
       `INSERT INTO rsvp
         (tratamiento, nombre, apellidos, calle, cp, ciudad, provincia,
-         asiste, con_acompanante, acompanante_tratamiento, acompanante_nombre, acompanante_apellidos, acompanante_alergias, transporte, alergias, invitado_por, grupo, enviar_invitacion, sobre_dos_apellidos, telefono)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20)
+         asiste, con_acompanante, acompanante_tratamiento, acompanante_nombre, acompanante_apellidos, acompanante_alergias, transporte, alergias, invitado_por, grupo, enviar_invitacion, sobre_dos_apellidos, telefono, tipologia)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21)
        RETURNING *`,
       [
         tratamiento || '', nombre, apellidos,
         calle || '', cp || '', ciudad || '', provincia || '',
         asiste, conAcompanante || 'no', acompananteTratamiento || '', acompananteNombre || '', acompananteApellidos || '', acompananteAlergias || '',
         transporte || '', alergias || '', invitadoPor || '', grupo || '', enviarInvitacion === true, sobreDosApellidos === true,
-        String(telefono || '').trim().slice(0, 30)
+        String(telefono || '').trim().slice(0, 30), tipologia || ''
       ]
     );
     await registrarHistorial(rows[0].id, 'crear', rows[0]);
@@ -378,7 +382,7 @@ app.put('/api/respuestas/:id', requireAdmin, async (req, res) => {
     tratamiento, nombre, apellidos,
     calle, cp, ciudad, provincia,
     asiste, conAcompanante, acompananteTratamiento, acompananteNombre, acompananteApellidos, acompananteAlergias,
-    transporte, alergias, invitadoPor, grupo, enviarInvitacion, sobreDosApellidos, telefono
+    transporte, alergias, invitadoPor, grupo, enviarInvitacion, sobreDosApellidos, telefono, tipologia
   } = req.body;
 
   const errorValidacion = validarAdmin(req.body);
@@ -398,16 +402,16 @@ app.put('/api/respuestas/:id', requireAdmin, async (req, res) => {
          tratamiento=$1, nombre=$2, apellidos=$3, calle=$4, cp=$5, ciudad=$6, provincia=$7,
          asiste=$8, con_acompanante=$9, acompanante_tratamiento=$10, acompanante_nombre=$11,
          acompanante_apellidos=$12, acompanante_alergias=$13, transporte=$14, alergias=$15,
-         invitado_por=$16, grupo=$17, enviar_invitacion=$18, sobre_dos_apellidos=$19, telefono=$20, nuevo=FALSE, updated_at=NOW(),
+         invitado_por=$16, grupo=$17, enviar_invitacion=$18, sobre_dos_apellidos=$19, telefono=$20, tipologia=$21, nuevo=FALSE, updated_at=NOW(),
          mesa_id=CASE WHEN $8::varchar IN ('completa', 'si') THEN mesa_id ELSE NULL END
-       WHERE id=$21
+       WHERE id=$22
        RETURNING *`,
       [
         tratamiento || '', nombre, apellidos,
         calle || '', cp || '', ciudad || '', provincia || '',
         asiste, conAcompanante || 'no', acompananteTratamiento || '', acompananteNombre || '', acompananteApellidos || '', acompananteAlergias || '',
         transporte || '', alergias || '', invitadoPor || '', grupo || '', enviarInvitacion === true, sobreDosApellidos === true,
-        String(telefono || '').trim().slice(0, 30),
+        String(telefono || '').trim().slice(0, 30), tipologia || '',
         id
       ]
     );
@@ -468,16 +472,18 @@ app.get('/api/export/direcciones', requireAdmin, async (req, res) => {
 // Asignar categoría a varios invitados a la vez. Un campo vacío o ausente
 // no se modifica.
 app.post('/api/respuestas/categorias', requireAdmin, async (req, res) => {
-  const { ids, invitadoPor, grupo, sobreDosApellidos } = req.body;
+  const { ids, invitadoPor, grupo, sobreDosApellidos, tipologia } = req.body;
   if (!idsValidos(ids)) return res.status(400).json({ error: 'No hay invitados seleccionados.' });
   const nuevoInvitadoPor = typeof invitadoPor === 'string' && invitadoPor ? invitadoPor : null;
   const nuevoGrupo = typeof grupo === 'string' && grupo ? grupo : null;
   const nuevoDosApellidos = typeof sobreDosApellidos === 'boolean' ? sobreDosApellidos : null;
-  if (!nuevoInvitadoPor && !nuevoGrupo && nuevoDosApellidos === null) {
-    return res.status(400).json({ error: 'Elige "Invitado por", un grupo o el formato del sobre.' });
+  const nuevaTipologia = typeof tipologia === 'string' && tipologia ? tipologia : null;
+  if (!nuevoInvitadoPor && !nuevoGrupo && nuevoDosApellidos === null && !nuevaTipologia) {
+    return res.status(400).json({ error: 'Elige "Invitado por", un grupo, el formato del sobre o la tipología.' });
   }
   if (nuevoInvitadoPor && !CATEGORIAS.invitadoPor.includes(nuevoInvitadoPor)) return res.status(400).json({ error: '"Invitado por" no válido.' });
   if (nuevoGrupo && !CATEGORIAS.grupos.includes(nuevoGrupo)) return res.status(400).json({ error: 'Grupo no válido.' });
+  if (nuevaTipologia && !TIPOLOGIAS.includes(nuevaTipologia)) return res.status(400).json({ error: 'Tipología no válida.' });
 
   const client = await pool.connect();
   try {
@@ -493,9 +499,10 @@ app.post('/api/respuestas/categorias', requireAdmin, async (req, res) => {
          invitado_por = COALESCE($2, invitado_por),
          grupo = COALESCE($3, grupo),
          sobre_dos_apellidos = COALESCE($4, sobre_dos_apellidos),
+         tipologia = COALESCE($5, tipologia),
          updated_at = NOW()
        WHERE id = ANY($1::int[]) AND deleted_at IS NULL`,
-      [ids, nuevoInvitadoPor, nuevoGrupo, nuevoDosApellidos]
+      [ids, nuevoInvitadoPor, nuevoGrupo, nuevoDosApellidos, nuevaTipologia]
     );
     await client.query('COMMIT');
     res.json({ ok: true, actualizados: rowCount });

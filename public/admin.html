@@ -390,6 +390,12 @@
       <option value="no">No asiste</option>
       <option value="pendiente">Pendiente de contestar</option>
     </select>
+    <select id="filtroTipologia" class="filtro-asiste">
+      <option value="">Todas las tipologías</option>
+      <option value="joven">Joven</option>
+      <option value="mayor">Mayor</option>
+      <option value="sin">Sin clasificar</option>
+    </select>
     <details class="filtro-multi" id="filtroInvitadoPor">
       <summary>Invitado por</summary>
       <div class="filtro-panel">
@@ -430,6 +436,14 @@
       <div class="combo"><input type="text" id="bloqueGrupo" autocomplete="off" placeholder="Sin cambios"><ul class="combo-lista"></ul></div>
     </div>
     <div class="barra-campo">
+      <label for="bloqueTipologia">Tipología</label>
+      <select id="bloqueTipologia">
+        <option value="">Sin cambios</option>
+        <option value="joven">Joven</option>
+        <option value="mayor">Mayor</option>
+      </select>
+    </div>
+    <div class="barra-campo">
       <label for="bloqueSobre">Sobre (matrimonios)</label>
       <select id="bloqueSobre">
         <option value="">Sin cambios</option>
@@ -449,7 +463,7 @@
     <table>
       <thead>
         <tr>
-          <th class="th-check"><input type="checkbox" id="seleccionarTodos" title="Seleccionar todos los que se ven"></th><th>Fecha</th><th>Nombre</th><th>Apellidos</th><th>Categoría</th><th>Asiste</th>
+          <th class="th-check"><input type="checkbox" id="seleccionarTodos" title="Seleccionar todos los que se ven"></th><th>Fecha</th><th>Nombre</th><th>Apellidos</th><th>Categoría</th><th>Tipología</th><th>Asiste</th>
           <th>Acompañante</th><th>Trat. acomp.</th><th>Nombre acomp.</th><th>Apellidos acomp.</th><th>Transporte</th>
           <th>Alergias</th><th>Alergias acomp.</th><th>Dirección</th><th>Lista ECI</th><th>IBAN</th><th>Acciones</th>
         </tr>
@@ -474,6 +488,14 @@
         <div>
           <label for="editGrupo">Grupo</label>
           <div class="combo"><input type="text" id="editGrupo" autocomplete="off" placeholder="Escribe o elige..."><ul class="combo-lista"></ul></div>
+        </div>
+        <div>
+          <label for="editTipologia">Tipología</label>
+          <select id="editTipologia">
+            <option value="">—</option>
+            <option value="joven">Joven</option>
+            <option value="mayor">Mayor</option>
+          </select>
         </div>
         <div>
           <label for="editTratamiento">Tratamiento</label>
@@ -818,6 +840,12 @@
     return !filtro || estadoAsistencia(r) === filtro;
   }
 
+  function coincideTipologia(r, filtro) {
+    if (!filtro) return true;
+    if (filtro === 'sin') return !r.tipologia;
+    return r.tipologia === filtro;
+  }
+
   // Filtros de selección múltiple. '' representa "Sin asignar".
   const SIN_ASIGNAR = '';
   const filtrosMulti = {
@@ -921,8 +949,9 @@
     if (grupo === null) { mostrarToast('El grupo tiene que ser uno de los de la lista.'); return; }
     const sobreValor = document.getElementById('bloqueSobre').value;
     const sobreDosApellidos = sobreValor === 'dos' ? true : sobreValor === 'marido' ? false : undefined;
-    if (!invitadoPor && !grupo && sobreDosApellidos === undefined) {
-      mostrarToast('Elige "Invitado por", un grupo o el formato del sobre.');
+    const tipologia = document.getElementById('bloqueTipologia').value;
+    if (!invitadoPor && !grupo && sobreDosApellidos === undefined && !tipologia) {
+      mostrarToast('Elige "Invitado por", un grupo, el formato del sobre o la tipología.');
       return;
     }
 
@@ -930,6 +959,7 @@
     const cambios = [
       invitadoPor && `"Invitado por: ${invitadoPor}"`,
       grupo && `"Grupo: ${grupo}"`,
+      tipologia && `"Tipología: ${tipologia === 'joven' ? 'Joven' : 'Mayor'}"`,
       sobreDosApellidos === true && '"Sobre: Sres. + 1er apellido de cada uno"',
       sobreDosApellidos === false && '"Sobre: Sres. de + apellidos del hombre"'
     ].filter(Boolean).join(', ');
@@ -941,13 +971,14 @@
       const res = await fetch('/api/respuestas/categorias', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-admin-token': adminToken },
-        body: JSON.stringify({ ids, invitadoPor, grupo, sobreDosApellidos })
+        body: JSON.stringify({ ids, invitadoPor, grupo, sobreDosApellidos, tipologia })
       });
       const data = await res.json().catch(() => null);
       if (!res.ok) { mostrarToast((data && data.error) || 'No se ha podido asignar.'); return; }
       seleccionados.clear();
       document.getElementById('bloqueInvitadoPor').value = '';
       document.getElementById('bloqueGrupo').value = '';
+      document.getElementById('bloqueTipologia').value = '';
       document.getElementById('bloqueSobre').value = '';
       await recargar();
       mostrarToast(`Cambios aplicados a ${data.actualizados} invitado${data.actualizados === 1 ? '' : 's'}.`);
@@ -1015,11 +1046,12 @@
   function renderFiltrado() {
     const termino = normalizar(document.getElementById('buscador').value.trim());
     const filtroAsiste = document.getElementById('filtroAsiste').value;
+    const filtroTipologia = document.getElementById('filtroTipologia').value;
     const data = currentData.filter(r =>
-      coincideBusqueda(r, termino) && coincideAsiste(r, filtroAsiste) &&
+      coincideBusqueda(r, termino) && coincideAsiste(r, filtroAsiste) && coincideTipologia(r, filtroTipologia) &&
       filtrosMulti.invitadoPor.coincide(r.invitado_por) && filtrosMulti.grupo.coincide(r.grupo) &&
       (!soloNuevos || r.nuevo));
-    const hayFiltro = Boolean(termino || filtroAsiste || soloNuevos ||
+    const hayFiltro = Boolean(termino || filtroAsiste || filtroTipologia || soloNuevos ||
       filtrosMulti.invitadoPor.seleccion.size || filtrosMulti.grupo.seleccion.size);
 
     const nuevos = currentData.filter(r => r.nuevo).length;
@@ -1046,6 +1078,7 @@
         <td data-label="Categoría">${r.invitado_por || r.grupo
           ? `${escapeHtml(r.invitado_por) || '<span class="sin-asignar">—</span>'}<span class="categoria-grupo">${escapeHtml(r.grupo)}</span>`
           : '<span class="sin-asignar">Sin asignar</span>'}</td>
+        <td data-label="Tipología">${r.tipologia === 'joven' ? 'Joven' : r.tipologia === 'mayor' ? 'Mayor' : '<span class="sin-asignar">—</span>'}</td>
         <td data-label="Asiste" class="${r.asiste === 'no' ? 'no' : (r.asiste === 'pendiente' ? '' : 'si')}">${asisteLabel(r.asiste)}${r.asiste === 'no' && r.enviar_invitacion ? '<span class="icono-sobre" title="Se le envía la invitación por correo igualmente">✉</span>' : ''}</td>
         <td data-label="Acompañante">${r.con_acompanante === 'si' ? 'Sí' : 'No'}</td>
         <td data-label="Trat. acomp.">${escapeHtml(r.acompanante_tratamiento)}</td>
@@ -1184,6 +1217,7 @@
 
   document.getElementById('buscador').addEventListener('input', renderFiltrado);
   document.getElementById('filtroAsiste').addEventListener('change', renderFiltrado);
+  document.getElementById('filtroTipologia').addEventListener('change', renderFiltrado);
 
   function escapeHtml(str) {
     if (!str) return '';
@@ -1336,6 +1370,7 @@
     editandoId = r.id;
     document.getElementById('editInvitadoPor').value = r.invitado_por || '';
     document.getElementById('editGrupo').value = r.grupo || '';
+    document.getElementById('editTipologia').value = r.tipologia || '';
     precargarTratamiento(r.tratamiento, 'editTratamiento', 'editTratamientoOtro', 'editTratamientoOtroWrap');
     document.getElementById('editAsiste').value = (r.asiste === 'si' ? 'completa' : r.asiste) || 'completa';
     document.getElementById('editEnviarInvitacion').checked = Boolean(r.enviar_invitacion);
@@ -1367,6 +1402,7 @@
     editandoId = null;
     document.getElementById('editInvitadoPor').value = '';
     document.getElementById('editGrupo').value = '';
+    document.getElementById('editTipologia').value = '';
     precargarTratamiento('', 'editTratamiento', 'editTratamientoOtro', 'editTratamientoOtroWrap');
     document.getElementById('editAsiste').value = 'pendiente';
     document.getElementById('editEnviarInvitacion').checked = false;
@@ -1437,6 +1473,7 @@
       alergias: document.getElementById('editAlergias').value.trim(),
       invitadoPor: opcionExacta(document.getElementById('editInvitadoPor').value, CATEGORIAS.invitadoPor),
       grupo: opcionExacta(document.getElementById('editGrupo').value, CATEGORIAS.grupos),
+      tipologia: document.getElementById('editTipologia').value,
       enviarInvitacion: asiste === 'no' && document.getElementById('editEnviarInvitacion').checked,
       sobreDosApellidos: document.getElementById('editSobreDosApellidos').checked
     };
@@ -1577,6 +1614,7 @@
       { header: 'Tratamiento', valor: r => r.tratamiento || '' },
       { header: 'Invitado por', valor: r => r.invitado_por || '' },
       { header: 'Grupo', valor: r => r.grupo || '' },
+      { header: 'Tipología', valor: r => r.tipologia === 'joven' ? 'Joven' : r.tipologia === 'mayor' ? 'Mayor' : '' },
       { header: 'Nombre', valor: r => r.nombre || '' },
       { header: 'Apellidos', valor: r => r.apellidos || '' },
       { header: 'Alergias', valor: r => r.alergias || '' },
