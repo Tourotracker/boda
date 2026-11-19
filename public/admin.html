@@ -815,6 +815,23 @@
     const busIda = busIdaFichas + busIdaAcomp;
     const busVuelta = busVueltaFichas + busVueltaAcomp;
     const desgloseBus = (fichas, acomp) => `${fichas} invitado${fichas === 1 ? '' : 's'} + ${acomp} acompañante${acomp === 1 ? '' : 's'}`;
+
+    // Jóvenes/mayores confirmados: mismo criterio de "confirmado" que Total
+    // asistentes (toda la boda + copas), y el acompañante cuenta en la
+    // tipología de su invitado (no tiene una propia).
+    function porTipologiaConfirmada(tipo) {
+      let fichas = 0, acomp = 0;
+      for (const r of data) {
+        const e = estadoAsistencia(r);
+        if ((e !== 'completa' && e !== 'copas') || r.tipologia !== tipo) continue;
+        fichas += 1;
+        if (r.con_acompanante === 'si') acomp += 1;
+      }
+      return { fichas, acomp, total: fichas + acomp };
+    }
+    const jovenes = porTipologiaConfirmada('joven');
+    const mayores = porTipologiaConfirmada('mayor');
+
     const tarjeta = (n, etiqueta, sub, titulo, clase) =>
       `<div class="stat${clase ? ' ' + clase : ''}"${titulo ? ` title="${titulo}"` : ''}><div class="n">${n}</div><div class="l">${etiqueta}</div>${sub ? `<div class="l-sub">${sub}</div>` : ''}</div>`;
 
@@ -828,6 +845,8 @@
       ${tarjeta(pctAsistencia + '%', '% asistencia', 'de las fichas que han contestado', `${fichasVienen} de ${respuestas} fichas vienen`)}
       ${tarjeta(totalLista, 'Total invitados', 'con acompañantes', `Toda la boda ${personas('completa')} + Solo copas ${personas('copas')} + Pendientes ${personas('pendiente')} + No asisten ${personas('no')}`)}
       ${tarjeta(totalAsistentes, 'Total asistentes', 'toda la boda + copas', `Toda la boda ${personas('completa')} + Solo copas ${personas('copas')}`, 'highlight')}
+      ${tarjeta(jovenes.total, 'Jóvenes confirmados', 'con acompañantes', `${jovenes.fichas} invitado${jovenes.fichas === 1 ? '' : 's'} + ${jovenes.acomp} acompañante${jovenes.acomp === 1 ? '' : 's'} (toda la boda + copas)`)}
+      ${tarjeta(mayores.total, 'Mayores confirmados', 'con acompañantes', `${mayores.fichas} invitado${mayores.fichas === 1 ? '' : 's'} + ${mayores.acomp} acompañante${mayores.acomp === 1 ? '' : 's'} (toda la boda + copas)`)}
       ${tarjeta(busIda, 'Bus ida', desgloseBus(busIdaFichas, busIdaAcomp), 'Personas que necesitan el bus para ir: marcaron "Ida" o "Ida y vuelta"')}
       ${tarjeta(busVuelta, 'Bus vuelta', desgloseBus(busVueltaFichas, busVueltaAcomp), 'Personas que necesitan el bus para volver: marcaron "Vuelta" o "Ida y vuelta"')}
       <div class="stat" title="${qrScansUltimo ? 'Último escaneo: ' + fechaHora(qrScansUltimo) : 'Todavía no se ha escaneado'}"><div class="n">${qrScansTotal}</div><div class="l">Escaneos QR</div></div>
