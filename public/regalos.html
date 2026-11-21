@@ -56,7 +56,10 @@
   .pestana:hover{background:#ECE6DF; transform:none;}
   .pestana.activa{background:var(--gold); color:#fff;}
   .pestana .cuenta{opacity:.75; font-weight:500; margin-left:4px;}
-  .buscador{width:100%; max-width:420px; padding:11px 13px; border:1.5px solid var(--line); border-radius:var(--radius-sm); font-size:14px; font-family:inherit; margin-bottom:14px;}
+  .buscador{width:100%; max-width:420px; padding:11px 13px; border:1.5px solid var(--line); border-radius:var(--radius-sm); font-size:14px; font-family:inherit;}
+  .fila-buscador{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;}
+  .fila-buscador .buscador{margin-bottom:0;}
+  .filtro-invitado-por{padding:11px 13px; border:1.5px solid var(--line); border-radius:var(--radius-sm); font-size:14px; font-family:inherit; background:#fff;}
 
   .barra-seleccion{
     display:none; position:sticky; top:0; z-index:15; align-items:center; gap:10px; flex-wrap:wrap;
@@ -187,7 +190,16 @@
   </div>
 
   <div class="pestanas" id="pestanas"></div>
-  <input type="text" class="buscador" id="buscador" placeholder="Buscar por nombre, grupo, regalo...">
+  <div class="fila-buscador">
+    <input type="text" class="buscador" id="buscador" placeholder="Buscar por nombre, grupo, regalo...">
+    <select id="filtroInvitadoPor" class="filtro-invitado-por" title="Filtrar por quién invitó">
+      <option value="">Invitado por: todos</option>
+      <option value="Ignacio">Ignacio</option>
+      <option value="Ines">Inés</option>
+      <option value="Ambos">Ambos</option>
+      <option value="sin">Sin asignar</option>
+    </select>
+  </div>
 
   <div class="barra-seleccion" id="barraSeleccion">
     <strong id="barraTotal"></strong>
@@ -365,6 +377,7 @@
   let regalos = [];
   let plantilla = PLANTILLA_ORIGINAL;
   let pestana = 'pendientes';
+  let filtroInvitadoPor = '';
   const seleccion = new Set(); // claves "regaloId:rsvpId" (rsvpId vacío = regalo sin fichas)
 
   // ---------- utilidades ----------
@@ -487,6 +500,17 @@
     return new Set(regalos.flatMap(g => g.invitados.map(i => i.rsvp_id)));
   }
 
+  // Filtro "Invitado por": para saber de quién es cada agradecimiento
+  // pendiente. "sin" = sin ficha o ficha sin invitado_por asignado.
+  function coincideInvitadoPorFicha(f) {
+    if (!filtroInvitadoPor) return true;
+    if (filtroInvitadoPor === 'sin') return !f || !f.invitado_por;
+    return f && f.invitado_por === filtroInvitadoPor;
+  }
+  function destinosFiltrados(g) {
+    return destinosDe(g).filter(d => coincideInvitadoPorFicha(d.ficha));
+  }
+
   // ---------- render ----------
   function render() {
     const destinos = destinosTodos();
@@ -526,12 +550,14 @@
       <div class="stat"><div class="n">${destinos.filter(d => d.estado === 'enviado').length}</div><div class="l">Gracias enviadas</div></div>
       <div class="stat"><div class="n">${sinRegalo.length}</div><div class="l">Fichas sin regalo</div></div>`;
 
+    const sinRegaloFiltrado = sinRegalo.filter(coincideInvitadoPorFicha);
+    const indiciosFiltrado = indicios.filter(coincideInvitadoPorFicha);
     const pestanas = [
-      ['pendientes', 'Por agradecer', regalos.filter(g => destinosDe(g).some(d => d.estado !== 'enviado')).length],
-      ['agradecidos', 'Ya agradecidos', regalos.filter(g => destinosDe(g).every(d => d.estado === 'enviado')).length],
-      ['todos', 'Todos los regalos', regalos.length],
-      ['sinregalo', 'Sin regalo apuntado', sinRegalo.length],
-      ['indicios', 'Copiaron IBAN o vieron la lista', indicios.length]
+      ['pendientes', 'Por agradecer', regalos.filter(g => destinosFiltrados(g).some(d => d.estado !== 'enviado')).length],
+      ['agradecidos', 'Ya agradecidos', regalos.filter(g => { const d = destinosFiltrados(g); return d.length && d.every(d => d.estado === 'enviado'); }).length],
+      ['todos', 'Todos los regalos', regalos.filter(g => destinosFiltrados(g).length).length],
+      ['sinregalo', 'Sin regalo apuntado', sinRegaloFiltrado.length],
+      ['indicios', 'Copiaron IBAN o vieron la lista', indiciosFiltrado.length]
     ];
     document.getElementById('pestanas').innerHTML = pestanas.map(([id, texto, n]) =>
       `<button type="button" class="pestana ${pestana === id ? 'activa' : ''}" data-pestana="${id}">${texto}<span class="cuenta">${n}</span></button>`
@@ -540,11 +566,11 @@
     const termino = normalizar(document.getElementById('buscador').value.trim());
     const cont = document.getElementById('contenido');
     if (pestana === 'sinregalo' || pestana === 'indicios') {
-      renderFichas(cont, pestana === 'sinregalo' ? sinRegalo : indicios, termino, pestana === 'indicios');
+      renderFichas(cont, pestana === 'sinregalo' ? sinRegaloFiltrado : indiciosFiltrado, termino, pestana === 'indicios');
     } else {
-      let lista = regalos;
-      if (pestana === 'pendientes') lista = regalos.filter(g => destinosDe(g).some(d => d.estado !== 'enviado'));
-      if (pestana === 'agradecidos') lista = regalos.filter(g => destinosDe(g).every(d => d.estado === 'enviado'));
+      let lista = regalos.filter(g => destinosFiltrados(g).length);
+      if (pestana === 'pendientes') lista = lista.filter(g => destinosFiltrados(g).some(d => d.estado !== 'enviado'));
+      if (pestana === 'agradecidos') lista = lista.filter(g => destinosFiltrados(g).every(d => d.estado === 'enviado'));
       if (termino) lista = lista.filter(g => coincideRegalo(g, termino));
       renderRegalos(cont, lista);
     }
@@ -574,7 +600,7 @@
 
   function tarjetaRegalo(g) {
     const tipo = TIPOS[g.tipo] || TIPOS.otro;
-    const destinos = destinosDe(g);
+    const destinos = destinosFiltrados(g);
     const titulo = g.descripcion || tipo.texto;
     const detalle = [
       g.descripcion ? tipo.texto : '',
@@ -602,7 +628,7 @@
   function filaDestino(d) {
     const f = d.ficha;
     const quien = f
-      ? `${escapeHtml(nombreCompleto(f))}<small>${escapeHtml([f.grupo, f.telefono ? '📱 ' + f.telefono : ''].filter(Boolean).join(' · '))}</small>`
+      ? `${escapeHtml(nombreCompleto(f))}<small>${escapeHtml([f.invitado_por, f.grupo, f.telefono ? '📱 ' + f.telefono : ''].filter(Boolean).join(' · '))}</small>`
       : `${escapeHtml(d.regalo.de_parte_de)}<small>No está en la lista</small>`;
     const cuando = d.estado === 'enviado'
       ? [d.medio, d.fecha ? fechaCorta(d.fecha) : ''].filter(Boolean).join(' · ')
@@ -652,6 +678,10 @@
     render();
   });
   document.getElementById('buscador').addEventListener('input', render);
+  document.getElementById('filtroInvitadoPor').addEventListener('change', e => {
+    filtroInvitadoPor = e.target.value;
+    render();
+  });
 
   // ---------- agradecimientos ----------
   function parDe(clave) {
