@@ -515,8 +515,6 @@
   function render() {
     const destinos = destinosTodos();
     const pendientes = destinos.filter(d => d.estado !== 'enviado');
-    // Si alguien tiene varios regalos pendientes cuenta una sola vez como persona.
-    const personasPendientes = new Set(pendientes.filter(d => d.ficha).map(d => d.rsvpId)).size;
     const conRegalo = fichasConRegalo();
     const sinRegalo = fichas.filter(f => !conRegalo.has(f.id) && f.asiste !== 'no');
     const indicios = fichas.filter(f => !conRegalo.has(f.id) && (f.iban_copiado_at || f.lista_click_at));
@@ -549,9 +547,8 @@
       <div class="stat" title="Suma de los regalos registrados como Sobre en la boda."><div class="n">${euros(totalMetalico)}</div><div class="l">Metálico</div><div class="l-sub">sobre en la boda</div></div>
       <div class="stat" title="${euros(importeMedia)} entre ${personasMedia} persona${personasMedia === 1 ? '' : 's'} (invitados + acompañantes). Solo regalos con importe y de invitados de la lista."><div class="n">${euros(media)}</div><div class="l">Media por persona</div><div class="l-sub">invitado + acompañante</div></div>
       <div class="stat highlight"><div class="n">${pendientes.length}</div><div class="l">Gracias pendientes</div></div>
-      <div class="stat highlight" title="Personas distintas a las que aún les falta un agradecimiento (si alguien tiene varios regalos pendientes, cuenta una sola vez)."><div class="n">${personasPendientes}</div><div class="l">Personas pendientes</div></div>
       <div class="stat"><div class="n">${destinos.filter(d => d.estado === 'enviado').length}</div><div class="l">Gracias enviadas</div></div>
-      <div class="stat"><div class="n">${sinRegalo.length}</div><div class="l">Fichas sin regalo</div></div>`;
+      <div class="stat highlight" title="Fichas que vienen a la boda y todavía no tienen ningún regalo apuntado."><div class="n">${sinRegalo.length}</div><div class="l">Fichas sin regalo</div></div>`;
 
     const sinRegaloFiltrado = sinRegalo.filter(coincideInvitadoPorFicha);
     const indiciosFiltrado = indicios.filter(coincideInvitadoPorFicha);
