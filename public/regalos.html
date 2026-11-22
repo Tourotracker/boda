@@ -517,6 +517,8 @@
     const pendientes = destinos.filter(d => d.estado !== 'enviado');
     const conRegalo = fichasConRegalo();
     const sinRegalo = fichas.filter(f => !conRegalo.has(f.id) && f.asiste !== 'no');
+    // Cada ficha puede ser 1 persona o 2 (invitado + acompañante).
+    const personasSinRegalo = sinRegalo.reduce((n, f) => n + 1 + (f.con_acompanante === 'si' ? 1 : 0), 0);
     const indicios = fichas.filter(f => !conRegalo.has(f.id) && (f.iban_copiado_at || f.lista_click_at));
     const total = regalos.reduce((n, g) => n + (g.importe || 0), 0);
     const totalTransferencia = regalos.filter(g => g.tipo === 'transferencia').reduce((n, g) => n + (g.importe || 0), 0);
@@ -548,7 +550,8 @@
       <div class="stat" title="${euros(importeMedia)} entre ${personasMedia} persona${personasMedia === 1 ? '' : 's'} (invitados + acompañantes). Solo regalos con importe y de invitados de la lista."><div class="n">${euros(media)}</div><div class="l">Media por persona</div><div class="l-sub">invitado + acompañante</div></div>
       <div class="stat highlight"><div class="n">${pendientes.length}</div><div class="l">Gracias pendientes</div></div>
       <div class="stat"><div class="n">${destinos.filter(d => d.estado === 'enviado').length}</div><div class="l">Gracias enviadas</div></div>
-      <div class="stat highlight" title="Fichas que vienen a la boda y todavía no tienen ningún regalo apuntado."><div class="n">${sinRegalo.length}</div><div class="l">Fichas sin regalo</div></div>`;
+      <div class="stat" title="Fichas que vienen a la boda y todavía no tienen ningún regalo apuntado."><div class="n">${sinRegalo.length}</div><div class="l">Fichas sin regalo</div></div>
+      <div class="stat highlight" title="Personas (invitado + acompañante) que vienen a la boda y todavía no tienen ningún regalo apuntado."><div class="n">${personasSinRegalo}</div><div class="l">Personas sin regalo</div></div>`;
 
     const sinRegaloFiltrado = sinRegalo.filter(coincideInvitadoPorFicha);
     const indiciosFiltrado = indicios.filter(coincideInvitadoPorFicha);
