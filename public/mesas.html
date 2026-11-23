@@ -105,6 +105,10 @@
     overflow:auto; background-image:radial-gradient(circle, #E9E4DF 1px, transparent 1px);
     background-size:18px 18px;
   }
+  .lienzo-mundo{position:relative; transform-origin:0 0; transition:transform .15s ease;}
+  .zoom-controles{display:flex; gap:2px;}
+  .zoom-controles button{min-width:34px; padding:8px 10px;}
+  #zoomNivel{min-width:54px; font-variant-numeric:tabular-nums;}
   .mesa{
     position:absolute; width:230px; background:#fff; border-radius:var(--radius-md);
     box-shadow:var(--shadow-card); border:2px solid transparent;
@@ -179,6 +183,11 @@
       <button id="plegarTodas" class="btn-secundario">Desplegar todas</button>
       <button id="pantallaCompleta" class="btn-secundario">⛶ Pantalla completa</button>
       <button id="salirPantallaCompleta" class="btn-secundario btn-salir-fullscreen" title="Salir de pantalla completa (o pulsa Esc)">✕ Salir de pantalla completa</button>
+      <div class="zoom-controles">
+        <button id="zoomMenos" class="btn-secundario" title="Alejar">−</button>
+        <button id="zoomNivel" class="btn-secundario" title="Restablecer zoom">100%</button>
+        <button id="zoomMas" class="btn-secundario" title="Acercar">+</button>
+      </div>
       <input type="search" id="buscador" class="buscador" placeholder="Buscar invitado por nombre…">
     </div>
 
@@ -188,7 +197,7 @@
         <div class="ayuda">Arrastra cada tarjeta a la mesa que corresponda.</div>
         <div id="sidebarContenido"></div>
       </div>
-      <div class="lienzo" id="lienzo"></div>
+      <div class="lienzo" id="lienzo"><div class="lienzo-mundo" id="lienzoMundo"></div></div>
     </div>
   </div>
 </div>
@@ -348,6 +357,29 @@
     return `${escapeHtml(r.nombre)} ${escapeHtml(r.apellidos)}${acomp}`;
   }
 
+  // Zoom del plano: con 30 mesas la vista al 100% no cabe cómoda en pantalla.
+  const CLAVE_ZOOM = 'bodaMesasZoom';
+  let zoom = 1;
+  try { zoom = Number(localStorage.getItem(CLAVE_ZOOM)) || 1; } catch (err) {}
+  function aplicarZoom() {
+    document.getElementById('lienzoMundo').style.transform = `scale(${zoom})`;
+    document.getElementById('zoomNivel').textContent = Math.round(zoom * 100) + '%';
+    try { localStorage.setItem(CLAVE_ZOOM, String(zoom)); } catch (err) {}
+  }
+  document.getElementById('zoomMas').addEventListener('click', () => {
+    zoom = Math.min(1.5, Math.round((zoom + 0.1) * 10) / 10);
+    aplicarZoom();
+  });
+  document.getElementById('zoomMenos').addEventListener('click', () => {
+    zoom = Math.max(0.5, Math.round((zoom - 0.1) * 10) / 10);
+    aplicarZoom();
+  });
+  document.getElementById('zoomNivel').addEventListener('click', () => {
+    zoom = 1;
+    aplicarZoom();
+  });
+  aplicarZoom();
+
   // Búsqueda por nombre, insensible a mayúsculas y acentos.
   let busqueda = '';
   function normalizar(s) {
@@ -441,7 +473,7 @@
   }
 
   function renderLienzo() {
-    const lienzo = document.getElementById('lienzo');
+    const lienzo = document.getElementById('lienzoMundo');
     lienzo.innerHTML = mesas.map(m => {
       const asignados = respuestas.filter(r => r.mesa_id === m.id);
       const ocupadas = asignados.reduce((n, r) => n + personasFila(r), 0);
@@ -573,8 +605,10 @@
     }
     const lienzo = document.getElementById('lienzo');
     const rectLienzo = lienzo.getBoundingClientRect();
-    const x = Math.max(0, e.clientX - rectLienzo.left - arrastreActivo.offsetX + lienzo.scrollLeft);
-    const y = Math.max(0, e.clientY - rectLienzo.top - arrastreActivo.offsetY + lienzo.scrollTop);
+    // El lienzo en sí no tiene zoom (solo su contenido, "lienzoMundo"), así
+    // que el desplazamiento en pantalla hay que pasarlo a píxeles "reales".
+    const x = Math.max(0, (e.clientX - rectLienzo.left - arrastreActivo.offsetX + lienzo.scrollLeft) / zoom);
+    const y = Math.max(0, (e.clientY - rectLienzo.top - arrastreActivo.offsetY + lienzo.scrollTop) / zoom);
     arrastreActivo.el.style.left = x + 'px';
     arrastreActivo.el.style.top = y + 'px';
     arrastreActivo.nuevoX = Math.round(x);
