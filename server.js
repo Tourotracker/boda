@@ -66,6 +66,10 @@ async function initDB() {
   await pool.query(`ALTER TABLE rsvp ADD COLUMN IF NOT EXISTS sobre_dos_apellidos BOOLEAN NOT NULL DEFAULT FALSE`);
   // Tipología del invitado (joven/mayor), para poder filtrar.
   await pool.query(`ALTER TABLE rsvp ADD COLUMN IF NOT EXISTS tipologia VARCHAR(10) NOT NULL DEFAULT ''`);
+  // Título nobiliario (p.ej. "Pocastierras"), para cuando el sobre no va por
+  // apellidos sino "Ilmo. Sr(es). de <título>".
+  await pool.query(`ALTER TABLE rsvp ADD COLUMN IF NOT EXISTS titulo VARCHAR(100) NOT NULL DEFAULT ''`);
+  await pool.query(`ALTER TABLE rsvp ADD COLUMN IF NOT EXISTS acompanante_titulo VARCHAR(100) NOT NULL DEFAULT ''`);
   await pool.query(`
     CREATE UNIQUE INDEX IF NOT EXISTS rsvp_guest_token_idx
     ON rsvp(guest_token) WHERE guest_token IS NOT NULL
@@ -305,7 +309,7 @@ app.post('/api/respuestas', requireAdmin, async (req, res) => {
     tratamiento, nombre, apellidos,
     calle, cp, ciudad, provincia,
     asiste, conAcompanante, acompananteTratamiento, acompananteNombre, acompananteApellidos, acompananteAlergias,
-    transporte, alergias, invitadoPor, grupo, enviarInvitacion, sobreDosApellidos, telefono, tipologia
+    transporte, alergias, invitadoPor, grupo, enviarInvitacion, sobreDosApellidos, telefono, tipologia, titulo, acompananteTitulo
   } = req.body;
 
   const errorValidacion = validarAdmin(req.body);
@@ -317,15 +321,15 @@ app.post('/api/respuestas', requireAdmin, async (req, res) => {
     const { rows } = await pool.query(
       `INSERT INTO rsvp
         (tratamiento, nombre, apellidos, calle, cp, ciudad, provincia,
-         asiste, con_acompanante, acompanante_tratamiento, acompanante_nombre, acompanante_apellidos, acompanante_alergias, transporte, alergias, invitado_por, grupo, enviar_invitacion, sobre_dos_apellidos, telefono, tipologia)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21)
+         asiste, con_acompanante, acompanante_tratamiento, acompanante_nombre, acompanante_apellidos, acompanante_alergias, transporte, alergias, invitado_por, grupo, enviar_invitacion, sobre_dos_apellidos, telefono, tipologia, titulo, acompanante_titulo)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23)
        RETURNING *`,
       [
         tratamiento || '', nombre, apellidos,
         calle || '', cp || '', ciudad || '', provincia || '',
         asiste, conAcompanante || 'no', acompananteTratamiento || '', acompananteNombre || '', acompananteApellidos || '', acompananteAlergias || '',
         transporte || '', alergias || '', invitadoPor || '', grupo || '', enviarInvitacion === true, sobreDosApellidos === true,
-        String(telefono || '').trim().slice(0, 30), tipologia || ''
+        String(telefono || '').trim().slice(0, 30), tipologia || '', String(titulo || '').trim(), String(acompananteTitulo || '').trim()
       ]
     );
     await registrarHistorial(rows[0].id, 'crear', rows[0]);
@@ -382,7 +386,7 @@ app.put('/api/respuestas/:id', requireAdmin, async (req, res) => {
     tratamiento, nombre, apellidos,
     calle, cp, ciudad, provincia,
     asiste, conAcompanante, acompananteTratamiento, acompananteNombre, acompananteApellidos, acompananteAlergias,
-    transporte, alergias, invitadoPor, grupo, enviarInvitacion, sobreDosApellidos, telefono, tipologia
+    transporte, alergias, invitadoPor, grupo, enviarInvitacion, sobreDosApellidos, telefono, tipologia, titulo, acompananteTitulo
   } = req.body;
 
   const errorValidacion = validarAdmin(req.body);
@@ -402,16 +406,17 @@ app.put('/api/respuestas/:id', requireAdmin, async (req, res) => {
          tratamiento=$1, nombre=$2, apellidos=$3, calle=$4, cp=$5, ciudad=$6, provincia=$7,
          asiste=$8, con_acompanante=$9, acompanante_tratamiento=$10, acompanante_nombre=$11,
          acompanante_apellidos=$12, acompanante_alergias=$13, transporte=$14, alergias=$15,
-         invitado_por=$16, grupo=$17, enviar_invitacion=$18, sobre_dos_apellidos=$19, telefono=$20, tipologia=$21, nuevo=FALSE, updated_at=NOW(),
+         invitado_por=$16, grupo=$17, enviar_invitacion=$18, sobre_dos_apellidos=$19, telefono=$20, tipologia=$21,
+         titulo=$22, acompanante_titulo=$23, nuevo=FALSE, updated_at=NOW(),
          mesa_id=CASE WHEN $8::varchar IN ('completa', 'si') THEN mesa_id ELSE NULL END
-       WHERE id=$22
+       WHERE id=$24
        RETURNING *`,
       [
         tratamiento || '', nombre, apellidos,
         calle || '', cp || '', ciudad || '', provincia || '',
         asiste, conAcompanante || 'no', acompananteTratamiento || '', acompananteNombre || '', acompananteApellidos || '', acompananteAlergias || '',
         transporte || '', alergias || '', invitadoPor || '', grupo || '', enviarInvitacion === true, sobreDosApellidos === true,
-        String(telefono || '').trim().slice(0, 30), tipologia || '',
+        String(telefono || '').trim().slice(0, 30), tipologia || '', String(titulo || '').trim(), String(acompananteTitulo || '').trim(),
         id
       ]
     );

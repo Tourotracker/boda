@@ -520,12 +520,17 @@
             <option value="Sr.">Sr.</option>
             <option value="Sra.">Sra.</option>
             <option value="Srta.">Srta.</option>
+            <option value="Ilmo. Sr.">Ilmo. Sr.</option>
             <option value="Otro">Otro</option>
           </select>
         </div>
         <div class="tratamiento-otro" id="editTratamientoOtroWrap">
           <label for="editTratamientoOtro">Especifica el tratamiento</label>
           <input type="text" id="editTratamientoOtro" placeholder="Escribe aquí">
+        </div>
+        <div class="tratamiento-otro" id="editTituloWrap">
+          <label for="editTitulo">Título (opcional)</label>
+          <input type="text" id="editTitulo" placeholder="p. ej. Pocastierras">
         </div>
         <div>
           <label for="editAsiste">Asiste</label>
@@ -590,12 +595,17 @@
             <option value="Sr.">Sr.</option>
             <option value="Sra.">Sra.</option>
             <option value="Srta.">Srta.</option>
+            <option value="Ilmo. Sr.">Ilmo. Sr.</option>
             <option value="Otro">Otro</option>
           </select>
         </div>
         <div class="tratamiento-otro" id="editAcompananteTratamientoOtroWrap">
           <label for="editAcompananteTratamientoOtro">Especifica el tratamiento</label>
           <input type="text" id="editAcompananteTratamientoOtro" placeholder="Escribe aquí">
+        </div>
+        <div class="tratamiento-otro" id="editAcompananteTituloWrap">
+          <label for="editAcompananteTitulo">Título (opcional)</label>
+          <input type="text" id="editAcompananteTitulo" placeholder="p. ej. Pocastierras">
         </div>
         <div>
           <label for="editAcompananteNombre">Nombre acomp.</label>
@@ -1370,18 +1380,20 @@
 
   // "Otro" en el tratamiento necesita un texto propio (igual que en el
   // formulario del invitado): se muestra/oculta el campo según el select.
-  const TRATAMIENTOS_CONOCIDOS = ['Sr.', 'Sra.', 'Srta.'];
-  function actualizarTratamientoOtro(selectId, wrapId) {
-    const esOtro = document.getElementById(selectId).value === 'Otro';
-    document.getElementById(wrapId).classList.toggle('visible', esOtro);
+  const TRATAMIENTOS_CONOCIDOS = ['Sr.', 'Sra.', 'Srta.', 'Ilmo. Sr.'];
+  function actualizarTratamientoOtro(selectId, wrapId, tituloWrapId) {
+    const valor = document.getElementById(selectId).value;
+    document.getElementById(wrapId).classList.toggle('visible', valor === 'Otro');
+    if (tituloWrapId) document.getElementById(tituloWrapId).classList.toggle('visible', valor === 'Ilmo. Sr.');
   }
-  document.getElementById('editTratamiento').addEventListener('change', () => actualizarTratamientoOtro('editTratamiento', 'editTratamientoOtroWrap'));
-  document.getElementById('editAcompananteTratamiento').addEventListener('change', () => actualizarTratamientoOtro('editAcompananteTratamiento', 'editAcompananteTratamientoOtroWrap'));
+  document.getElementById('editTratamiento').addEventListener('change', () => actualizarTratamientoOtro('editTratamiento', 'editTratamientoOtroWrap', 'editTituloWrap'));
+  document.getElementById('editAcompananteTratamiento').addEventListener('change', () => actualizarTratamientoOtro('editAcompananteTratamiento', 'editAcompananteTratamientoOtroWrap', 'editAcompananteTituloWrap'));
 
   // Precarga el select de tratamiento con el valor guardado: si es uno de
   // los conocidos va directo al select; si es un texto libre (de "Otro"),
-  // selecciona "Otro" y pone el texto en su campo.
-  function precargarTratamiento(valor, selectId, otroInputId, wrapId) {
+  // selecciona "Otro" y pone el texto en su campo. El título nobiliario
+  // (solo con "Ilmo. Sr.") se precarga aparte.
+  function precargarTratamiento(valor, selectId, otroInputId, wrapId, tituloInputId, tituloWrapId, tituloValor) {
     const select = document.getElementById(selectId);
     const otroInput = document.getElementById(otroInputId);
     if (valor && !TRATAMIENTOS_CONOCIDOS.includes(valor)) {
@@ -1391,7 +1403,8 @@
       select.value = valor || '';
       otroInput.value = '';
     }
-    actualizarTratamientoOtro(selectId, wrapId);
+    if (tituloInputId) document.getElementById(tituloInputId).value = tituloValor || '';
+    actualizarTratamientoOtro(selectId, wrapId, tituloWrapId);
   }
 
   // La casilla solo tiene sentido para quien no viene: los demás ya reciben invitación.
@@ -1406,7 +1419,7 @@
     document.getElementById('editInvitadoPor').value = r.invitado_por || '';
     document.getElementById('editGrupo').value = r.grupo || '';
     document.getElementById('editTipologia').value = r.tipologia || '';
-    precargarTratamiento(r.tratamiento, 'editTratamiento', 'editTratamientoOtro', 'editTratamientoOtroWrap');
+    precargarTratamiento(r.tratamiento, 'editTratamiento', 'editTratamientoOtro', 'editTratamientoOtroWrap', 'editTitulo', 'editTituloWrap', r.titulo);
     document.getElementById('editAsiste').value = (r.asiste === 'si' ? 'completa' : r.asiste) || 'completa';
     document.getElementById('editEnviarInvitacion').checked = Boolean(r.enviar_invitacion);
     document.getElementById('editSobreDosApellidos').checked = Boolean(r.sobre_dos_apellidos);
@@ -1422,7 +1435,7 @@
     document.getElementById('editTransporte').value = r.transporte || 'no';
     document.getElementById('editAlergias').value = r.alergias || '';
     document.getElementById('editConAcompanante').value = r.con_acompanante || 'no';
-    precargarTratamiento(r.acompanante_tratamiento, 'editAcompananteTratamiento', 'editAcompananteTratamientoOtro', 'editAcompananteTratamientoOtroWrap');
+    precargarTratamiento(r.acompanante_tratamiento, 'editAcompananteTratamiento', 'editAcompananteTratamientoOtro', 'editAcompananteTratamientoOtroWrap', 'editAcompananteTitulo', 'editAcompananteTituloWrap', r.acompanante_titulo);
     document.getElementById('editAcompananteNombre').value = r.acompanante_nombre || '';
     document.getElementById('editAcompananteApellidos').value = r.acompanante_apellidos || '';
     document.getElementById('editAcompananteAlergias').value = r.acompanante_alergias || '';
@@ -1438,7 +1451,7 @@
     document.getElementById('editInvitadoPor').value = '';
     document.getElementById('editGrupo').value = '';
     document.getElementById('editTipologia').value = '';
-    precargarTratamiento('', 'editTratamiento', 'editTratamientoOtro', 'editTratamientoOtroWrap');
+    precargarTratamiento('', 'editTratamiento', 'editTratamientoOtro', 'editTratamientoOtroWrap', 'editTitulo', 'editTituloWrap', '');
     document.getElementById('editAsiste').value = 'pendiente';
     document.getElementById('editEnviarInvitacion').checked = false;
     document.getElementById('editSobreDosApellidos').checked = false;
@@ -1454,7 +1467,7 @@
     document.getElementById('editTransporte').value = 'no';
     document.getElementById('editAlergias').value = '';
     document.getElementById('editConAcompanante').value = 'no';
-    precargarTratamiento('', 'editAcompananteTratamiento', 'editAcompananteTratamientoOtro', 'editAcompananteTratamientoOtroWrap');
+    precargarTratamiento('', 'editAcompananteTratamiento', 'editAcompananteTratamientoOtro', 'editAcompananteTratamientoOtroWrap', 'editAcompananteTitulo', 'editAcompananteTituloWrap', '');
     document.getElementById('editAcompananteNombre').value = '';
     document.getElementById('editAcompananteApellidos').value = '';
     document.getElementById('editAcompananteAlergias').value = '';
@@ -1510,7 +1523,9 @@
       grupo: opcionExacta(document.getElementById('editGrupo').value, CATEGORIAS.grupos),
       tipologia: document.getElementById('editTipologia').value,
       enviarInvitacion: asiste === 'no' && document.getElementById('editEnviarInvitacion').checked,
-      sobreDosApellidos: document.getElementById('editSobreDosApellidos').checked
+      sobreDosApellidos: document.getElementById('editSobreDosApellidos').checked,
+      titulo: document.getElementById('editTitulo').value.trim(),
+      acompananteTitulo: document.getElementById('editAcompananteTitulo').value.trim()
     };
 
     if (payload.invitadoPor === null) {
