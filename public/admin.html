@@ -95,13 +95,27 @@
     padding:24px; text-align:center; color:#8A8275; font-size:14px; margin-bottom:16px;
   }
   table{
-    width:100%; table-layout:fixed; border-collapse:collapse; background:#fff;
+    width:100%; min-width:1450px; table-layout:fixed; background:#fff;
     font-size:13px;
+    /* position:sticky en una celda no funciona en Chrome con
+       border-collapse:collapse (solo con top/bottom, no con left/right).
+       Con solo border-bottom en las celdas, separate no cambia nada visual. */
+    border-collapse:separate; border-spacing:0;
   }
   th,td{text-align:left; padding:11px 12px; border-bottom:1px solid var(--line); word-wrap:break-word;}
   th{background:var(--gold-soft); font-weight:700; position:sticky; top:0;}
   tr:last-child td{border-bottom:none;}
   tr.fila-borrando{opacity:.4;}
+  /* La columna de Acciones (Editar/Eliminar/...) es la última de 17: con la
+     tabla desplazada horizontalmente quedaba fuera de la vista. Fija a la
+     derecha para que los botones estén siempre alcanzables sin desplazarse. */
+  @media (min-width:761px){
+    td.td-acciones, th:last-child{position:sticky; right:0; width:150px; box-shadow:-6px 0 6px -6px rgba(0,0,0,.18);}
+    td.td-acciones{background:#fff; z-index:2;}
+    th:last-child{z-index:6;}
+    tr.seleccionada td.td-acciones{background:#FBF3F0;}
+    tr.fila-nueva td.td-acciones{background:#FFF6E0;}
+  }
   th:nth-child(1){width:3%;}
   th:nth-child(2){width:5%;}
   th:nth-child(3){width:7%;}
@@ -118,7 +132,9 @@
   th:nth-child(14){width:9%;}
   th:nth-child(15){width:5%;}
   th:nth-child(16){width:5%;}
-  th:nth-child(17){width:10%;}
+  /* Ancho fijo en px, no %: con position:sticky, table-layout:fixed colapsa
+     a 0 el ancho de una columna porcentual en Chrome. */
+  th:nth-child(17){width:150px;}
   .td-check input, .th-check input{width:17px; height:17px; cursor:pointer; accent-color:var(--gold);}
   tr.seleccionada td{background:#FBF3F0;}
   tr.fila-nueva td{background:#FFF6E0;}
@@ -333,7 +349,7 @@
     .filtro-panel{width:100%; max-width:none;}
 
     .table-wrap{overflow-x:visible; border-radius:0; box-shadow:none; background:none;}
-    table{table-layout:auto;}
+    table{table-layout:auto; min-width:0;}
     thead{display:none;}
     table, tbody, tr, td{display:block; width:100%;}
     tr{
